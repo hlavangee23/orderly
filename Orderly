@@ -1,4 +1,7 @@
-index.html
-orderly-signup.html
-orderly-dashboard.html
-order-page.html
+{
+  "rewrites": [
+    { "source": "/", "destination": "/index.html" },
+    { "source": "/signup", "destination": "/orderly-signup.html" },
+    { "source": "/dashboard", "destination": "/orderly-dashboard.html" }
+  ]
+}
