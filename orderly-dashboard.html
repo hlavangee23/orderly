@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Orderly — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --white: #FFFFFF;
+  --off-white: #F8FAF7;
+  --green-900: #0F2318;
+  --green-700: #1A3D2B;
+  --green-500: #2D6A4F;
+  --green-400: #3D8B65;
+  --green-100: #E8F4ED;
+  --green-50: #F2FAF5;
+  --text: #0F2318;
+  --text-mid: #3D5A47;
+  --text-muted: #7A9A85;
+  --border: #D6EAD9;
+  --shadow-sm: 0 1px 4px rgba(15,35,24,0.06);
+  --shadow-md: 0 4px 20px rgba(15,35,24,0.08);
+  --radius: 12px;
+  --radius-lg: 16px;
+  --sidebar-w: 220px;
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--off-white);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  display: flex;
+}
+
+/* SIDEBAR */
+.sidebar {
+  width: var(--sidebar-w);
+  background: var(--green-900);
+  height: 100vh;
+  position: fixed;
+  left: 0; top: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem 0;
+  z-index: 50;
+}
+.sidebar-logo {
+  font-family: 'Instrument Serif', serif;
+  font-size: 1.3rem;
+  color: white;
+  padding: 0 1.5rem 1.5rem;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.sidebar-logo span { color: rgba(255,255,255,0.4); }
+.sidebar-store {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  margin-bottom: 0.5rem;
+}
+.sidebar-store-avatar {
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  background: var(--green-500);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Instrument Serif', serif;
+  font-size: 14px; color: white;
+  margin-bottom: 0.5rem;
+}
+.sidebar-store-name { font-size: 0.85rem; font-weight: 500; color: white; }
+.sidebar-store-link {
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.4);
+  display: flex; align-items: center; gap: 4px;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.sidebar-store-link:hover { color: rgba(255,255,255,0.7); }
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0.6rem 1.5rem;
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.5);
+  cursor: pointer;
+  transition: all 0.15s;
+  border-radius: 0;
+  text-decoration: none;
+}
+.nav-item:hover { color: white; background: rgba(255,255,255,0.05); }
+.nav-item.active { color: white; background: rgba(255,255,255,0.1); }
+.nav-item .icon { font-size: 1rem; width: 20px; text-align: center; }
+.nav-section-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(255,255,255,0.25);
+  padding: 1rem 1.5rem 0.4rem;
+}
+.sidebar-bottom {
+  margin-top: auto;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+.sidebar-bottom-name { font-size: 0.82rem; color: rgba(255,255,255,0.6); }
+.sidebar-bottom-role { font-size: 0.72rem; color: rgba(255,255,255,0.3); }
+
+/* MAIN */
+.main {
+  margin-left: var(--sidebar-w);
+  flex: 1;
+  padding: 2rem;
+  max-width: calc(100% - var(--sidebar-w));
+}
+
+/* TOP BAR */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+}
+.topbar-left h1 {
+  font-family: 'Instrument Serif', serif;
+  font-size: 1.6rem;
+  color: var(--green-900);
+  letter-spacing: -0.02em;
+}
+.topbar-left p { font-size: 0.82rem; color: var(--text-muted); margin-top: 2px; }
+.topbar-right { display: flex; align-items: center; gap: 10px; }
+.share-btn {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--green-50);
+  border: 1px solid var(--green-100);
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-size: 0.82rem;
+  color: var(--green-500);
+  font-weight: 500;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: all 0.2s;
+}
+.share-btn:hover { background: var(--green-100); }
+.notif-btn {
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem;
+  cursor: pointer;
+  position: relative;
+}
+.notif-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #22C55E;
+  position: absolute;
+  top: 6px; right: 6px;
+  border: 1.5px solid var(--off-white);
+}
+
+/* STAT CARDS */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+}
+.stat-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.4rem;
+  box-shadow: var(--shadow-sm);
+}
+.stat-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin-bottom: 0.6rem;
+}
+.stat-value {
+  font-family: 'Instrument Serif', serif;
+  font-size: 2rem;
+  color: var(--green-900);
+  line-height: 1;
+  margin-bottom: 0.35rem;
+}
+.stat-change {
+  font-size: 0.75rem;
+  color: #16A34A;
+  font-weight: 500;
+}
+.stat-change.down { color: #DC2626; }
+
+/* GRID LAYOUT */
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+/* CARD */
+.card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.1rem 1.4rem;
+  border-bottom: 1px solid var(--border);
+}
+.card-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--green-900);
+}
+.card-action {
+  font-size: 0.78rem;
+  color: var(--green-400);
+  cursor: pointer;
+  font-weight: 500;
+  background: none; border: none;
+  font-family: 'DM Sans', sans-serif;
+}
+.card-action:hover { color: var(--green-700); }
+
+/* ORDERS TABLE */
+.order-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0.85rem 1.4rem;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
+  cursor: pointer;
+}
+.order-row:last-child { border-bottom: none; }
+.order-row:hover { background: var(--off-white); }
+.order-status-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.dot-new { background: #22C55E; }
+.dot-pending { background: #F59E0B; }
+.dot-done { background: #D1D5DB; }
+.order-info { flex: 1; min-width: 0; }
+.order-customer { font-size: 0.85rem; font-weight: 500; color: var(--text); }
+.order-items { font-size: 0.75rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.order-meta { text-align: right; flex-shrink: 0; }
+.order-price { font-size: 0.9rem; font-weight: 600; color: var(--green-500); }
+.order-time { font-size: 0.72rem; color: var(--text-muted); margin-top: 1px; }
+.order-badge {
+  display: inline-block;
+  font-size: 0.68rem;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-weight: 500;
+  margin-left: 6px;
+}
+.badge-new { background: #DCFCE7; color: #15803D; }
+.badge-pending { background: #FEF3C7; color: #B45309; }
+.badge-done { background: #F3F4F6; color: #6B7280; }
+
+/* ACTION BUTTONS ON ORDER */
+.order-actions { display: flex; gap: 6px; }
+.action-btn {
+  font-size: 0.72rem;
+  padding: 3px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 500;
+  border: 1px solid var(--border);
+  background: var(--white);
+  color: var(--text-mid);
+  transition: all 0.15s;
+}
+.action-btn:hover { background: var(--off-white); }
+.action-btn.confirm {
+  background: var(--green-700);
+  color: white;
+  border-color: var(--green-700);
+}
+.action-btn.confirm:hover { background: var(--green-900); }
+
+/* CATALOG */
+.catalog-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0.75rem 1.4rem;
+  border-bottom: 1px solid var(--border);
+}
+.catalog-item:last-child { border-bottom: none; }
+.catalog-emoji {
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  background: var(--green-50);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+.catalog-name { font-size: 0.85rem; font-weight: 500; color: var(--text); flex: 1; }
+.catalog-price { font-size: 0.85rem; font-weight: 600; color: var(--green-500); }
+.catalog-edit {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: none; border: 1px solid var(--border);
+  font-family: 'DM Sans', sans-serif;
+  transition: all 0.15s;
+}
+.catalog-edit:hover { background: var(--off-white); color: var(--text); }
+
+/* ADD ITEM FORM */
+.add-item-row {
+  display: flex;
+  gap: 8px;
+  padding: 0.9rem 1.4rem;
+  background: var(--off-white);
+  border-top: 1px solid var(--border);
+}
+.add-input {
+  flex: 2;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.82rem;
+  color: var(--text);
+  background: var(--white);
+  outline: none;
+  transition: border-color 0.2s;
+}
+.add-input:focus { border-color: var(--green-400); }
+.add-input.price { flex: 1; }
+.add-btn {
+  background: var(--green-700);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s;
+}
+.add-btn:hover { background: var(--green-900); }
+
+/* QUICK STATS SIDE */
+.side-stat {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1.4rem;
+  border-bottom: 1px solid var(--border);
+}
+.side-stat:last-child { border-bottom: none; }
+.side-stat-label { font-size: 0.82rem; color: var(--text-mid); }
+.side-stat-val { font-size: 0.9rem; font-weight: 600; color: var(--green-700); }
+
+/* INVOICE MODAL */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(15,35,24,0.5);
+  z-index: 200;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.25s;
+}
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 480px;
+  padding: 2rem;
+  transform: scale(0.96);
+  transition: transform 0.25s;
+  box-shadow: 0 24px 80px rgba(15,35,24,0.2);
+}
+.modal-overlay.open .modal { transform: scale(1); }
+.modal-title {
+  font-family: 'Instrument Serif', serif;
+  font-size: 1.3rem;
+  color: var(--green-900);
+  margin-bottom: 0.25rem;
+}
+.modal-sub { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1.5rem; }
+.invoice-preview {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 1.25rem;
+}
+.invoice-head {
+  background: var(--green-900);
+  padding: 1rem 1.25rem;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.invoice-head-logo { font-family: 'Instrument Serif', serif; font-size: 1.1rem; color: white; }
+.invoice-head-num { font-size: 0.75rem; color: rgba(255,255,255,0.5); }
+.invoice-body { padding: 1rem 1.25rem; }
+.invoice-to { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.06em; }
+.invoice-customer { font-size: 0.9rem; font-weight: 500; color: var(--text); margin-bottom: 1rem; }
+.invoice-line {
+  display: flex; justify-content: space-between;
+  font-size: 0.8rem; color: var(--text-mid);
+  padding: 4px 0;
+  border-bottom: 1px solid var(--border);
+}
+.invoice-line:last-child { border-bottom: none; }
+.invoice-total-row {
+  display: flex; justify-content: space-between;
+  padding: 0.75rem 1.25rem;
+  background: var(--green-50);
+  border-top: 1px solid var(--border);
+}
+.invoice-total-label { font-size: 0.82rem; font-weight: 600; color: var(--text-mid); }
+.invoice-total-val { font-family: 'Instrument Serif', serif; font-size: 1.2rem; color: var(--green-700); font-weight: 600; }
+.modal-actions { display: flex; gap: 8px; }
+.modal-btn {
+  flex: 1;
+  padding: 0.75rem;
+  border-radius: 10px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1.5px solid var(--border);
+  background: var(--white);
+  color: var(--text-mid);
+}
+.modal-btn:hover { background: var(--off-white); }
+.modal-btn.primary {
+  background: var(--green-700);
+  color: white;
+  border-color: var(--green-700);
+}
+.modal-btn.primary:hover { background: var(--green-900); }
+
+/* TOAST */
+.toast {
+  position: fixed;
+  bottom: 1.5rem; right: 1.5rem;
+  background: var(--green-900);
+  color: white;
+  padding: 0.75rem 1.25rem;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  box-shadow: var(--shadow-md);
+  z-index: 300;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.3s;
+  pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+
+/* SHARE BANNER */
+.share-banner {
+  background: var(--green-50);
+  border: 1px solid var(--green-100);
+  border-radius: var(--radius);
+  padding: 0.85rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.75rem;
+  gap: 1rem;
+}
+.share-banner-text { font-size: 0.82rem; color: var(--text-mid); }
+.share-banner-text strong { color: var(--green-700); font-weight: 600; }
+.share-banner-link {
+  font-size: 0.8rem;
+  color: var(--green-500);
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-family: monospace;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .sidebar { display: none; }
+  .main { margin-left: 0; max-width: 100%; padding: 1.25rem; }
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+  .grid-2 { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">Order<span>ly</span></div>
+  <div class="sidebar-store">
+    <div class="sidebar-store-avatar">FK</div>
+    <div class="sidebar-store-name">Fatima's Kitchen</div>
+    <div class="sidebar-store-link" onclick="showToast('Link copied! 🔗')">orderly.co.za/fatimas-kitchen ↗</div>
+  </div>
+  <div class="nav-section-label">Menu</div>
+  <a class="nav-item active"><span class="icon">📋</span> Orders</a>
+  <a class="nav-item" onclick="switchTab('catalog')"><span class="icon">🍽️</span> My Menu</a>
+  <a class="nav-item"><span class="icon">🧾</span> Invoices</a>
+  <div class="nav-section-label">Account</div>
+  <a class="nav-item"><span class="icon">⚙️</span> Settings</a>
+  <a class="nav-item"><span class="icon">💬</span> Support</a>
+  <div class="sidebar-bottom">
+    <div class="sidebar-bottom-name">Fatima Karriem</div>
+    <div class="sidebar-bottom-role">Free plan · <span style="color:#3D8B65;cursor:pointer" onclick="showToast('Upgrade coming soon! 🚀')">Upgrade to Pro</span></div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <h1>Good morning, Fatima 👋</h1>
+      <p>Tuesday, 9 June 2026 · 3 new orders overnight</p>
+    </div>
+    <div class="topbar-right">
+      <button class="share-btn" onclick="showToast('Link copied to clipboard! 🔗')">🔗 Share my order page</button>
+      <div class="notif-btn">🔔<div class="notif-dot"></div></div>
+    </div>
+  </div>
+
+  <!-- SHARE BANNER -->
+  <div class="share-banner">
+    <div class="share-banner-text">Your order page is <strong>live</strong> — share this link with your customers to start getting orders</div>
+    <div class="share-banner-link" onclick="showToast('Link copied! 🔗')">orderly.co.za/fatimas-kitchen</div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-label">Orders this month</div>
+      <div class="stat-value">24</div>
+      <div class="stat-change">↑ 6 from last month</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Revenue this month</div>
+      <div class="stat-value">R4 820</div>
+      <div class="stat-change">↑ R1 200 from last month</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">New today</div>
+      <div class="stat-value">3</div>
+      <div class="stat-change">↑ Busiest Tuesday yet</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Avg. order value</div>
+      <div class="stat-value">R201</div>
+      <div class="stat-change">↑ R18 from last month</div>
+    </div>
+  </div>
+
+  <!-- ORDERS + CATALOG -->
+  <div class="grid-2">
+
+    <!-- ORDERS -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Recent orders</span>
+        <button class="card-action">View all</button>
+      </div>
+
+      <div class="order-row" onclick="openInvoice('Aisha Davids', 'R280', ['2× Chicken Biryani — R240', '1× Koeksisters (6) — R40'])">
+        <div class="order-status-dot dot-new"></div>
+        <div class="order-info">
+          <div class="order-customer">Aisha Davids <span class="order-badge badge-new">New</span></div>
+          <div class="order-items">2× Chicken Biryani, 1× Koeksisters · Collection</div>
+        </div>
+        <div class="order-meta">
+          <div class="order-price">R280</div>
+          <div class="order-time">8 min ago</div>
+        </div>
+        <div class="order-actions">
+          <button class="action-btn confirm" onclick="event.stopPropagation(); confirmOrder(this)">Confirm</button>
+          <button class="action-btn" onclick="event.stopPropagation(); openInvoice('Aisha Davids', 'R280', ['2× Chicken Biryani — R240', '1× Koeksisters (6) — R40'])">Invoice</button>
+        </div>
+      </div>
+
+      <div class="order-row" onclick="openInvoice('Zainab Jacobs', 'R195', ['1× Gatsby — R95', '2× Milk Tart — R100'])">
+        <div class="order-status-dot dot-new"></div>
+        <div class="order-info">
+          <div class="order-customer">Zainab Jacobs <span class="order-badge badge-new">New</span></div>
+          <div class="order-items">1× Gatsby, 2× Milk Tart · Delivery (Bo-Kaap)</div>
+        </div>
+        <div class="order-meta">
+          <div class="order-price">R195</div>
+          <div class="order-time">1 hr ago</div>
+        </div>
+        <div class="order-actions">
+          <button class="action-btn confirm" onclick="event.stopPropagation(); confirmOrder(this)">Confirm</button>
+          <button class="action-btn" onclick="event.stopPropagation(); openInvoice('Zainab Jacobs', 'R195', ['1× Gatsby — R95', '2× Milk Tart — R100'])">Invoice</button>
+        </div>
+      </div>
+
+      <div class="order-row" onclick="openInvoice('Nadia Williams', 'R340', ['3× Samoosas (5pk) — R165', '1× Lamb Curry — R175'])">
+        <div class="order-status-dot dot-new"></div>
+        <div class="order-info">
+          <div class="order-customer">Nadia Williams <span class="order-badge badge-new">New</span></div>
+          <div class="order-items">3× Samoosas, 1× Lamb Curry · Collection</div>
+        </div>
+        <div class="order-meta">
+          <div class="order-price">R340</div>
+          <div class="order-time">2 hrs ago</div>
+        </div>
+        <div class="order-actions">
+          <button class="action-btn confirm" onclick="event.stopPropagation(); confirmOrder(this)">Confirm</button>
+          <button class="action-btn" onclick="event.stopPropagation(); openInvoice('Nadia Williams', 'R340', ['3× Samoosas (5pk) — R165', '1× Lamb Curry — R175'])">Invoice</button>
+        </div>
+      </div>
+
+      <div class="order-row">
+        <div class="order-status-dot dot-pending"></div>
+        <div class="order-info">
+          <div class="order-customer">Mariam Hendricks <span class="order-badge badge-pending">Pending</span></div>
+          <div class="order-items">2× Malva Pudding, 1× Bobotie · Delivery</div>
+        </div>
+        <div class="order-meta">
+          <div class="order-price">R225</div>
+          <div class="order-time">Yesterday</div>
+        </div>
+        <div class="order-actions">
+          <button class="action-btn" onclick="event.stopPropagation(); openInvoice('Mariam Hendricks', 'R225', ['2× Malva Pudding — R90', '1× Bobotie — R135'])">Invoice</button>
+        </div>
+      </div>
+
+      <div class="order-row">
+        <div class="order-status-dot dot-done"></div>
+        <div class="order-info">
+          <div class="order-customer">Leila Samuels <span class="order-badge badge-done">Done</span></div>
+          <div class="order-items">1× Full Gatsby · Collection</div>
+        </div>
+        <div class="order-meta">
+          <div class="order-price">R95</div>
+          <div class="order-time">Yesterday</div>
+        </div>
+        <div class="order-actions">
+          <button class="action-btn" onclick="event.stopPropagation(); openInvoice('Leila Samuels', 'R95', ['1× Full Gatsby — R95'])">Invoice</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div style="display:flex;flex-direction:column;gap:1.25rem;">
+
+      <!-- CATALOG -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">My menu</span>
+          <button class="card-action">Edit all</button>
+        </div>
+        <div id="catalogList">
+          <div class="catalog-item">
+            <div class="catalog-emoji">🍛</div>
+            <div class="catalog-name">Chicken Biryani</div>
+            <div class="catalog-price">R120</div>
+            <button class="catalog-edit">Edit</button>
+          </div>
+          <div class="catalog-item">
+            <div class="catalog-emoji">🥙</div>
+            <div class="catalog-name">Full Gatsby</div>
+            <div class="catalog-price">R95</div>
+            <button class="catalog-edit">Edit</button>
+          </div>
+          <div class="catalog-item">
+            <div class="catalog-emoji">🥧</div>
+            <div class="catalog-name">Milk Tart</div>
+            <div class="catalog-price">R50</div>
+            <button class="catalog-edit">Edit</button>
+          </div>
+          <div class="catalog-item">
+            <div class="catalog-emoji">🍢</div>
+            <div class="catalog-name">Samoosas (5pk)</div>
+            <div class="catalog-price">R55</div>
+            <button class="catalog-edit">Edit</button>
+          </div>
+        </div>
+        <div class="add-item-row">
+          <input class="add-input" id="newItemName" placeholder="Item name" />
+          <input class="add-input price" id="newItemPrice" placeholder="Price (R)" type="number" />
+          <button class="add-btn" onclick="addItem()">+ Add</button>
+        </div>
+      </div>
+
+      <!-- TOP ITEMS -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Top sellers this month</span>
+        </div>
+        <div class="side-stat">
+          <span class="side-stat-label">🍛 Chicken Biryani</span>
+          <span class="side-stat-val">9 orders</span>
+        </div>
+        <div class="side-stat">
+          <span class="side-stat-label">🥙 Full Gatsby</span>
+          <span class="side-stat-val">7 orders</span>
+        </div>
+        <div class="side-stat">
+          <span class="side-stat-label">🥧 Milk Tart</span>
+          <span class="side-stat-val">5 orders</span>
+        </div>
+        <div class="side-stat">
+          <span class="side-stat-label">🍢 Samoosas</span>
+          <span class="side-stat-val">3 orders</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<!-- INVOICE MODAL -->
+<div class="modal-overlay" id="invoiceModal" onclick="handleModalClick(event)">
+  <div class="modal">
+    <div class="modal-title">Invoice ready</div>
+    <p class="modal-sub">Send this to your customer via WhatsApp or download as PDF</p>
+    <div class="invoice-preview">
+      <div class="invoice-head">
+        <div class="invoice-head-logo">Orderly</div>
+        <div class="invoice-head-num" id="invNum">INV-0024</div>
+      </div>
+      <div class="invoice-body">
+        <div class="invoice-to">Invoice for</div>
+        <div class="invoice-customer" id="invCustomer">Aisha Davids</div>
+        <div id="invLines"></div>
+      </div>
+      <div class="invoice-total-row">
+        <div class="invoice-total-label">Total due</div>
+        <div class="invoice-total-val" id="invTotal">R280</div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn" onclick="closeModal()">Close</button>
+      <button class="modal-btn" onclick="showToast('Opening WhatsApp... 💬'); closeModal()">Send on WhatsApp</button>
+      <button class="modal-btn primary" onclick="showToast('Invoice downloaded! ✓'); closeModal()">Download PDF</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+let invoiceCount = 24;
+
+function openInvoice(customer, total, lines) {
+  invoiceCount++;
+  document.getElementById('invCustomer').textContent = customer;
+  document.getElementById('invTotal').textContent = total;
+  document.getElementById('invNum').textContent = 'INV-00' + invoiceCount;
+  document.getElementById('invLines').innerHTML = lines.map(l =>
+    `<div class="invoice-line"><span>${l.split('—')[0]}</span><span>${l.split('—')[1] || ''}</span></div>`
+  ).join('');
+  document.getElementById('invoiceModal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('invoiceModal').classList.remove('open');
+}
+
+function handleModalClick(e) {
+  if (e.target === document.getElementById('invoiceModal')) closeModal();
+}
+
+function confirmOrder(btn) {
+  const row = btn.closest('.order-row');
+  const dot = row.querySelector('.order-status-dot');
+  const badge = row.querySelector('.order-badge');
+  dot.className = 'order-status-dot dot-pending';
+  if (badge) { badge.className = 'order-badge badge-pending'; badge.textContent = 'Confirmed'; }
+  btn.remove();
+  showToast('Order confirmed! Customer notified via WhatsApp ✓');
+}
+
+function addItem() {
+  const name = document.getElementById('newItemName').value.trim();
+  const price = document.getElementById('newItemPrice').value.trim();
+  if (!name || !price) return;
+  const emojis = ['🍱','🥘','🍲','🧆','🥗','🍰','🧁'];
+  const emoji = emojis[Math.floor(Math.random() * emojis.length)];
+  const list = document.getElementById('catalogList');
+  const div = document.createElement('div');
+  div.className = 'catalog-item';
+  div.innerHTML = `
+    <div class="catalog-emoji">${emoji}</div>
+    <div class="catalog-name">${name}</div>
+    <div class="catalog-price">R${price}</div>
+    <button class="catalog-edit">Edit</button>
+  `;
+  list.appendChild(div);
+  document.getElementById('newItemName').value = '';
+  document.getElementById('newItemPrice').value = '';
+  showToast(`"${name}" added to your menu ✓`);
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+</script>
+</body>
+</html>

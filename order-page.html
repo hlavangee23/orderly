@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lebo's Bakes — Order Now</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --cream: #FAF7F2;
+    --warm-white: #FFFDF9;
+    --brown: #2C1810;
+    --brown-mid: #6B3F2A;
+    --caramel: #C4813A;
+    --caramel-light: #F0D5B0;
+    --caramel-pale: #FBF0E0;
+    --text-muted: #8C6E5A;
+    --border: rgba(196,129,58,0.2);
+    --shadow: 0 4px 24px rgba(44,24,16,0.08);
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--brown);
+    min-height: 100vh;
+  }
+
+  /* Hero header */
+  .hero {
+    background: var(--brown);
+    color: var(--warm-white);
+    padding: 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 80% 50%, rgba(196,129,58,0.25) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-inner {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+  }
+  .avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: var(--caramel);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--warm-white);
+    flex-shrink: 0;
+    border: 2px solid rgba(255,255,255,0.15);
+  }
+  .hero-text h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+  .hero-text p {
+    font-size: 0.85rem;
+    color: rgba(255,253,249,0.65);
+    margin-top: 4px;
+    font-weight: 300;
+  }
+  .hero-badges {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+  .badge {
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: rgba(196,129,58,0.25);
+    color: var(--caramel-light);
+    font-weight: 500;
+    border: 1px solid rgba(196,129,58,0.3);
+  }
+
+  /* Nav tabs */
+  .cat-nav {
+    background: var(--brown);
+    border-top: 1px solid rgba(255,255,255,0.08);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .cat-nav::-webkit-scrollbar { display: none; }
+  .cat-nav-inner {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+    display: flex;
+    gap: 0;
+  }
+  .cat-btn {
+    background: none;
+    border: none;
+    color: rgba(255,253,249,0.5);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 500;
+    padding: 0.85rem 1rem;
+    cursor: pointer;
+    white-space: nowrap;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+  }
+  .cat-btn.active {
+    color: var(--caramel-light);
+    border-bottom-color: var(--caramel);
+  }
+  .cat-btn:hover { color: var(--warm-white); }
+
+  /* Main content */
+  .main {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 1.5rem 1.5rem 8rem;
+  }
+
+  /* Section heading */
+  .section-heading {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--brown);
+    margin: 1.75rem 0 1rem;
+    padding-bottom: 0.6rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* Item card */
+  .item-card {
+    background: var(--warm-white);
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    padding: 1rem 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.65rem;
+    transition: box-shadow 0.2s, transform 0.15s;
+    cursor: pointer;
+  }
+  .item-card:hover {
+    box-shadow: var(--shadow);
+    transform: translateY(-1px);
+  }
+  .item-emoji {
+    width: 52px;
+    height: 52px;
+    border-radius: 10px;
+    background: var(--caramel-pale);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    flex-shrink: 0;
+  }
+  .item-info { flex: 1; min-width: 0; }
+  .item-name {
+    font-size: 0.92rem;
+    font-weight: 500;
+    color: var(--brown);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .item-desc {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+    font-weight: 300;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .item-price {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--caramel);
+    font-family: 'Playfair Display', serif;
+    white-space: nowrap;
+  }
+  .item-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+
+  /* Quantity control */
+  .qty-control {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    background: var(--caramel-pale);
+    border-radius: 8px;
+    border: 1px solid var(--caramel-light);
+    overflow: hidden;
+  }
+  .qty-btn {
+    background: none;
+    border: none;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1rem;
+    color: var(--caramel);
+    font-weight: 600;
+    transition: background 0.15s;
+  }
+  .qty-btn:hover { background: rgba(196,129,58,0.15); }
+  .qty-num {
+    width: 26px;
+    text-align: center;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--brown);
+    pointer-events: none;
+  }
+
+  /* Note banner */
+  .note-banner {
+    background: var(--caramel-pale);
+    border: 1px solid var(--caramel-light);
+    border-radius: 10px;
+    padding: 0.8rem 1rem;
+    font-size: 0.8rem;
+    color: var(--brown-mid);
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+  }
+  .note-banner strong { font-weight: 500; color: var(--brown); }
+
+  /* Sticky cart bar */
+  .cart-bar {
+    position: fixed;
+    bottom: 1.25rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 3rem);
+    max-width: 640px;
+    background: var(--brown);
+    color: var(--warm-white);
+    border-radius: 14px;
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 8px 40px rgba(44,24,16,0.35);
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    z-index: 100;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  .cart-bar.visible { opacity: 1; pointer-events: all; }
+  .cart-bar:hover { box-shadow: 0 12px 48px rgba(44,24,16,0.45); }
+  .cart-left { display: flex; align-items: center; gap: 10px; }
+  .cart-count {
+    background: var(--caramel);
+    color: var(--warm-white);
+    font-size: 0.75rem;
+    font-weight: 600;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .cart-label { font-size: 0.9rem; font-weight: 500; }
+  .cart-total { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 600; color: var(--caramel-light); }
+  .cart-cta {
+    background: var(--caramel);
+    color: var(--warm-white);
+    border: none;
+    border-radius: 8px;
+    padding: 0.55rem 1.1rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  /* Modal overlay */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(44,24,16,0.6);
+    z-index: 200;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal {
+    background: var(--warm-white);
+    border-radius: 20px 20px 0 0;
+    width: 100%;
+    max-width: 680px;
+    padding: 1.5rem 1.5rem 2.5rem;
+    transform: translateY(30px);
+    transition: transform 0.3s;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .modal-overlay.open .modal { transform: translateY(0); }
+  .modal-handle { width: 40px; height: 4px; background: var(--caramel-light); border-radius: 2px; margin: 0 auto 1.25rem; }
+  .modal h2 { font-family: 'Playfair Display', serif; font-size: 1.25rem; margin-bottom: 0.25rem; }
+  .modal-sub { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1.25rem; }
+
+  .form-group { margin-bottom: 1rem; }
+  .form-label { font-size: 0.8rem; font-weight: 500; color: var(--text-muted); display: block; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .form-input {
+    width: 100%;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 0.7rem 0.9rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    color: var(--brown);
+    background: var(--cream);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .form-input:focus { border-color: var(--caramel); }
+
+  .order-summary { background: var(--caramel-pale); border-radius: 10px; padding: 1rem; margin-bottom: 1.25rem; }
+  .order-line { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--brown-mid); padding: 3px 0; }
+  .order-line.total { font-weight: 600; color: var(--brown); font-size: 0.95rem; border-top: 1px solid var(--caramel-light); margin-top: 6px; padding-top: 8px; }
+
+  .submit-btn {
+    width: 100%;
+    background: var(--brown);
+    color: var(--warm-white);
+    border: none;
+    border-radius: 12px;
+    padding: 1rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .submit-btn:hover { background: var(--brown-mid); }
+
+  .success-screen {
+    text-align: center;
+    padding: 1.5rem 0 0.5rem;
+  }
+  .success-icon {
+    width: 60px; height: 60px; border-radius: 50%;
+    background: #E8F5E9;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.8rem; margin: 0 auto 1rem;
+  }
+  .success-screen h2 { font-family: 'Playfair Display', serif; font-size: 1.3rem; margin-bottom: 0.5rem; }
+  .success-screen p { font-size: 0.85rem; color: var(--text-muted); line-height: 1.6; }
+
+  @media (max-width: 480px) {
+    .hero-text h1 { font-size: 1.3rem; }
+    .main { padding: 1rem 1rem 8rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div class="avatar">LB</div>
+    <div class="hero-text">
+      <h1>Lebo's Bakes</h1>
+      <p>Handmade with love · Johannesburg</p>
+      <div class="hero-badges">
+        <span class="badge">🕐 Order by Wed for weekend</span>
+        <span class="badge">🚚 Delivery available</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<nav class="cat-nav">
+  <div class="cat-nav-inner">
+    <button class="cat-btn active" onclick="filterCat('all', this)">All</button>
+    <button class="cat-btn" onclick="filterCat('cakes', this)">Cakes</button>
+    <button class="cat-btn" onclick="filterCat('cupcakes', this)">Cupcakes</button>
+    <button class="cat-btn" onclick="filterCat('cookies', this)">Cookies</button>
+    <button class="cat-btn" onclick="filterCat('bread', this)">Breads</button>
+  </div>
+</nav>
+
+<main class="main">
+  <div class="note-banner">
+    <strong>How it works:</strong> Add items to your cart, fill in your details, and Lebo will confirm your order via WhatsApp within 2 hours. Payment on collection or delivery.
+  </div>
+
+  <div id="menu-container"></div>
+</main>
+
+<div class="cart-bar" id="cartBar" onclick="openModal()">
+  <div class="cart-left">
+    <div class="cart-count" id="cartCount">0</div>
+    <span class="cart-label">View order</span>
+  </div>
+  <span class="cart-total" id="cartTotal">R0</span>
+  <button class="cart-cta">Place order</button>
+</div>
+
+<div class="modal-overlay" id="modalOverlay" onclick="handleOverlayClick(event)">
+  <div class="modal" id="modal">
+    <div class="modal-handle"></div>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<script>
+const menu = [
+  { id:1, cat:'cakes', emoji:'🎂', name:'Classic Vanilla Cake', desc:'3-layer vanilla sponge, buttercream icing', price:320, unit:'per cake' },
+  { id:2, cat:'cakes', emoji:'🍫', name:'Chocolate Fudge Cake', desc:'Rich dark chocolate, ganache drip', price:380, unit:'per cake' },
+  { id:3, cat:'cakes', emoji:'🍓', name:'Strawberry Chiffon', desc:'Light chiffon, fresh strawberry cream', price:350, unit:'per cake' },
+  { id:4, cat:'cupcakes', emoji:'🧁', name:'Red Velvet Cupcakes', desc:'Classic red velvet, cream cheese frosting', price:180, unit:'per dozen' },
+  { id:5, cat:'cupcakes', emoji:'🧁', name:'Lemon Drizzle Cupcakes', desc:'Zesty lemon curd centre, glazed top', price:160, unit:'per dozen' },
+  { id:6, cat:'cookies', emoji:'🍪', name:'Choc Chip Cookies', desc:'Soft-baked, double chocolate chips', price:95, unit:'per bag of 10' },
+  { id:7, cat:'cookies', emoji:'🍪', name:'Shortbread Box', desc:'Buttery Scottish-style, gift-boxed', price:120, unit:'per box' },
+  { id:8, cat:'bread', emoji:'🍞', name:'Sourdough Loaf', desc:'72-hour ferment, crusty artisan loaf', price:85, unit:'per loaf' },
+  { id:9, cat:'bread', emoji:'🥐', name:'Cinnamon Rolls (6)', desc:'Soft rolls, cream cheese glaze', price:110, unit:'per batch' },
+];
+
+let cart = {};
+let currentCat = 'all';
+
+function filterCat(cat, btn) {
+  currentCat = cat;
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderMenu();
+}
+
+function renderMenu() {
+  const container = document.getElementById('menu-container');
+  const cats = ['cakes','cupcakes','cookies','bread'];
+  const labels = { cakes:'Cakes', cupcakes:'Cupcakes', cookies:'Cookies', bread:'Breads & Pastries' };
+  let html = '';
+  cats.forEach(cat => {
+    const items = menu.filter(i => i.cat === cat && (currentCat === 'all' || currentCat === cat));
+    if (!items.length) return;
+    html += `<h2 class="section-heading">${labels[cat]}</h2>`;
+    items.forEach(item => {
+      const qty = cart[item.id] || 0;
+      html += `
+        <div class="item-card">
+          <div class="item-emoji">${item.emoji}</div>
+          <div class="item-info">
+            <div class="item-name">${item.name}</div>
+            <div class="item-desc">${item.desc} · ${item.unit}</div>
+          </div>
+          <div class="item-right">
+            <span class="item-price">R${item.price}</span>
+            <div class="qty-control">
+              <button class="qty-btn" onclick="changeQty(${item.id}, -1)">−</button>
+              <span class="qty-num" id="qty-${item.id}">${qty}</span>
+              <button class="qty-btn" onclick="changeQty(${item.id}, 1)">+</button>
+            </div>
+          </div>
+        </div>`;
+    });
+  });
+  container.innerHTML = html;
+}
+
+function changeQty(id, delta) {
+  cart[id] = Math.max(0, (cart[id] || 0) + delta);
+  if (cart[id] === 0) delete cart[id];
+  const el = document.getElementById('qty-' + id);
+  if (el) el.textContent = cart[id] || 0;
+  updateCartBar();
+}
+
+function updateCartBar() {
+  const totalItems = Object.values(cart).reduce((s,v) => s+v, 0);
+  const totalPrice = Object.entries(cart).reduce((s,[id,qty]) => {
+    const item = menu.find(i => i.id == id);
+    return s + (item ? item.price * qty : 0);
+  }, 0);
+  const bar = document.getElementById('cartBar');
+  document.getElementById('cartCount').textContent = totalItems;
+  document.getElementById('cartTotal').textContent = 'R' + totalPrice;
+  bar.classList.toggle('visible', totalItems > 0);
+}
+
+function openModal() {
+  if (!Object.keys(cart).length) return;
+  renderOrderModal();
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+}
+
+function handleOverlayClick(e) {
+  if (e.target === document.getElementById('modalOverlay')) closeModal();
+}
+
+function renderOrderModal() {
+  const items = Object.entries(cart).map(([id,qty]) => {
+    const item = menu.find(i => i.id == id);
+    return { ...item, qty };
+  });
+  const total = items.reduce((s,i) => s + i.price * i.qty, 0);
+  const totalItems = items.reduce((s,i) => s + i.qty, 0);
+
+  let summaryLines = items.map(i =>
+    `<div class="order-line"><span>${i.qty}× ${i.name}</span><span>R${i.price * i.qty}</span></div>`
+  ).join('');
+
+  document.getElementById('modalContent').innerHTML = `
+    <h2>Almost there!</h2>
+    <p class="modal-sub">Fill in your details and Lebo will confirm via WhatsApp</p>
+
+    <div class="order-summary">
+      ${summaryLines}
+      <div class="order-line total"><span>${totalItems} item${totalItems>1?'s':''} · Total</span><span>R${total}</span></div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Your name</label>
+      <input class="form-input" id="f-name" type="text" placeholder="e.g. Thandi Nkosi" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">WhatsApp number</label>
+      <input class="form-input" id="f-phone" type="tel" placeholder="+27 82 000 0000" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Delivery or collection?</label>
+      <select class="form-input" id="f-delivery">
+        <option value="collection">Collection (Soweto)</option>
+        <option value="delivery">Delivery (+R60)</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Any special requests?</label>
+      <input class="form-input" id="f-notes" type="text" placeholder="e.g. Nut-free, custom message on cake..." />
+    </div>
+
+    <button class="submit-btn" onclick="submitOrder()">Send order via WhatsApp ✓</button>
+  `;
+}
+
+function submitOrder() {
+  const name = document.getElementById('f-name').value.trim();
+  const phone = document.getElementById('f-phone').value.trim();
+  if (!name || !phone) {
+    alert('Please fill in your name and WhatsApp number.');
+    return;
+  }
+
+  const items = Object.entries(cart).map(([id,qty]) => {
+    const item = menu.find(i => i.id == id);
+    return `${qty}× ${item.name} @ R${item.price}`;
+  });
+  const total = Object.entries(cart).reduce((s,[id,qty]) => {
+    return s + menu.find(i=>i.id==id).price * qty;
+  }, 0);
+  const delivery = document.getElementById('f-delivery').value;
+  const notes = document.getElementById('f-notes').value;
+  const finalTotal = total + (delivery === 'delivery' ? 60 : 0);
+
+  const msg = encodeURIComponent(
+    `Hi Lebo! 🧁 New order from ${name}\n\n` +
+    items.join('\n') + '\n\n' +
+    `${delivery === 'delivery' ? 'Delivery (+R60)' : 'Collection'}\n` +
+    (notes ? `Notes: ${notes}\n` : '') +
+    `\nTotal: R${finalTotal}`
+  );
+
+  document.getElementById('modalContent').innerHTML = `
+    <div class="success-screen">
+      <div class="success-icon">✓</div>
+      <h2>Order sent!</h2>
+      <p>Lebo will confirm your order on WhatsApp shortly.<br>Keep an eye on your messages.</p>
+    </div>
+  `;
+
+  window.open('https://wa.me/27820000000?text=' + msg, '_blank');
+  cart = {};
+  updateCartBar();
+  renderMenu();
+}
+
+renderMenu();
+</script>
+</body>
+</html>

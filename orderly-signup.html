@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Orderly — Get started</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --white: #FFFFFF;
+  --off-white: #F8FAF7;
+  --green-900: #0F2318;
+  --green-700: #1A3D2B;
+  --green-500: #2D6A4F;
+  --green-400: #3D8B65;
+  --green-100: #E8F4ED;
+  --green-50: #F2FAF5;
+  --text: #0F2318;
+  --text-mid: #3D5A47;
+  --text-muted: #7A9A85;
+  --border: #D6EAD9;
+  --border-focus: #3D8B65;
+  --error: #DC2626;
+  --error-bg: #FEF2F2;
+  --error-border: #FECACA;
+  --shadow-sm: 0 1px 4px rgba(15,35,24,0.06);
+  --shadow-md: 0 4px 24px rgba(15,35,24,0.10);
+  --shadow-lg: 0 12px 48px rgba(15,35,24,0.14);
+  --radius: 12px;
+  --radius-lg: 16px;
+}
+
+html, body {
+  height: 100%;
+  font-family: 'DM Sans', sans-serif;
+  background: var(--off-white);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* LAYOUT */
+.page {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 420px 1fr;
+}
+
+/* LEFT PANEL */
+.left {
+  background: var(--green-900);
+  padding: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+.left-logo {
+  font-family: 'Instrument Serif', serif;
+  font-size: 1.4rem;
+  color: white;
+  margin-bottom: auto;
+}
+.left-logo span { color: rgba(255,255,255,0.35); }
+.left-content { margin-bottom: auto; }
+.left-heading {
+  font-family: 'Instrument Serif', serif;
+  font-size: 2rem;
+  color: white;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  margin-bottom: 1rem;
+}
+.left-heading em { font-style: italic; color: rgba(255,255,255,0.5); }
+.left-sub {
+  font-size: 0.88rem;
+  color: rgba(255,255,255,0.5);
+  font-weight: 300;
+  line-height: 1.7;
+  margin-bottom: 2rem;
+}
+.left-steps { display: flex; flex-direction: column; gap: 0; }
+.left-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 0.85rem 0;
+  position: relative;
+}
+.left-step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 15px;
+  top: 42px;
+  bottom: -2px;
+  width: 1px;
+  background: rgba(255,255,255,0.1);
+}
+.step-circle {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  flex-shrink: 0;
+  transition: all 0.3s;
+  border: 1.5px solid rgba(255,255,255,0.15);
+  color: rgba(255,255,255,0.4);
+  background: transparent;
+}
+.step-circle.active {
+  background: var(--green-400);
+  border-color: var(--green-400);
+  color: white;
+}
+.step-circle.done {
+  background: rgba(255,255,255,0.1);
+  border-color: rgba(255,255,255,0.2);
+  color: rgba(255,255,255,0.6);
+}
+.step-circle.done::after { content: '✓'; }
+.step-text-label {
+  font-size: 0.82rem;
+  font-weight: 500;
+  transition: color 0.3s;
+}
+.step-text-label.active { color: white; }
+.step-text-label.done { color: rgba(255,255,255,0.5); }
+.step-text-label.upcoming { color: rgba(255,255,255,0.3); }
+.step-text-sub {
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.3);
+  margin-top: 1px;
+  font-weight: 300;
+}
+.left-footer {
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.25);
+}
+.left-footer a { color: rgba(255,255,255,0.4); text-decoration: none; }
+.left-footer a:hover { color: rgba(255,255,255,0.7); }
+
+/* RIGHT PANEL */
+.right {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+  overflow-y: auto;
+}
+.form-card {
+  width: 100%;
+  max-width: 460px;
+}
+
+/* STEP PANELS */
+.step-panel { display: none; }
+.step-panel.active { display: block; }
+
+/* FORM ELEMENTS */
+.form-heading {
+  font-family: 'Instrument Serif', serif;
+  font-size: 1.9rem;
+  color: var(--green-900);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  margin-bottom: 0.4rem;
+}
+.form-heading em { font-style: italic; color: var(--green-400); }
+.form-sub {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  font-weight: 300;
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+.form-group { margin-bottom: 1.1rem; }
+.form-label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--text-mid);
+  margin-bottom: 6px;
+  letter-spacing: 0.01em;
+}
+.form-input {
+  width: 100%;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.8rem 1rem;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.92rem;
+  color: var(--text);
+  background: var(--white);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  -webkit-appearance: none;
+}
+.form-input:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px rgba(61,139,101,0.12);
+}
+.form-input.error {
+  border-color: var(--error);
+  box-shadow: 0 0 0 3px rgba(220,38,38,0.08);
+}
+.form-input::placeholder { color: var(--text-muted); font-weight: 300; }
+select.form-input { cursor: pointer; }
+.error-msg {
+  font-size: 0.75rem;
+  color: var(--error);
+  margin-top: 5px;
+  display: none;
+}
+.error-msg.show { display: block; }
+.form-hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 5px;
+  font-weight: 300;
+}
+
+/* PASSWORD TOGGLE */
+.input-wrap { position: relative; }
+.toggle-pw {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  color: var(--text-muted);
+  padding: 4px;
+  line-height: 1;
+}
+
+/* PASSWORD STRENGTH */
+.pw-strength { margin-top: 8px; }
+.pw-strength-bar {
+  height: 3px;
+  border-radius: 2px;
+  background: var(--border);
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+.pw-strength-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.3s, background 0.3s;
+  width: 0%;
+}
+.pw-strength-label { font-size: 0.72rem; color: var(--text-muted); }
+
+/* SLUG PREVIEW */
+.slug-preview {
+  background: var(--green-50);
+  border: 1px solid var(--green-100);
+  border-radius: var(--radius);
+  padding: 0.75rem 1rem;
+  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.slug-preview-icon { font-size: 0.9rem; }
+.slug-preview-text { font-size: 0.8rem; color: var(--text-mid); }
+.slug-preview-text strong {
+  color: var(--green-700);
+  font-family: monospace;
+  font-size: 0.85rem;
+}
+
+/* FOOD TYPE GRID */
+.food-type-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 2px;
+}
+.food-type-btn {
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.75rem 0.5rem;
+  text-align: center;
+  cursor: pointer;
+  background: var(--white);
+  transition: all 0.15s;
+  font-family: 'DM Sans', sans-serif;
+}
+.food-type-btn:hover { border-color: var(--green-400); background: var(--green-50); }
+.food-type-btn.selected {
+  border-color: var(--green-400);
+  background: var(--green-50);
+  box-shadow: 0 0 0 2px rgba(61,139,101,0.15);
+}
+.food-type-emoji { font-size: 1.4rem; display: block; margin-bottom: 4px; }
+.food-type-label { font-size: 0.72rem; font-weight: 500; color: var(--text-mid); }
+.food-type-btn.selected .food-type-label { color: var(--green-700); }
+
+/* DIVIDER */
+.form-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 1.25rem 0;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+.form-divider::before,
+.form-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* BUTTONS */
+.btn-primary {
+  width: 100%;
+  background: var(--green-700);
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  padding: 0.9rem;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.btn-primary:hover { background: var(--green-900); transform: translateY(-1px); }
+.btn-primary:disabled { background: var(--border); color: var(--text-muted); cursor: not-allowed; transform: none; }
+.btn-secondary {
+  width: 100%;
+  background: transparent;
+  color: var(--text-mid);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.9rem;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.92rem;
+  font-weight: 400;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 0.75rem;
+}
+.btn-secondary:hover { border-color: var(--text-muted); color: var(--text); }
+
+/* TERMS */
+.terms-note {
+  font-size: 0.73rem;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: 1rem;
+  line-height: 1.6;
+}
+.terms-note a { color: var(--green-500); text-decoration: none; }
+
+/* STEP 3 — SUCCESS */
+.success-wrap { text-align: center; }
+.success-icon-wrap {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--green-100);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+  font-size: 2rem;
+  animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+@keyframes popIn {
+  from { transform: scale(0.5); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+.success-heading {
+  font-family: 'Instrument Serif', serif;
+  font-size: 2rem;
+  color: var(--green-900);
+  letter-spacing: -0.02em;
+  margin-bottom: 0.5rem;
+}
+.success-sub {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  font-weight: 300;
+  line-height: 1.7;
+  margin-bottom: 1.75rem;
+}
+.your-link-box {
+  background: var(--green-50);
+  border: 1.5px solid var(--green-100);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.75rem;
+  text-align: left;
+}
+.your-link-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+.your-link-url {
+  font-family: monospace;
+  font-size: 1rem;
+  color: var(--green-700);
+  font-weight: 600;
+  word-break: break-all;
+}
+.your-link-copy {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: var(--green-500);
+  cursor: pointer;
+  margin-top: 8px;
+  font-weight: 500;
+  background: none;
+  border: none;
+  font-family: 'DM Sans', sans-serif;
+  padding: 0;
+}
+.your-link-copy:hover { color: var(--green-700); }
+.checklist {
+  text-align: left;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+.checklist-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0.85rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.85rem;
+  color: var(--text-mid);
+}
+.checklist-item:last-child { border-bottom: none; }
+.checklist-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--green-100);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+  color: var(--green-700);
+  font-weight: 600;
+}
+
+/* LOADING SPINNER */
+.spinner {
+  width: 16px; height: 16px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: none;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* TOAST */
+.toast {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--green-900);
+  color: white;
+  padding: 0.7rem 1.25rem;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  box-shadow: var(--shadow-md);
+  z-index: 300;
+  opacity: 0;
+  transition: all 0.3s;
+  white-space: nowrap;
+}
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* MOBILE */
+@media (max-width: 768px) {
+  .page { grid-template-columns: 1fr; }
+  .left {
+    position: relative;
+    height: auto;
+    padding: 1.5rem;
+  }
+  .left-content { display: none; }
+  .left-footer { display: none; }
+  .left-logo { margin-bottom: 0; }
+  .right { padding: 2rem 1.25rem; align-items: flex-start; }
+  .food-type-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- LEFT -->
+  <aside class="left">
+    <div class="left-logo">Order<span>ly</span></div>
+    <div class="left-content">
+      <h2 class="left-heading">Your business,<br><em>sorted.</em></h2>
+      <p class="left-sub">Set up your Orderly store in under 3 minutes. No technical knowledge needed.</p>
+      <div class="left-steps">
+        <div class="left-step">
+          <div class="step-circle active" id="sc1">1</div>
+          <div>
+            <div class="step-text-label active" id="sl1">Create your account</div>
+            <div class="step-text-sub">Email and password</div>
+          </div>
+        </div>
+        <div class="left-step">
+          <div class="step-circle" id="sc2">2</div>
+          <div>
+            <div class="step-text-label upcoming" id="sl2">Set up your store</div>
+            <div class="step-text-sub">Name, type, location</div>
+          </div>
+        </div>
+        <div class="left-step">
+          <div class="step-circle" id="sc3">3</div>
+          <div>
+            <div class="step-text-label upcoming" id="sl3">You're live</div>
+            <div class="step-text-sub">Your Orderly link is ready</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="left-footer">
+      Already have an account? <a href="#">Sign in</a>
+    </div>
+  </aside>
+
+  <!-- RIGHT -->
+  <main class="right">
+    <div class="form-card">
+
+      <!-- STEP 1: Account -->
+      <div class="step-panel active" id="panel1">
+        <h1 class="form-heading">Create your<br><em>account</em></h1>
+        <p class="form-sub">Free forever — no credit card needed.</p>
+
+        <div class="form-group">
+          <label class="form-label" for="email">Email address</label>
+          <input class="form-input" type="email" id="email" placeholder="you@example.com" autocomplete="email" />
+          <div class="error-msg" id="email-err">Please enter a valid email address.</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="password">Password</label>
+          <div class="input-wrap">
+            <input class="form-input" type="password" id="password" placeholder="At least 8 characters" autocomplete="new-password" oninput="checkStrength(this.value)" />
+            <button class="toggle-pw" onclick="togglePw()" type="button" id="toggleBtn">👁</button>
+          </div>
+          <div class="pw-strength" id="pwStrength" style="display:none;">
+            <div class="pw-strength-bar"><div class="pw-strength-fill" id="pwFill"></div></div>
+            <div class="pw-strength-label" id="pwLabel"></div>
+          </div>
+          <div class="error-msg" id="pw-err">Password must be at least 8 characters.</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="confirm">Confirm password</label>
+          <div class="input-wrap">
+            <input class="form-input" type="password" id="confirm" placeholder="Same password again" autocomplete="new-password" />
+          </div>
+          <div class="error-msg" id="confirm-err">Passwords don't match.</div>
+        </div>
+
+        <button class="btn-primary" onclick="goStep2()" id="btn1">
+          <span id="btn1-text">Continue</span>
+          <div class="spinner" id="spinner1"></div>
+        </button>
+
+        <p class="terms-note">By continuing you agree to Orderly's <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.</p>
+
+        <div class="form-divider">or</div>
+
+        <p style="font-size:0.82rem; color:var(--text-muted); text-align:center;">Already have an account? <a href="#" style="color:var(--green-500); font-weight:500; text-decoration:none;">Sign in</a></p>
+      </div>
+
+      <!-- STEP 2: Store setup -->
+      <div class="step-panel" id="panel2">
+        <h1 class="form-heading">Set up your<br><em>store</em></h1>
+        <p class="form-sub">This is what your customers will see when they visit your order page.</p>
+
+        <div class="form-group">
+          <label class="form-label" for="storeName">Business name</label>
+          <input class="form-input" type="text" id="storeName" placeholder="e.g. Fatima's Kitchen" oninput="updateSlug(this.value)" />
+          <div class="error-msg" id="name-err">Please enter your business name.</div>
+          <div class="slug-preview" id="slugPreview" style="display:none;">
+            <span class="slug-preview-icon">🔗</span>
+            <span class="slug-preview-text">Your link: <strong id="slugText">yourstore.orderly.co.za</strong></span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">What do you sell?</label>
+          <div class="food-type-grid">
+            <div class="food-type-btn" onclick="selectType(this, 'Baked goods')">
+              <span class="food-type-emoji">🧁</span>
+              <span class="food-type-label">Baked goods</span>
+            </div>
+            <div class="food-type-btn" onclick="selectType(this, 'Home meals')">
+              <span class="food-type-emoji">🍲</span>
+              <span class="food-type-label">Home meals</span>
+            </div>
+            <div class="food-type-btn" onclick="selectType(this, 'Catering')">
+              <span class="food-type-emoji">🍽️</span>
+              <span class="food-type-label">Catering</span>
+            </div>
+            <div class="food-type-btn" onclick="selectType(this, 'Meal prep')">
+              <span class="food-type-emoji">🥗</span>
+              <span class="food-type-label">Meal prep</span>
+            </div>
+            <div class="food-type-btn" onclick="selectType(this, 'Snacks & sweets')">
+              <span class="food-type-emoji">🍬</span>
+              <span class="food-type-label">Snacks</span>
+            </div>
+            <div class="food-type-btn" onclick="selectType(this, 'Other')">
+              <span class="food-type-emoji">✨</span>
+              <span class="food-type-label">Other</span>
+            </div>
+          </div>
+          <div class="error-msg" id="type-err">Please select what you sell.</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="city">Your city</label>
+          <select class="form-input" id="city">
+            <option value="">Select your city</option>
+            <option>Johannesburg</option>
+            <option>Cape Town</option>
+            <option>Durban</option>
+            <option>Pretoria</option>
+            <option>Port Elizabeth</option>
+            <option>Bloemfontein</option>
+            <option>East London</option>
+            <option>Polokwane</option>
+            <option>Nelspruit</option>
+            <option>Other</option>
+          </select>
+          <div class="error-msg" id="city-err">Please select your city.</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="whatsapp">Your WhatsApp number</label>
+          <input class="form-input" type="tel" id="whatsapp" placeholder="+27 82 000 0000" />
+          <div class="form-hint">We'll send you a notification here when orders come in.</div>
+          <div class="error-msg" id="wa-err">Please enter your WhatsApp number.</div>
+        </div>
+
+        <button class="btn-primary" onclick="goStep3()" id="btn2">
+          <span id="btn2-text">Create my store</span>
+          <div class="spinner" id="spinner2"></div>
+        </button>
+        <button class="btn-secondary" onclick="goBack(1)">← Back</button>
+      </div>
+
+      <!-- STEP 3: Success -->
+      <div class="step-panel" id="panel3">
+        <div class="success-wrap">
+          <div class="success-icon-wrap">🎉</div>
+          <h2 class="success-heading">You're live!</h2>
+          <p class="success-sub">Your Orderly store is ready. Share your link and start taking orders today.</p>
+
+          <div class="your-link-box">
+            <div class="your-link-label">Your order page</div>
+            <div class="your-link-url" id="finalLink">yourstore.orderly.co.za</div>
+            <button class="your-link-copy" onclick="copyLink()">📋 Copy link</button>
+          </div>
+
+          <div class="checklist">
+            <div class="checklist-item">
+              <div class="checklist-icon">✓</div>
+              <span>Your order page is live and ready to share</span>
+            </div>
+            <div class="checklist-item">
+              <div class="checklist-icon">✓</div>
+              <span>WhatsApp notifications are set up</span>
+            </div>
+            <div class="checklist-item">
+              <div class="checklist-icon" style="background:var(--off-white);color:var(--text-muted);">→</div>
+              <span style="color:var(--text-muted);">Add your menu items to get started</span>
+            </div>
+          </div>
+
+          <button class="btn-primary" onclick="goToDashboard()" style="margin-top:0;">
+            Go to my dashboard →
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// ─── SUPABASE CONFIG ───────────────────────────────────────────────
+const SUPABASE_URL = 'https://qhcdlfnsjdspisjkfndq.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoY2RsZm5zamRzcGlzamtmbmRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwNDc3MTAsImV4cCI6MjA5NjYyMzcxMH0.1S4jvY38z-0XI22QwlB0Kkr4ttt-ptvDKRayEbk5Bgo';
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ─── STATE ─────────────────────────────────────────────────────────
+let selectedType = '';
+let currentStep = 1;
+let tempEmail = '';
+let tempPassword = '';
+
+// ─── STEP NAVIGATION ───────────────────────────────────────────────
+function setStep(n) {
+  currentStep = n;
+  document.querySelectorAll('.step-panel').forEach((p, i) => {
+    p.classList.toggle('active', i + 1 === n);
+  });
+  for (let i = 1; i <= 3; i++) {
+    const c = document.getElementById('sc' + i);
+    const l = document.getElementById('sl' + i);
+    if (!c || !l) continue;
+    if (i < n) {
+      c.className = 'step-circle done';
+      c.textContent = '';
+      l.className = 'step-text-label done';
+    } else if (i === n) {
+      c.className = 'step-circle active';
+      c.textContent = i;
+      l.className = 'step-text-label active';
+    } else {
+      c.className = 'step-circle';
+      c.textContent = i;
+      l.className = 'step-text-label upcoming';
+    }
+  }
+}
+
+function goBack(n) { setStep(n); }
+
+// ─── STEP 1: VALIDATE & MOVE TO STEP 2 ────────────────────────────
+// We don't create the Supabase account yet — we wait until they
+// finish store setup so we have all the data in one shot.
+function goStep2() {
+  let valid = true;
+  const email = document.getElementById('email');
+  const pw = document.getElementById('password');
+  const confirm = document.getElementById('confirm');
+  clearErrors();
+
+  if (!email.value || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) {
+    showError('email-err', email); valid = false;
+  }
+  if (!pw.value || pw.value.length < 8) {
+    showError('pw-err', pw); valid = false;
+  }
+  if (pw.value !== confirm.value) {
+    showError('confirm-err', confirm); valid = false;
+  }
+  if (!valid) return;
+
+  // Hold onto credentials for step 2
+  tempEmail = email.value.trim();
+  tempPassword = pw.value;
+
+  setLoading('btn1', 'spinner1', 'btn1-text', true);
+  setTimeout(() => {
+    setLoading('btn1', 'spinner1', 'btn1-text', false);
+    setStep(2);
+  }, 600);
+}
+
+// ─── STEP 2: CREATE REAL ACCOUNT + SAVE STORE ─────────────────────
+async function goStep3() {
+  let valid = true;
+  clearErrors();
+
+  const nameEl = document.getElementById('storeName');
+  const cityEl = document.getElementById('city');
+  const waEl   = document.getElementById('whatsapp');
+
+  if (!nameEl.value.trim())  { showError('name-err', nameEl); valid = false; }
+  if (!selectedType)         { document.getElementById('type-err').classList.add('show'); valid = false; }
+  if (!cityEl.value)         { showError('city-err', cityEl); valid = false; }
+  if (!waEl.value.trim())    { showError('wa-err', waEl); valid = false; }
+  if (!valid) return;
+
+  setLoading('btn2', 'spinner2', 'btn2-text', true);
+
+  try {
+    const slug = toSlug(nameEl.value);
+
+    // 1. Check slug isn't already taken
+    const { data: existing } = await db
+      .from('profiles')
+      .select('store_slug')
+      .eq('store_slug', slug)
+      .maybeSingle();
+
+    if (existing) {
+      showToast('That store name is taken — try adding your city 😊');
+      setLoading('btn2', 'spinner2', 'btn2-text', false);
+      showError('name-err', nameEl);
+      document.getElementById('name-err').textContent = 'This name is taken — try something slightly different.';
+      document.getElementById('name-err').classList.add('show');
+      return;
+    }
+
+    // 2. Create Supabase auth user
+    const { data: authData, error: authError } = await db.auth.signUp({
+      email: tempEmail,
+      password: tempPassword,
+    });
+
+    if (authError) {
+      if (authError.message.includes('already registered')) {
+        showToast('That email is already registered. Try signing in.');
+        document.getElementById('email-err').textContent = 'This email already has an account.';
+        showError('email-err', document.getElementById('email'));
+        setLoading('btn2', 'spinner2', 'btn2-text', false);
+        setStep(1);
+        return;
+      }
+      throw authError;
+    }
+
+    const userId = authData.user.id;
+
+    // 3. Save profile/store to database
+    const { error: profileError } = await db.from('profiles').insert({
+      id:         userId,
+      store_name: nameEl.value.trim(),
+      store_slug: slug,
+      food_type:  selectedType,
+      city:       cityEl.value,
+      whatsapp:   waEl.value.trim(),
+      plan:       'free',
+    });
+
+    if (profileError) throw profileError;
+
+    // 4. Save to localStorage so dashboard can read it
+    localStorage.setItem('orderly_slug', slug);
+    localStorage.setItem('orderly_store', nameEl.value.trim());
+    localStorage.setItem('orderly_city', cityEl.value);
+    localStorage.setItem('orderly_type', selectedType);
+    localStorage.setItem('orderly_wa', waEl.value.trim());
+
+    // 5. Show success
+    document.getElementById('finalLink').textContent = slug + '.orderly.co.za';
+    setStep(3);
+
+  } catch (err) {
+    console.error(err);
+    showToast('Something went wrong — please try again.');
+  } finally {
+    setLoading('btn2', 'spinner2', 'btn2-text', false);
+  }
+}
+
+// ─── GO TO DASHBOARD ───────────────────────────────────────────────
+function goToDashboard() {
+  showToast('Opening your dashboard... ✓');
+  setTimeout(() => {
+    window.location.href = 'orderly-dashboard.html';
+  }, 800);
+}
+
+// ─── SLUG GENERATOR ────────────────────────────────────────────────
+function toSlug(val) {
+  return val.toLowerCase()
+    .replace(/[^a-z0-9\s]/g, '')
+    .trim()
+    .replace(/\s+/g, '');
+}
+
+function updateSlug(val) {
+  const preview  = document.getElementById('slugPreview');
+  const slugText = document.getElementById('slugText');
+  if (val.trim()) {
+    slugText.textContent = toSlug(val) + '.orderly.co.za';
+    preview.style.display = 'flex';
+  } else {
+    preview.style.display = 'none';
+  }
+}
+
+// ─── FOOD TYPE SELECT ──────────────────────────────────────────────
+function selectType(el, type) {
+  document.querySelectorAll('.food-type-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedType = type;
+  document.getElementById('type-err').classList.remove('show');
+}
+
+// ─── PASSWORD STRENGTH ─────────────────────────────────────────────
+function checkStrength(val) {
+  const wrap  = document.getElementById('pwStrength');
+  const fill  = document.getElementById('pwFill');
+  const label = document.getElementById('pwLabel');
+  if (!val) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+  let score = 0;
+  if (val.length >= 8)          score++;
+  if (/[A-Z]/.test(val))        score++;
+  if (/[0-9]/.test(val))        score++;
+  if (/[^a-zA-Z0-9]/.test(val)) score++;
+  const levels = [
+    { w: '20%',  c: '#EF4444', t: 'Too short' },
+    { w: '40%',  c: '#F97316', t: 'Weak'      },
+    { w: '65%',  c: '#EAB308', t: 'Fair'      },
+    { w: '85%',  c: '#84CC16', t: 'Good'      },
+    { w: '100%', c: '#22C55E', t: 'Strong'    },
+  ];
+  const l = levels[Math.min(score, 4)];
+  fill.style.width      = l.w;
+  fill.style.background = l.c;
+  label.textContent     = l.t;
+  label.style.color     = l.c;
+}
+
+function togglePw() {
+  const pw = document.getElementById('password');
+  pw.type = pw.type === 'password' ? 'text' : 'password';
+  document.getElementById('toggleBtn').textContent = pw.type === 'password' ? '👁' : '🙈';
+}
+
+// ─── HELPERS ───────────────────────────────────────────────────────
+function showError(id, input) {
+  document.getElementById(id).classList.add('show');
+  if (input) input.classList.add('error');
+}
+function clearErrors() {
+  document.querySelectorAll('.error-msg').forEach(e => e.classList.remove('show'));
+  document.querySelectorAll('.form-input').forEach(i => i.classList.remove('error'));
+}
+function setLoading(btnId, spinnerId, textId, loading) {
+  document.getElementById(btnId).disabled = loading;
+  document.getElementById(spinnerId).style.display = loading ? 'block'  : 'none';
+  document.getElementById(textId).style.display    = loading ? 'none'   : 'inline';
+}
+function copyLink() {
+  const link = document.getElementById('finalLink').textContent;
+  navigator.clipboard.writeText(link).catch(() => {});
+  showToast('Link copied! 🔗');
+}
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+</script>
+</body>
+</html>

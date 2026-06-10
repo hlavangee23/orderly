@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Orderly — What do you use for your orders?</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --white: #FFFFFF;
+  --off-white: #F8FAF7;
+  --green-900: #0F2318;
+  --green-700: #1A3D2B;
+  --green-500: #2D6A4F;
+  --green-400: #3D8B65;
+  --green-100: #E8F4ED;
+  --green-50: #F2FAF5;
+  --text: #0F2318;
+  --text-mid: #3D5A47;
+  --text-muted: #7A9A85;
+  --border: #D6EAD9;
+  --shadow-sm: 0 1px 4px rgba(15,35,24,0.06);
+  --shadow-md: 0 4px 20px rgba(15,35,24,0.08);
+  --shadow-lg: 0 12px 48px rgba(15,35,24,0.12);
+  --radius: 12px;
+  --radius-lg: 20px;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--white);
+  color: var(--text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* NAV */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 2rem;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.nav-logo {
+  font-family: 'Instrument Serif', serif;
+  font-size: 1.3rem;
+  color: var(--green-700);
+  letter-spacing: -0.01em;
+}
+.nav-logo span { color: var(--green-400); }
+.nav-links { display: flex; align-items: center; gap: 2rem; }
+.nav-links a {
+  font-size: 0.85rem;
+  color: var(--text-mid);
+  text-decoration: none;
+  font-weight: 400;
+  transition: color 0.2s;
+}
+.nav-links a:hover { color: var(--text); }
+.nav-cta {
+  background: var(--green-700);
+  color: var(--white) !important;
+  padding: 0.45rem 1.1rem;
+  border-radius: 8px;
+  font-weight: 500 !important;
+  font-size: 0.85rem !important;
+}
+.nav-cta:hover { background: var(--green-900) !important; color: var(--white) !important; }
+
+/* HERO */
+.hero {
+  padding: 140px 2rem 100px;
+  max-width: 760px;
+  margin: 0 auto;
+  text-align: center;
+}
+.hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--green-500);
+  background: var(--green-50);
+  border: 1px solid var(--green-100);
+  padding: 4px 12px;
+  border-radius: 20px;
+  margin-bottom: 1.5rem;
+}
+.hero-eyebrow::before { content: '●'; font-size: 8px; color: var(--green-400); }
+.hero h1 {
+  font-family: 'Instrument Serif', serif;
+  font-size: clamp(2.4rem, 4vw, 3.4rem);
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  color: var(--green-900);
+  margin-bottom: 1.25rem;
+}
+.hero h1 em {
+  font-style: italic;
+  color: var(--green-400);
+}
+.hero-sub {
+  font-size: 1rem;
+  color: var(--text-mid);
+  font-weight: 300;
+  line-height: 1.7;
+  margin-bottom: 2rem;
+  max-width: 480px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.hero-form {
+  display: flex;
+  gap: 8px;
+  max-width: 420px;
+  margin: 0 auto;
+}
+.hero-input {
+  flex: 1;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.2s;
+  background: var(--white);
+}
+.hero-input:focus { border-color: var(--green-400); }
+.hero-input::placeholder { color: var(--text-muted); }
+.btn-primary {
+  background: var(--green-700);
+  color: var(--white);
+  border: none;
+  border-radius: 10px;
+  padding: 0.75rem 1.25rem;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s, transform 0.15s;
+}
+.btn-primary:hover { background: var(--green-900); transform: translateY(-1px); }
+.hero-note {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 0.75rem;
+}
+.hero-note strong { color: var(--green-500); font-weight: 500; }
+
+/* HERO VISUAL — App mockup */
+.hero-visual {
+  position: relative;
+}
+.mockup-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+.mockup-header {
+  background: var(--green-700);
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.mockup-header-left { display: flex; align-items: center; gap: 10px; }
+.mockup-avatar {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Instrument Serif', serif;
+  font-size: 14px; color: white;
+}
+.mockup-name { font-size: 0.9rem; font-weight: 500; color: white; }
+.mockup-subtitle { font-size: 0.72rem; color: rgba(255,255,255,0.6); }
+.mockup-badge {
+  background: rgba(255,255,255,0.15);
+  color: white;
+  font-size: 0.72rem;
+  padding: 3px 10px;
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.2);
+}
+.mockup-body { padding: 1.25rem 1.5rem; }
+.mockup-stat-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 1.25rem;
+}
+.mockup-stat {
+  background: var(--off-white);
+  border-radius: 10px;
+  padding: 0.8rem;
+  border: 1px solid var(--border);
+}
+.mockup-stat-val {
+  font-family: 'Instrument Serif', serif;
+  font-size: 1.4rem;
+  color: var(--green-700);
+  line-height: 1;
+}
+.mockup-stat-label { font-size: 0.68rem; color: var(--text-muted); margin-top: 3px; }
+.mockup-orders-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.75rem;
+}
+.mockup-order {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid var(--border);
+}
+.mockup-order:last-child { border-bottom: none; }
+.mockup-order-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.dot-new { background: #22C55E; }
+.dot-pending { background: #F59E0B; }
+.dot-done { background: var(--border); }
+.mockup-order-info { flex: 1; }
+.mockup-order-name { font-size: 0.82rem; font-weight: 500; color: var(--text); }
+.mockup-order-items { font-size: 0.72rem; color: var(--text-muted); }
+.mockup-order-price { font-size: 0.85rem; font-weight: 600; color: var(--green-500); }
+.mockup-order-status {
+  font-size: 0.68rem;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-weight: 500;
+}
+.status-new { background: #DCFCE7; color: #15803D; }
+.status-pending { background: #FEF3C7; color: #B45309; }
+.status-done { background: var(--off-white); color: var(--text-muted); }
+
+/* Floating notification */
+.mockup-notif {
+  position: absolute;
+  bottom: -16px;
+  left: -16px;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  box-shadow: var(--shadow-md);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: float 3s ease-in-out infinite;
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.notif-icon { font-size: 1.2rem; }
+.notif-text-main { font-size: 0.8rem; font-weight: 500; color: var(--text); }
+.notif-text-sub { font-size: 0.7rem; color: var(--text-muted); }
+
+/* HOW IT WORKS */
+.section {
+  padding: 80px 2rem;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.section-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--green-400);
+  margin-bottom: 0.75rem;
+}
+.section-title {
+  font-family: 'Instrument Serif', serif;
+  font-size: clamp(1.8rem, 3vw, 2.5rem);
+  color: var(--green-900);
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin-bottom: 1rem;
+}
+.section-sub {
+  font-size: 0.95rem;
+  color: var(--text-mid);
+  font-weight: 300;
+  max-width: 520px;
+  line-height: 1.7;
+}
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+  margin-top: 3rem;
+}
+.step-card {
+  background: var(--off-white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  position: relative;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.step-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.step-num {
+  font-family: 'Instrument Serif', serif;
+  font-size: 3rem;
+  color: var(--green-100);
+  line-height: 1;
+  margin-bottom: 1rem;
+}
+.step-icon {
+  width: 44px; height: 44px;
+  background: var(--green-100);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+}
+.step-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--green-900);
+  margin-bottom: 0.5rem;
+}
+.step-desc { font-size: 0.85rem; color: var(--text-mid); font-weight: 300; line-height: 1.6; }
+
+/* SOCIAL PROOF */
+.proof-strip {
+  background: var(--green-50);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 60px 2rem;
+}
+.proof-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.proof-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-top: 3rem;
+}
+.proof-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+}
+.proof-quote {
+  font-size: 0.9rem;
+  color: var(--text-mid);
+  font-weight: 300;
+  line-height: 1.7;
+  margin-bottom: 1.25rem;
+  font-style: italic;
+}
+.proof-quote strong { font-style: normal; font-weight: 500; color: var(--text); }
+.proof-person { display: flex; align-items: center; gap: 10px; }
+.proof-avatar {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: var(--green-100);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Instrument Serif', serif;
+  font-size: 14px;
+  color: var(--green-700);
+  font-weight: 600;
+}
+.proof-name { font-size: 0.85rem; font-weight: 500; color: var(--text); }
+.proof-biz { font-size: 0.75rem; color: var(--text-muted); }
+
+/* PRICING */
+.pricing-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-top: 3rem;
+  max-width: 720px;
+}
+.price-card {
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  background: var(--white);
+  transition: box-shadow 0.2s;
+}
+.price-card:hover { box-shadow: var(--shadow-md); }
+.price-card.featured {
+  border-color: var(--green-400);
+  background: var(--green-900);
+  color: white;
+}
+.price-tier {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+}
+.price-card.featured .price-tier { color: rgba(255,255,255,0.5); }
+.price-amount {
+  font-family: 'Instrument Serif', serif;
+  font-size: 2.8rem;
+  color: var(--green-900);
+  line-height: 1;
+  margin-bottom: 0.25rem;
+}
+.price-card.featured .price-amount { color: white; }
+.price-period { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1.5rem; }
+.price-card.featured .price-period { color: rgba(255,255,255,0.5); }
+.price-features { list-style: none; margin-bottom: 1.75rem; }
+.price-features li {
+  font-size: 0.85rem;
+  color: var(--text-mid);
+  padding: 0.4rem 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.price-card.featured .price-features li {
+  color: rgba(255,255,255,0.75);
+  border-bottom-color: rgba(255,255,255,0.1);
+}
+.price-features li::before { content: '✓'; color: var(--green-400); font-weight: 600; font-size: 0.8rem; }
+.price-features li.off::before { content: '—'; color: var(--border); }
+.price-features li.off { color: var(--text-muted) !important; }
+.btn-outline {
+  width: 100%;
+  background: transparent;
+  color: var(--green-700);
+  border: 1.5px solid var(--green-400);
+  border-radius: 10px;
+  padding: 0.8rem;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-outline:hover { background: var(--green-50); }
+.btn-white {
+  width: 100%;
+  background: white;
+  color: var(--green-900);
+  border: none;
+  border-radius: 10px;
+  padding: 0.8rem;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-white:hover { background: var(--green-50); }
+.price-trial {
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.5);
+  text-align: center;
+  margin-top: 0.6rem;
+}
+
+/* FOOTER */
+footer {
+  background: var(--green-900);
+  color: rgba(255,255,255,0.6);
+  padding: 3rem 2rem;
+}
+.footer-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+.footer-logo {
+  font-family: 'Instrument Serif', serif;
+  font-size: 1.2rem;
+  color: white;
+}
+.footer-tagline { font-size: 0.8rem; color: rgba(255,255,255,0.4); margin-top: 2px; }
+.footer-right { font-size: 0.78rem; text-align: right; }
+
+/* DIVIDER */
+.divider { border: none; border-top: 1px solid var(--border); }
+
+/* MOBILE */
+@media (max-width: 768px) {
+  nav { padding: 0 1rem; }
+  .nav-links { display: none; }
+  .hero { grid-template-columns: 1fr; padding: 100px 1.25rem 60px; gap: 2.5rem; }
+  .hero-visual { order: -1; }
+  .mockup-notif { display: none; }
+  .section { padding: 60px 1.25rem; }
+  .steps { grid-template-columns: 1fr; gap: 1rem; }
+  .proof-grid { grid-template-columns: 1fr; }
+  .pricing-grid { grid-template-columns: 1fr; }
+  .proof-strip { padding: 50px 1.25rem; }
+}
+
+/* ANIMATIONS */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.hero-left > * {
+  animation: fadeUp 0.6s ease both;
+}
+.hero-left > *:nth-child(1) { animation-delay: 0.1s; }
+.hero-left > *:nth-child(2) { animation-delay: 0.2s; }
+.hero-left > *:nth-child(3) { animation-delay: 0.3s; }
+.hero-left > *:nth-child(4) { animation-delay: 0.4s; }
+.hero-left > *:nth-child(5) { animation-delay: 0.5s; }
+.hero-visual { animation: fadeUp 0.7s ease 0.3s both; }
+
+/* CHAOS SECTION */
+.chaos-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-top: 2.5rem;
+}
+.chaos-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.4rem;
+}
+.chaos-bad { border-top: 3px solid #FCA5A5; }
+.chaos-app-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 0.85rem;
+}
+.chaos-app-icon { font-size: 1.2rem; }
+.chaos-app-name { font-size: 0.82rem; font-weight: 600; color: var(--text); flex: 1; }
+.chaos-app-tag {
+  font-size: 0.65rem;
+  background: #FEF2F2;
+  color: #B91C1C;
+  border: 1px solid #FECACA;
+  padding: 2px 7px;
+  border-radius: 20px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.chaos-desc {
+  font-size: 0.78rem;
+  color: var(--text-mid);
+  font-weight: 300;
+  line-height: 1.6;
+  margin-bottom: 0.85rem;
+}
+.chaos-problem {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #B91C1C;
+  background: #FEF2F2;
+  border-radius: 6px;
+  padding: 0.4rem 0.7rem;
+}
+.chaos-arrow {
+  text-align: center;
+  font-size: 1.5rem;
+  color: var(--green-400);
+  margin: 1.75rem 0 1.25rem;
+  font-weight: 300;
+}
+.chaos-solution {
+  background: var(--green-900);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+.chaos-solution-icon {
+  font-size: 1.5rem;
+  color: var(--green-400);
+  flex-shrink: 0;
+}
+.chaos-solution-text { flex: 1; }
+.chaos-solution-title {
+  font-family: 'Instrument Serif', serif;
+  font-size: 1.2rem;
+  color: white;
+  margin-bottom: 3px;
+}
+.chaos-solution-sub {
+  font-size: 0.82rem;
+  color: rgba(255,255,255,0.6);
+  font-weight: 300;
+}
+@media (max-width: 900px) {
+  .chaos-grid { grid-template-columns: repeat(2, 1fr); }
+  .chaos-solution { flex-direction: column; text-align: center; gap: 1rem; }
+}
+@media (max-width: 480px) {
+  .chaos-grid { grid-template-columns: 1fr; }
+}
+
+/* FEATURES GRID */
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-top: 3rem;
+}
+.feat-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  position: relative;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.feat-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.feat-card.feat-coming {
+  background: var(--off-white);
+  opacity: 0.85;
+}
+.feat-coming-badge {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--caramel, #B45309);
+  background: #FEF3C7;
+  border: 1px solid #FDE68A;
+  padding: 2px 8px;
+  border-radius: 20px;
+  margin-bottom: 0.75rem;
+  color: #92400E;
+}
+.feat-icon { font-size: 1.5rem; margin-bottom: 0.75rem; }
+.feat-title { font-size: 0.9rem; font-weight: 600; color: var(--green-900); margin-bottom: 0.4rem; }
+.feat-desc { font-size: 0.8rem; color: var(--text-mid); font-weight: 300; line-height: 1.6; }
+.feat-desc strong { font-weight: 500; color: var(--text); }
+
+/* COMING SOON TAGS IN PRICING */
+.coming-tag {
+  font-size: 0.62rem;
+  background: #FEF3C7;
+  color: #92400E;
+  border: 1px solid #FDE68A;
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  vertical-align: middle;
+  margin-left: 4px;
+}
+.coming-tag-light {
+  font-size: 0.62rem;
+  background: rgba(255,255,255,0.15);
+  color: rgba(255,255,255,0.6);
+  border: 1px solid rgba(255,255,255,0.2);
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  vertical-align: middle;
+  margin-left: 4px;
+}
+
+/* EXAMPLE SECTION */
+.example-wrap {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 3rem;
+  align-items: center;
+  margin-top: 3rem;
+}
+.example-browser {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border);
+}
+.browser-bar {
+  background: #F1F3F4;
+  padding: 0.6rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+.browser-dots { display: flex; gap: 5px; }
+.browser-dots span {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--border);
+}
+.browser-dots span:nth-child(1) { background: #FC615D; }
+.browser-dots span:nth-child(2) { background: #FDBC40; }
+.browser-dots span:nth-child(3) { background: #34C749; }
+.browser-url {
+  flex: 1;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 3px 10px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-family: monospace;
+}
+.example-inner { background: white; }
+.ex-hero {
+  background: var(--green-700);
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.ex-avatar {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Instrument Serif', serif;
+  font-size: 13px; color: white;
+  flex-shrink: 0;
+}
+.ex-name { font-size: 0.9rem; font-weight: 500; color: white; }
+.ex-sub { font-size: 0.7rem; color: rgba(255,255,255,0.6); }
+.ex-items { padding: 0.75rem 1.25rem; }
+.ex-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid var(--border);
+}
+.ex-item:last-child { border-bottom: none; }
+.ex-emoji { font-size: 1.2rem; width: 28px; text-align: center; flex-shrink: 0; }
+.ex-item-info { flex: 1; }
+.ex-item-name { font-size: 0.82rem; font-weight: 500; color: var(--text); }
+.ex-item-desc { font-size: 0.7rem; color: var(--text-muted); }
+.ex-price { font-size: 0.85rem; font-weight: 600; color: var(--green-500); flex-shrink: 0; }
+.ex-qty {
+  display: flex; align-items: center; gap: 0;
+  background: var(--green-50);
+  border: 1px solid var(--green-100);
+  border-radius: 6px; overflow: hidden;
+}
+.ex-qty button {
+  background: none; border: none;
+  width: 24px; height: 24px;
+  font-size: 0.9rem; color: var(--green-500);
+  cursor: pointer; font-weight: 600;
+}
+.ex-qty span { width: 20px; text-align: center; font-size: 0.78rem; font-weight: 600; color: var(--text); }
+.ex-cart {
+  background: var(--green-700);
+  padding: 0.85rem 1.25rem;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.ex-cart span { font-size: 0.82rem; color: rgba(255,255,255,0.8); }
+.ex-cart button {
+  background: white; color: var(--green-700);
+  border: none; border-radius: 6px;
+  padding: 0.4rem 0.9rem;
+  font-size: 0.78rem; font-weight: 600;
+  cursor: pointer; font-family: 'DM Sans', sans-serif;
+}
+.caption-point {
+  font-size: 0.88rem;
+  color: var(--text-mid);
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--border);
+  line-height: 1.5;
+}
+.caption-point:last-child { border-bottom: none; }
+
+@media (max-width: 900px) {
+  .features-grid { grid-template-columns: repeat(2, 1fr); }
+  .example-wrap { grid-template-columns: 1fr; gap: 1.5rem; }
+}
+@media (max-width: 480px) {
+  .features-grid { grid-template-columns: 1fr; }
+}
+
+/* SUCCESS STATE */
+.success-msg {
+  display: none;
+  background: var(--green-50);
+  border: 1px solid var(--green-100);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  font-size: 0.85rem;
+  color: var(--green-500);
+  font-weight: 500;
+  margin-top: 0.75rem;
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">Order<span>ly</span></div>
+  <div class="nav-links">
+    <a href="#how">How it works</a>
+    <a href="#features">Features</a>
+    <a href="#pricing">Pricing</a>
+    <a href="#waitlist" class="nav-cta">Get early access</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section style="background: var(--white);">
+  <div class="hero">
+    <div class="hero-left">
+      <div class="hero-eyebrow">Built for SA home businesses</div>
+      <h1>What do you use<br>for your <em>orders?</em></h1>
+      <p class="hero-sub">Orderly gives home food businesses a simple order page, a clean dashboard, and one-click invoices. No more WhatsApp chaos.</p>
+      <div class="hero-form" id="waitlist">
+        <input class="hero-input" type="email" id="emailInput" placeholder="Your email address" />
+        <button class="btn-primary" onclick="joinWaitlist()">Get early access</button>
+      </div>
+      <p class="hero-note"><strong>Free 30-day trial.</strong> No credit card needed. Cancel anytime.</p>
+      <div class="success-msg" id="successMsg">✓ You're on the list! We'll be in touch soon.</div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- CHAOS SECTION -->
+<section style="background: var(--off-white); padding: 80px 0; border-bottom: 1px solid var(--border);">
+  <div class="section" style="padding-top:0; padding-bottom:0;">
+    <div class="section-label">Sound familiar?</div>
+    <h2 class="section-title">Still juggling 4 different<br>tools to run your business?</h2>
+    <p class="section-sub">Most home businesses are held together by a group of apps that were never built for them. It works — until it doesn't.</p>
+
+    <div class="chaos-grid">
+
+      <div class="chaos-card chaos-bad">
+        <div class="chaos-app-row">
+          <div class="chaos-app-icon">💬</div>
+          <div class="chaos-app-name">WhatsApp</div>
+          <div class="chaos-app-tag">For orders</div>
+        </div>
+        <p class="chaos-desc">Customers DM you, you screenshot orders, you scroll up to find what Aisha asked for last week. You miss one every weekend.</p>
+        <div class="chaos-problem">❌ Orders get lost in chat</div>
+      </div>
+
+      <div class="chaos-card chaos-bad">
+        <div class="chaos-app-row">
+          <div class="chaos-app-icon">📊</div>
+          <div class="chaos-app-name">Excel / Google Sheets</div>
+          <div class="chaos-app-tag">For tracking</div>
+        </div>
+        <p class="chaos-desc">You copy orders from WhatsApp into a spreadsheet. By hand. Every time. And then you forget to update it half the time.</p>
+        <div class="chaos-problem">❌ Always out of date</div>
+      </div>
+
+      <div class="chaos-card chaos-bad">
+        <div class="chaos-app-row">
+          <div class="chaos-app-icon">📄</div>
+          <div class="chaos-app-name">Word / PDF template</div>
+          <div class="chaos-app-tag">For invoices</div>
+        </div>
+        <p class="chaos-desc">You open a Word doc, change the name and amount, save as PDF, send on WhatsApp. 20 minutes per invoice. Every single order.</p>
+        <div class="chaos-problem">❌ Wastes hours every week</div>
+      </div>
+
+      <div class="chaos-card chaos-bad">
+        <div class="chaos-app-row">
+          <div class="chaos-app-icon">🏦</div>
+          <div class="chaos-app-name">EFT / Cash</div>
+          <div class="chaos-app-tag">For payments</div>
+        </div>
+        <p class="chaos-desc">You send your account number, wait for proof of payment, check your banking app, follow up when people forget. Exhausting.</p>
+        <div class="chaos-problem">❌ Chasing payments costs time</div>
+      </div>
+
+    </div>
+
+    <div class="chaos-arrow">↓</div>
+
+    <div class="chaos-solution">
+      <div class="chaos-solution-icon">✦</div>
+      <div class="chaos-solution-text">
+        <div class="chaos-solution-title">There's a better way.</div>
+        <div class="chaos-solution-sub">Orderly replaces all four — one tool, built specifically for home businesses like yours.</div>
+      </div>
+      <button class="btn-primary" onclick="document.getElementById('waitlist').scrollIntoView({behavior:'smooth'})">Try Orderly free →</button>
+    </div>
+
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <div class="section">
+    <div class="section-label">How it works</div>
+    <h2 class="section-title">Set up in 10 minutes.<br>Start taking orders today.</h2>
+    <p class="section-sub">No technical knowledge needed. If you can use WhatsApp, you can use Orderly.</p>
+    <div class="steps">
+      <div class="step-card">
+        <div class="step-num">01</div>
+        <div class="step-icon">🏪</div>
+        <div class="step-title">Build your menu</div>
+        <p class="step-desc">Add your items and prices in seconds. Name, price, done. Your menu is live instantly.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">02</div>
+        <div class="step-icon">🔗</div>
+        <div class="step-title">Share your link</div>
+        <p class="step-desc">You get a clean order page — share the link on WhatsApp, Instagram, or wherever your customers are.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">03</div>
+        <div class="step-icon">📲</div>
+        <div class="step-title">Get orders instantly</div>
+        <p class="step-desc">Customers browse and order online. You get a WhatsApp notification the moment each order comes in.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- FEATURES SECTION -->
+<section id="features">
+  <div class="section">
+    <div class="section-label">Everything you need</div>
+    <h2 class="section-title">Built for home businesses.<br>Not corporate software.</h2>
+    <p class="section-sub">Every feature in Orderly was designed around one person — someone running a real business from home, on their phone, without a tech team.</p>
+    <div class="features-grid">
+
+      <div class="feat-card">
+        <div class="feat-icon">🏪</div>
+        <div class="feat-title">Menu builder</div>
+        <p class="feat-desc">Add your items and prices in seconds. No photos required, no categories to set up. Name, price, live. That's it.</p>
+      </div>
+
+      <div class="feat-card">
+        <div class="feat-icon">🔗</div>
+        <div class="feat-title">Your own order page</div>
+        <p class="feat-desc">Every business gets a clean, branded order page at their own Orderly link — like <strong>fatimaskitchen.orderly.co.za</strong>. Share it anywhere.</p>
+      </div>
+
+      <div class="feat-card">
+        <div class="feat-icon">📋</div>
+        <div class="feat-title">Order dashboard</div>
+        <p class="feat-desc">See every order the moment it comes in. Mark orders as confirmed, in progress, or done. Never lose track again.</p>
+      </div>
+
+      <div class="feat-card">
+        <div class="feat-icon">🔔</div>
+        <div class="feat-title">Instant WhatsApp alerts</div>
+        <p class="feat-desc">The moment a customer places an order, you get a WhatsApp notification with their name, items, and total. No app refreshing needed.</p>
+      </div>
+
+      <div class="feat-card">
+        <div class="feat-icon">🧾</div>
+        <div class="feat-title">One-click invoices</div>
+        <p class="feat-desc">Every order has an invoice ready to send. One tap — sends to your customer on WhatsApp or downloads as a PDF. Done in 3 seconds.</p>
+      </div>
+
+      <div class="feat-card">
+        <div class="feat-icon">📊</div>
+        <div class="feat-title">Basic stats</div>
+        <p class="feat-desc">See how many orders you've had this month, your total revenue, and your top selling items. Simple numbers that actually help.</p>
+      </div>
+
+      <div class="feat-card feat-coming">
+        <div class="feat-coming-badge">Coming soon</div>
+        <div class="feat-icon">💳</div>
+        <div class="feat-title">Online payments</div>
+        <p class="feat-desc">Let customers pay upfront when they order. No more chasing, no more no-shows. Powered by PayFast — built for SA.</p>
+      </div>
+
+      <div class="feat-card feat-coming">
+        <div class="feat-coming-badge">Coming soon</div>
+        <div class="feat-icon">📈</div>
+        <div class="feat-title">Full analytics</div>
+        <p class="feat-desc">Deeper insights into your busiest days, repeat customers, seasonal trends, and which items to stock more of.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- FATIMA'S KITCHEN EXAMPLE -->
+<section style="background: var(--off-white); padding: 80px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+  <div class="section" style="padding-top:0; padding-bottom:0;">
+    <div class="section-label">See it in action</div>
+    <h2 class="section-title">Meet Fatima's Kitchen.</h2>
+    <p class="section-sub">Fatima runs a home catering business in Cape Town. Before Orderly she managed everything on WhatsApp. Here's what her Orderly page looks like.</p>
+
+    <div class="example-wrap">
+      <div class="example-browser">
+        <div class="browser-bar">
+          <div class="browser-dots">
+            <span></span><span></span><span></span>
+          </div>
+          <div class="browser-url">fatimaskitchen.orderly.co.za</div>
+        </div>
+        <div class="example-inner">
+          <!-- Mini order page -->
+          <div class="ex-hero">
+            <div class="ex-avatar">FK</div>
+            <div>
+              <div class="ex-name">Fatima's Kitchen</div>
+              <div class="ex-sub">Cape Town · Home Catering · Orders close Thursdays</div>
+            </div>
+          </div>
+          <div class="ex-items">
+            <div class="ex-item">
+              <span class="ex-emoji">🍛</span>
+              <div class="ex-item-info">
+                <div class="ex-item-name">Chicken Biryani</div>
+                <div class="ex-item-desc">Served with raita & salad</div>
+              </div>
+              <span class="ex-price">R120</span>
+              <div class="ex-qty"><button>−</button><span>1</span><button>+</button></div>
+            </div>
+            <div class="ex-item">
+              <span class="ex-emoji">🥙</span>
+              <div class="ex-item-info">
+                <div class="ex-item-name">Full Gatsby</div>
+                <div class="ex-item-desc">Choose your filling</div>
+              </div>
+              <span class="ex-price">R95</span>
+              <div class="ex-qty"><button>−</button><span>0</span><button>+</button></div>
+            </div>
+            <div class="ex-item">
+              <span class="ex-emoji">🥧</span>
+              <div class="ex-item-info">
+                <div class="ex-item-name">Milk Tart</div>
+                <div class="ex-item-desc">Homemade, whole tart</div>
+              </div>
+              <span class="ex-price">R50</span>
+              <div class="ex-qty"><button>−</button><span>0</span><button>+</button></div>
+            </div>
+          </div>
+          <div class="ex-cart">
+            <span>1 item · R120</span>
+            <button>Place order →</button>
+          </div>
+        </div>
+      </div>
+      <div class="example-caption">
+        <div class="caption-point">✓ Customers browse and order from their phone</div>
+        <div class="caption-point">✓ Fatima gets a WhatsApp ping the moment an order comes in</div>
+        <div class="caption-point">✓ She confirms, fulfils, and sends the invoice in one tap</div>
+        <div class="caption-point">✓ No app for the customer to download — just a link</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- PRICING -->
+<section id="pricing">
+  <div class="section">
+    <div class="section-label">Pricing</div>
+    <h2 class="section-title">Simple, honest pricing.</h2>
+    <p class="section-sub">Start free. Upgrade when you're ready. No hidden fees, no lock-in.</p>
+    <div class="pricing-grid">
+      <div class="price-card">
+        <div class="price-tier">Free</div>
+        <div class="price-amount">R0</div>
+        <div class="price-period">forever · perfect to get started</div>
+        <ul class="price-features">
+          <li>Up to <strong>20 orders</strong> per month</li>
+          <li>Up to <strong>10 menu items</strong></li>
+          <li>Up to <strong>10 invoices</strong> per month</li>
+          <li>Your own Orderly link</li>
+          <li>Order dashboard & tracking</li>
+          <li>WhatsApp notifications</li>
+          <li>Basic stats</li>
+          <li class="off">Online payments <span class="coming-tag">Soon</span></li>
+          <li class="off">Full analytics <span class="coming-tag">Soon</span></li>
+          <li class="off">Remove Orderly branding</li>
+
+        </ul>
+        <button class="btn-outline" onclick="joinWaitlist()">Get started free</button>
+      </div>
+      <div class="price-card featured">
+        <div class="price-tier">Pro</div>
+        <div class="price-amount">R199</div>
+        <div class="price-period">per month · for growing businesses</div>
+        <ul class="price-features">
+          <li><strong>Unlimited</strong> orders</li>
+          <li><strong>Unlimited</strong> menu items</li>
+          <li><strong>Unlimited</strong> invoices</li>
+          <li>Everything in Free</li>
+          <li>Online payments <span class="coming-tag-light">Soon</span></li>
+          <li>Full analytics & insights <span class="coming-tag-light">Soon</span></li>
+          <li>Remove Orderly branding</li>
+        </ul>
+        <button class="btn-white" onclick="joinWaitlist()">Start 30-day free trial</button>
+        <p class="price-trial">No credit card required</p>
+      </div>
+    </div>
+    <p style="font-size:0.78rem; color:var(--text-muted); margin-top:1rem; text-align:center;">Hitting your free limit means your business is growing — upgrading to Pro pays for itself in one order.</p>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div>
+      <div class="footer-logo">Orderly</div>
+      <div class="footer-tagline">What do you use for your orders?</div>
+    </div>
+    <div class="footer-right">
+      <div>Built for South African home businesses</div>
+      <div style="margin-top:4px;">© 2026 Orderly</div>
+    </div>
+  </div>
+</footer>
+
+<script>
+function joinWaitlist() {
+  const email = document.getElementById('emailInput').value.trim();
+  if (!email || !email.includes('@')) {
+    document.getElementById('emailInput').focus();
+    document.getElementById('emailInput').style.borderColor = '#EF4444';
+    setTimeout(() => document.getElementById('emailInput').style.borderColor = '', 2000);
+    return;
+  }
+  document.getElementById('successMsg').style.display = 'block';
+  document.getElementById('emailInput').value = '';
+  document.getElementById('emailInput').style.borderColor = '#2D6A4F';
+}
+</script>
+</body>
+</html>
