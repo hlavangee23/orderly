@@ -530,6 +530,7 @@ body {
   <a class="nav-item"><span class="icon">🧾</span> Invoices</a>
   <div class="nav-section-label">Account</div>
   <a class="nav-item"><span class="icon">⚙️</span> Settings</a>
+  <a class="nav-item" onclick="signOut()" style="cursor:pointer;"><span class="icon">🚪</span> Sign out</a>
   <a class="nav-item"><span class="icon">💬</span> Support</a>
   <div class="sidebar-bottom">
     <div class="sidebar-bottom-name">Fatima Karriem</div>
@@ -547,7 +548,7 @@ body {
       <p>Tuesday, 9 June 2026 · 3 new orders overnight</p>
     </div>
     <div class="topbar-right">
-      <button class="share-btn" onclick="showToast('Link copied to clipboard! 🔗')">🔗 Share my order page</button>
+      <button class="share-btn" onclick="copyLink()">🔗 Share my order page</button>
       <div class="notif-btn">🔔<div class="notif-dot"></div></div>
     </div>
   </div>
@@ -781,30 +782,322 @@ body {
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-let invoiceCount = 24;
-let currentInvoiceData = {};
+const SUPABASE_URL = 'https://qhcdlfnsjdspisjkfndq.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoY2RsZm5zamRzcGlzamtmbmRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwNDc3MTAsImV4cCI6MjA5NjYyMzcxMH0.1S4jvY38z-0XI22QwlB0Kkr4ttt-ptvDKRayEbk5Bgo';
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-function openInvoice(customer, total, itemNames, itemPrices, deliveryType, phone) {
-  invoiceCount++;
-  currentInvoiceData = { customer, total, itemNames, itemPrices, deliveryType, phone };
+let invoiceCount = 1;
+let currentInvoiceData = {};
+let userProfile = null;
+
+// ── INIT ───────────────────────────────────────────────────────────
+async function init() {
+  // Check auth
+  const { data: { session } } = await db.auth.getSession();
+  if (!session) {
+    window.location.href = 'orderly-signin.html';
+    return;
+  }
+
+  // Load profile from Supabase
+  const { data: profile } = await db
+    .from('profiles')
+    .select('*')
+    .eq('id', session.user.id)
+    .maybeSingle();
+
+  if (!profile) {
+    window.location.href = 'orderly-signin.html';
+    return;
+  }
+
+  userProfile = profile;
+
+  // Update UI with real store data
+  updateStoreUI(profile);
+
+  // Load real orders and menu
+  await Promise.all([loadOrders(profile.id), loadMenu(profile.id)]);
+}
+
+// ── UPDATE STORE UI ────────────────────────────────────────────────
+function updateStoreUI(profile) {
+  const initials = profile.store_name.split(' ').map(w => w[0]).join('').substring(0,2).toUpperCase();
+  const firstName = profile.store_name.split(' ')[0];
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+
+  // Sidebar
+  document.querySelector('.sidebar-store-avatar').textContent = initials;
+  document.querySelector('.sidebar-store-name').textContent = profile.store_name;
+  document.querySelector('.sidebar-store-link').textContent = profile.store_slug + '.orderly.co.za ↗';
+  document.querySelector('.sidebar-bottom-name').textContent = profile.store_name;
+  document.querySelector('.sidebar-bottom-role').innerHTML = `${profile.plan === 'pro' ? 'Pro plan' : 'Free plan'} · <span style="color:#3D8B65;cursor:pointer" onclick="showToast('Upgrade coming soon! 🚀')">Upgrade to Pro</span>`;
+
+  // Topbar
+  document.querySelector('.topbar-left h1').textContent = `${greeting}, ${firstName} 👋`;
+
+  const today = new Date().toLocaleDateString('en-ZA', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+  document.querySelector('.topbar-left p').textContent = today;
+}
+
+// ── LOAD REAL ORDERS ───────────────────────────────────────────────
+async function loadOrders(profileId) {
+  const { data: orders, error } = await db
+    .from('orders')
+    .select('*')
+    .eq('profile_id', profileId)
+    .order('created_at', { ascending: false })
+    .limit(20);
+
+  if (error || !orders || orders.length === 0) {
+    updateStats([], true);
+    return;
+  }
+
+  invoiceCount = orders.length;
+  updateStats(orders, false);
+  renderOrders(orders);
+}
+
+// ── UPDATE STATS ───────────────────────────────────────────────────
+function updateStats(orders, isEmpty) {
+  if (isEmpty) {
+    document.querySelector('.stats-row').innerHTML = `
+      <div class="stat-card" style="grid-column:1/-1;text-align:center;padding:2rem;">
+        <p style="font-size:0.9rem;color:var(--text-muted);margin-bottom:0.5rem;">No orders yet</p>
+        <p style="font-size:0.82rem;color:var(--text-muted);font-weight:300;">Share your order link to start receiving orders</p>
+        <button onclick="copyLink()" style="margin-top:1rem;background:var(--green-700);color:white;border:none;border-radius:8px;padding:0.5rem 1.25rem;font-family:'DM Sans',sans-serif;font-size:0.82rem;cursor:pointer;">Copy my order link</button>
+      </div>`;
+    return;
+  }
+
+  const now = new Date();
+  const thisMonth = orders.filter(o => new Date(o.created_at).getMonth() === now.getMonth());
+  const lastMonth = orders.filter(o => new Date(o.created_at).getMonth() === now.getMonth() - 1);
+  const today = orders.filter(o => new Date(o.created_at).toDateString() === now.toDateString());
+
+  const revenue = thisMonth.reduce((s, o) => s + (o.total || 0), 0);
+  const lastRevenue = lastMonth.reduce((s, o) => s + (o.total || 0), 0);
+  const avgOrder = thisMonth.length ? Math.round(revenue / thisMonth.length) : 0;
+
+  document.querySelector('.stats-row').innerHTML = `
+    <div class="stat-card">
+      <div class="stat-label">Orders this month</div>
+      <div class="stat-value">${thisMonth.length}</div>
+      <div class="stat-change ${thisMonth.length >= lastMonth.length ? '' : 'down'}">
+        ${thisMonth.length >= lastMonth.length ? '↑' : '↓'} ${Math.abs(thisMonth.length - lastMonth.length)} from last month
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Revenue this month</div>
+      <div class="stat-value">R${revenue.toLocaleString()}</div>
+      <div class="stat-change ${revenue >= lastRevenue ? '' : 'down'}">
+        ${revenue >= lastRevenue ? '↑' : '↓'} R${Math.abs(revenue - lastRevenue).toLocaleString()} from last month
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">New today</div>
+      <div class="stat-value">${today.length}</div>
+      <div class="stat-change">↑ Orders today</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Avg. order value</div>
+      <div class="stat-value">R${avgOrder}</div>
+      <div class="stat-change">This month</div>
+    </div>`;
+}
+
+// ── RENDER REAL ORDERS ─────────────────────────────────────────────
+function renderOrders(orders) {
+  const container = document.querySelector('.card .card-header').parentElement;
+  const header = container.querySelector('.card-header').outerHTML;
+
+  if (!orders.length) {
+    container.innerHTML = header + `<div style="padding:2rem;text-align:center;font-size:0.85rem;color:var(--text-muted);">No orders yet — share your link to get started!</div>`;
+    return;
+  }
+
+  let html = header;
+  orders.forEach((order, idx) => {
+    const statusClass = order.status === 'new' ? 'dot-new' : order.status === 'done' ? 'dot-done' : 'dot-pending';
+    const badgeClass = order.status === 'new' ? 'badge-new' : order.status === 'done' ? 'badge-done' : 'badge-pending';
+    const badgeText = order.status === 'new' ? 'New' : order.status === 'done' ? 'Done' : 'Confirmed';
+    const deliveryBadge = order.delivery_type === 'delivery'
+      ? `<span class="order-badge" style="background:#F0FDF4;color:#15803D;font-size:0.65rem;">🚗 Delivery</span>`
+      : `<span class="order-badge" style="background:#E0F2FE;color:#0369A1;font-size:0.65rem;">🏠 Collection</span>`;
+    const rushBadge = order.notes?.includes('RUSH') ? `<span class="order-badge" style="background:#FFFBEB;color:#92400E;font-size:0.65rem;">⚡ Rush</span>` : '';
+
+    const items = Array.isArray(order.items) ? order.items : [];
+    const itemSummary = items.map(i => `${i.qty}× ${i.name}`).join(', ');
+    const itemNames = items.map(i => `${i.qty}× ${i.name}`);
+    const itemPrices = items.map(i => i.price * i.qty);
+
+    const timeAgo = getTimeAgo(order.created_at);
+    const invNum = String(idx + 1).padStart(4, '0');
+
+    html += `
+      <div class="order-row" onclick="openInvoice('${order.customer_name}', ${order.total}, ${JSON.stringify(itemNames)}, ${JSON.stringify(itemPrices)}, '${order.delivery_type}', '${order.customer_phone}', '${invNum}')">
+        <div class="order-status-dot ${statusClass}"></div>
+        <div class="order-info">
+          <div class="order-customer">${order.customer_name} <span class="order-badge ${badgeClass}">${badgeText}</span> ${deliveryBadge} ${rushBadge}</div>
+          <div class="order-items">${itemSummary || 'No items'}</div>
+        </div>
+        <div class="order-meta">
+          <div class="order-price">R${order.total}</div>
+          <div class="order-time">${timeAgo}</div>
+        </div>
+        <div class="order-actions">
+          ${order.status === 'new' ? `<button class="action-btn confirm" onclick="event.stopPropagation(); confirmOrder(this, '${order.id}')">Confirm</button>` : ''}
+          <button class="action-btn" onclick="event.stopPropagation(); openInvoice('${order.customer_name}', ${order.total}, ${JSON.stringify(itemNames)}, ${JSON.stringify(itemPrices)}, '${order.delivery_type}', '${order.customer_phone}', '${invNum}')">🧾 Invoice</button>
+        </div>
+      </div>`;
+  });
+
+  container.innerHTML = html;
+}
+
+// ── LOAD REAL MENU ─────────────────────────────────────────────────
+async function loadMenu(profileId) {
+  const { data: items } = await db
+    .from('menu_items')
+    .select('*')
+    .eq('profile_id', profileId)
+    .order('created_at', { ascending: true });
+
+  const list = document.getElementById('catalogList');
+
+  if (!items || items.length === 0) {
+    list.innerHTML = `<div style="padding:1rem 1.4rem;font-size:0.82rem;color:var(--text-muted);">No items yet — add your first item below.</div>`;
+    return;
+  }
+
+  list.innerHTML = items.map(item => `
+    <div class="catalog-item">
+      <div class="catalog-emoji">${item.emoji || '🍱'}</div>
+      <div class="catalog-name">${item.name}</div>
+      <div class="catalog-price">R${item.price}</div>
+      <button class="catalog-edit" onclick="deleteItem('${item.id}', this)">Remove</button>
+    </div>
+  `).join('');
+
+  // Update top sellers based on real orders
+  updateTopSellers(items);
+}
+
+// ── TOP SELLERS ────────────────────────────────────────────────────
+async function updateTopSellers(menuItems) {
+  const { data: orders } = await db
+    .from('orders')
+    .select('items')
+    .eq('profile_id', userProfile.id);
+
+  if (!orders || !orders.length) return;
+
+  const counts = {};
+  orders.forEach(order => {
+    (order.items || []).forEach(item => {
+      counts[item.name] = (counts[item.name] || 0) + (item.qty || 1);
+    });
+  });
+
+  const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 4);
+  if (!sorted.length) return;
+
+  const emojis = { 'Chicken Biryani':'🍛', 'Gatsby':'🥙', 'Milk Tart':'🥧', 'Samoosas':'🍢' };
+  const container = document.querySelectorAll('.card')[2];
+  if (!container) return;
+  const header = container.querySelector('.card-header').outerHTML;
+  container.innerHTML = header + sorted.map(([name, count]) =>
+    `<div class="side-stat">
+      <span class="side-stat-label">${emojis[name] || '🍱'} ${name}</span>
+      <span class="side-stat-val">${count} order${count > 1 ? 's' : ''}</span>
+    </div>`
+  ).join('');
+}
+
+// ── ADD MENU ITEM ──────────────────────────────────────────────────
+async function addItem() {
+  const nameEl  = document.getElementById('newItemName');
+  const priceEl = document.getElementById('newItemPrice');
+  const name  = nameEl.value.trim();
+  const price = priceEl.value.trim();
+  if (!name || !price) return;
+
+  const emojis = ['🍱','🥘','🍲','🧆','🥗','🍰','🧁','🍛','🥙','🧁'];
+  const emoji = emojis[Math.floor(Math.random() * emojis.length)];
+
+  const { data, error } = await db.from('menu_items').insert({
+    profile_id: userProfile.id,
+    name, price: parseFloat(price), emoji,
+  }).select().single();
+
+  if (error) { showToast('Could not add item — try again'); return; }
+
+  const list = document.getElementById('catalogList');
+  // Remove empty state message if present
+  const emptyMsg = list.querySelector('div:not(.catalog-item)');
+  if (emptyMsg) emptyMsg.remove();
+
+  const div = document.createElement('div');
+  div.className = 'catalog-item';
+  div.innerHTML = `
+    <div class="catalog-emoji">${emoji}</div>
+    <div class="catalog-name">${name}</div>
+    <div class="catalog-price">R${price}</div>
+    <button class="catalog-edit" onclick="deleteItem('${data.id}', this)">Remove</button>
+  `;
+  list.appendChild(div);
+  nameEl.value = '';
+  priceEl.value = '';
+  showToast(`"${name}" added to your menu ✓`);
+}
+
+// ── DELETE MENU ITEM ───────────────────────────────────────────────
+async function deleteItem(id, btn) {
+  const row = btn.closest('.catalog-item');
+  const name = row.querySelector('.catalog-name').textContent;
+  if (!confirm(`Remove "${name}" from your menu?`)) return;
+  await db.from('menu_items').delete().eq('id', id);
+  row.remove();
+  showToast(`"${name}" removed ✓`);
+}
+
+// ── CONFIRM ORDER ──────────────────────────────────────────────────
+async function confirmOrder(btn, orderId) {
+  if (orderId) {
+    await db.from('orders').update({ status: 'confirmed' }).eq('id', orderId);
+  }
+  const row = btn.closest('.order-row');
+  const dot = row.querySelector('.order-status-dot');
+  const badge = row.querySelector('.order-badge');
+  dot.className = 'order-status-dot dot-pending';
+  if (badge) { badge.className = 'order-badge badge-pending'; badge.textContent = 'Confirmed'; }
+  btn.remove();
+  showToast('Order confirmed! ✓');
+}
+
+// ── INVOICE ────────────────────────────────────────────────────────
+function openInvoice(customer, total, itemNames, itemPrices, deliveryType, phone, invNum) {
+  currentInvoiceData = { customer, total, itemNames, itemPrices, deliveryType, phone, invNum };
 
   document.getElementById('invCustomer').textContent = customer;
   document.getElementById('invPhone').textContent = phone || '';
   document.getElementById('invTotal').textContent = 'R' + total;
-  document.getElementById('invNum').textContent = 'INV-' + String(invoiceCount).padStart(4, '0');
+  document.getElementById('invNum').textContent = 'INV-' + (invNum || String(invoiceCount).padStart(4,'0'));
   document.getElementById('invDate').textContent = new Date().toLocaleDateString('en-ZA', { day:'numeric', month:'short', year:'numeric' });
 
   const badge = document.getElementById('invDeliveryBadge');
-  if (deliveryType === 'delivery') {
-    badge.textContent = '🚗 Delivery';
-    badge.style.background = '#F0FDF4';
-    badge.style.color = '#15803D';
-  } else {
-    badge.textContent = '🏠 Collection';
-    badge.style.background = '#E0F2FE';
-    badge.style.color = '#0369A1';
-  }
+  badge.textContent = deliveryType === 'delivery' ? '🚗 Delivery' : '🏠 Collection';
+  badge.style.background = deliveryType === 'delivery' ? '#F0FDF4' : '#E0F2FE';
+  badge.style.color = deliveryType === 'delivery' ? '#15803D' : '#0369A1';
+
+  // Use store name from profile
+  const storeName = userProfile?.store_name || localStorage.getItem('orderly_store') || 'Orderly';
+  document.querySelector('.invoice-head-logo').textContent = storeName;
 
   document.getElementById('invLines').innerHTML = itemNames.map((name, i) =>
     `<div class="invoice-line"><span>${name}</span><span>R${itemPrices[i]}</span></div>`
@@ -815,10 +1108,11 @@ function openInvoice(customer, total, itemNames, itemPrices, deliveryType, phone
 
 function sendInvoiceWhatsApp() {
   const d = currentInvoiceData;
+  const storeName = userProfile?.store_name || 'Orderly';
   const lines = d.itemNames.map((n, i) => `${n} — R${d.itemPrices[i]}`).join('\n');
   const msg = encodeURIComponent(
-    `🧾 *Invoice from Fatima's Kitchen*\n` +
-    `INV-${String(invoiceCount).padStart(4,'0')} · ${new Date().toLocaleDateString('en-ZA')}\n\n` +
+    `🧾 *Invoice from ${storeName}*\n` +
+    `INV-${d.invNum} · ${new Date().toLocaleDateString('en-ZA')}\n\n` +
     `*${d.customer}*\n\n` +
     lines + `\n\n` +
     `${d.deliveryType === 'delivery' ? '🚗 Delivery' : '🏠 Collection'}\n` +
@@ -845,35 +1139,31 @@ function handleModalClick(e) {
   if (e.target === document.getElementById('invoiceModal')) closeModal();
 }
 
-function confirmOrder(btn) {
-  const row = btn.closest('.order-row');
-  const dot = row.querySelector('.order-status-dot');
-  const badge = row.querySelector('.order-badge');
-  dot.className = 'order-status-dot dot-pending';
-  if (badge) { badge.className = 'order-badge badge-pending'; badge.textContent = 'Confirmed'; }
-  btn.remove();
-  showToast('Order confirmed! Customer notified via WhatsApp ✓');
+// ── SHARE LINK ─────────────────────────────────────────────────────
+function copyLink() {
+  const slug = userProfile?.store_slug || localStorage.getItem('orderly_slug') || '';
+  const link = `https://orderly-sand.vercel.app/order-page.html?store=${slug}`;
+  navigator.clipboard.writeText(link).catch(() => {});
+  showToast('Order link copied! 🔗');
 }
 
-function addItem() {
-  const name = document.getElementById('newItemName').value.trim();
-  const price = document.getElementById('newItemPrice').value.trim();
-  if (!name || !price) return;
-  const emojis = ['🍱','🥘','🍲','🧆','🥗','🍰','🧁'];
-  const emoji = emojis[Math.floor(Math.random() * emojis.length)];
-  const list = document.getElementById('catalogList');
-  const div = document.createElement('div');
-  div.className = 'catalog-item';
-  div.innerHTML = `
-    <div class="catalog-emoji">${emoji}</div>
-    <div class="catalog-name">${name}</div>
-    <div class="catalog-price">R${price}</div>
-    <button class="catalog-edit">Edit</button>
-  `;
-  list.appendChild(div);
-  document.getElementById('newItemName').value = '';
-  document.getElementById('newItemPrice').value = '';
-  showToast(`"${name}" added to your menu ✓`);
+// ── SIGN OUT ───────────────────────────────────────────────────────
+async function signOut() {
+  await db.auth.signOut();
+  localStorage.clear();
+  window.location.href = 'orderly-signin.html';
+}
+
+// ── HELPERS ────────────────────────────────────────────────────────
+function getTimeAgo(dateStr) {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  const hrs  = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
+  if (mins < 2)  return 'Just now';
+  if (mins < 60) return `${mins} min ago`;
+  if (hrs < 24)  return `${hrs} hr${hrs > 1 ? 's' : ''} ago`;
+  return `${days} day${days > 1 ? 's' : ''} ago`;
 }
 
 function showToast(msg) {
@@ -882,6 +1172,9 @@ function showToast(msg) {
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 3000);
 }
+
+// ── START ──────────────────────────────────────────────────────────
+init();
 </script>
 </body>
 </html>

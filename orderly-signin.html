@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Orderly — Sign in</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --white: #FFFFFF;
+  --off-white: #F8FAF7;
+  --green-900: #0F2318;
+  --green-700: #1A3D2B;
+  --green-500: #2D6A4F;
+  --green-400: #3D8B65;
+  --green-100: #E8F4ED;
+  --green-50: #F2FAF5;
+  --text: #0F2318;
+  --text-mid: #3D5A47;
+  --text-muted: #7A9A85;
+  --border: #D6EAD9;
+  --shadow-md: 0 4px 24px rgba(15,35,24,0.10);
+  --shadow-lg: 0 12px 48px rgba(15,35,24,0.14);
+  --radius: 12px;
+  --radius-lg: 16px;
+}
+html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(--off-white); color: var(--text); -webkit-font-smoothing: antialiased; }
+
+.page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.25rem;
+  position: relative;
+}
+
+/* Background pattern */
+.page::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 20% 20%, rgba(61,139,101,0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 80%, rgba(15,35,24,0.04) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 2.5rem 2rem;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: var(--shadow-lg);
+  position: relative;
+}
+
+/* LOGO */
+.logo {
+  font-family: 'Instrument Serif', serif;
+  font-size: 1.4rem;
+  color: var(--green-700);
+  margin-bottom: 2rem;
+  display: block;
+}
+.logo span { color: rgba(15,35,24,0.3); }
+
+/* HEADING */
+.heading {
+  font-family: 'Instrument Serif', serif;
+  font-size: 1.9rem;
+  color: var(--green-900);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  margin-bottom: 0.35rem;
+}
+.heading em { font-style: italic; color: var(--green-400); }
+.sub {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-weight: 300;
+  margin-bottom: 1.75rem;
+  line-height: 1.6;
+}
+
+/* FORM */
+.form-group { margin-bottom: 1rem; }
+.form-label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--text-mid);
+  margin-bottom: 5px;
+}
+.form-input {
+  width: 100%;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.8rem 1rem;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.92rem;
+  color: var(--text);
+  background: var(--white);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  -webkit-appearance: none;
+}
+.form-input:focus {
+  border-color: var(--green-400);
+  box-shadow: 0 0 0 3px rgba(61,139,101,0.1);
+}
+.form-input.error { border-color: #DC2626; box-shadow: 0 0 0 3px rgba(220,38,38,0.08); }
+.form-input::placeholder { color: var(--text-muted); font-weight: 300; }
+
+.input-wrap { position: relative; }
+.toggle-pw {
+  position: absolute; right: 12px; top: 50%;
+  transform: translateY(-50%);
+  background: none; border: none; cursor: pointer;
+  font-size: 1rem; color: var(--text-muted); padding: 4px;
+}
+
+/* FORGOT PASSWORD */
+.forgot-wrap {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -0.5rem;
+  margin-bottom: 1rem;
+}
+.forgot-link {
+  font-size: 0.78rem;
+  color: var(--green-400);
+  text-decoration: none;
+  font-weight: 500;
+  cursor: pointer;
+}
+.forgot-link:hover { color: var(--green-700); }
+
+/* ERROR BANNER */
+.error-banner {
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  border-radius: var(--radius);
+  padding: 0.75rem 1rem;
+  font-size: 0.82rem;
+  color: #B91C1C;
+  margin-bottom: 1rem;
+  display: none;
+  align-items: center;
+  gap: 8px;
+}
+.error-banner.show { display: flex; }
+
+/* SUCCESS BANNER */
+.success-banner {
+  background: var(--green-50);
+  border: 1px solid var(--green-100);
+  border-radius: var(--radius);
+  padding: 0.75rem 1rem;
+  font-size: 0.82rem;
+  color: var(--green-500);
+  margin-bottom: 1rem;
+  display: none;
+}
+.success-banner.show { display: block; }
+
+/* BUTTON */
+.btn-primary {
+  width: 100%;
+  background: var(--green-700);
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  padding: 0.9rem;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 1rem;
+}
+.btn-primary:hover { background: var(--green-900); transform: translateY(-1px); }
+.btn-primary:disabled { background: var(--border); color: var(--text-muted); cursor: not-allowed; transform: none; }
+
+/* SPINNER */
+.spinner {
+  width: 16px; height: 16px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: none;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* DIVIDER */
+.divider {
+  display: flex; align-items: center; gap: 12px;
+  color: var(--text-muted); font-size: 0.78rem;
+  margin-bottom: 1rem;
+}
+.divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+/* BOTTOM LINKS */
+.bottom-text {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  text-align: center;
+  line-height: 1.6;
+}
+.bottom-text a {
+  color: var(--green-500);
+  font-weight: 500;
+  text-decoration: none;
+}
+.bottom-text a:hover { color: var(--green-700); }
+
+/* RESET MODE */
+.reset-panel { display: none; }
+.reset-panel.show { display: block; }
+.signin-panel { display: block; }
+.signin-panel.hide { display: none; }
+
+/* TOAST */
+.toast {
+  position: fixed; bottom: 1.5rem; left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--green-900); color: white;
+  padding: 0.7rem 1.25rem; border-radius: 10px;
+  font-size: 0.85rem; font-weight: 500;
+  box-shadow: var(--shadow-md); z-index: 300;
+  opacity: 0; transition: all 0.3s; white-space: nowrap;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+@media (max-width: 480px) {
+  .card { padding: 2rem 1.25rem; border-radius: 16px; }
+}
+</style>
+</head>
+<body>
+
+<div class="page">
+  <div class="card">
+    <span class="logo">Order<span>ly</span></span>
+
+    <!-- SIGN IN PANEL -->
+    <div class="signin-panel" id="signinPanel">
+      <h1 class="heading">Welcome<br><em>back.</em></h1>
+      <p class="sub">Sign in to your Orderly dashboard.</p>
+
+      <div class="error-banner" id="errorBanner">
+        <span>⚠️</span>
+        <span id="errorText">Incorrect email or password.</span>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="email">Email address</label>
+        <input class="form-input" type="email" id="email" placeholder="you@example.com" autocomplete="email" onkeydown="handleEnter(event)" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="password">Password</label>
+        <div class="input-wrap">
+          <input class="form-input" type="password" id="password" placeholder="Your password" autocomplete="current-password" onkeydown="handleEnter(event)" />
+          <button class="toggle-pw" onclick="togglePw()" type="button" id="toggleBtn">👁</button>
+        </div>
+      </div>
+
+      <div class="forgot-wrap">
+        <a class="forgot-link" onclick="showReset()">Forgot password?</a>
+      </div>
+
+      <button class="btn-primary" onclick="signIn()" id="signInBtn">
+        <span id="btnText">Sign in</span>
+        <div class="spinner" id="spinner"></div>
+      </button>
+
+      <div class="divider">or</div>
+
+      <p class="bottom-text">
+        Don't have an account? <a href="orderly-signup.html">Get started free →</a>
+      </p>
+    </div>
+
+    <!-- RESET PASSWORD PANEL -->
+    <div class="reset-panel" id="resetPanel">
+      <h1 class="heading">Reset your<br><em>password.</em></h1>
+      <p class="sub">Enter your email and we'll send you a reset link.</p>
+
+      <div class="success-banner" id="resetSuccess">
+        ✓ Reset link sent! Check your email inbox.
+      </div>
+
+      <div class="error-banner" id="resetError">
+        <span>⚠️</span>
+        <span id="resetErrorText">Something went wrong. Try again.</span>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="resetEmail">Email address</label>
+        <input class="form-input" type="email" id="resetEmail" placeholder="you@example.com" onkeydown="handleResetEnter(event)" />
+      </div>
+
+      <button class="btn-primary" onclick="sendReset()" id="resetBtn">
+        <span id="resetBtnText">Send reset link</span>
+        <div class="spinner" id="resetSpinner"></div>
+      </button>
+
+      <p class="bottom-text" style="margin-top:0;">
+        <a onclick="showSignIn()" style="cursor:pointer;">← Back to sign in</a>
+      </p>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://qhcdlfnsjdspisjkfndq.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoY2RsZm5zamRzcGlzamtmbmRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwNDc3MTAsImV4cCI6MjA5NjYyMzcxMH0.1S4jvY38z-0XI22QwlB0Kkr4ttt-ptvDKRayEbk5Bgo';
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ── CHECK IF ALREADY SIGNED IN ─────────────────────────────────────
+async function checkSession() {
+  const { data: { session } } = await db.auth.getSession();
+  if (session) {
+    window.location.href = 'orderly-dashboard.html';
+  }
+}
+checkSession();
+
+// ── SIGN IN ────────────────────────────────────────────────────────
+async function signIn() {
+  const email    = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+
+  hideError();
+
+  if (!email || !password) {
+    showError('Please enter your email and password.');
+    return;
+  }
+
+  setLoading(true);
+
+  const { data, error } = await db.auth.signInWithPassword({ email, password });
+
+  if (error) {
+    setLoading(false);
+    if (error.message.includes('Invalid login')) {
+      showError('Incorrect email or password. Please try again.');
+    } else if (error.message.includes('Email not confirmed')) {
+      showError('Please confirm your email address first.');
+    } else {
+      showError(error.message);
+    }
+    return;
+  }
+
+  // Success — save to localStorage and redirect
+  const { data: profile } = await db
+    .from('profiles')
+    .select('*')
+    .eq('id', data.user.id)
+    .maybeSingle();
+
+  if (profile) {
+    localStorage.setItem('orderly_slug',  profile.store_slug);
+    localStorage.setItem('orderly_store', profile.store_name);
+    localStorage.setItem('orderly_city',  profile.city || '');
+    localStorage.setItem('orderly_type',  profile.food_type || '');
+    localStorage.setItem('orderly_wa',    profile.whatsapp || '');
+    localStorage.setItem('orderly_plan',  profile.plan || 'free');
+  }
+
+  showToast('Welcome back! Loading your dashboard... ✓');
+  setTimeout(() => { window.location.href = 'orderly-dashboard.html'; }, 900);
+}
+
+// ── FORGOT PASSWORD ────────────────────────────────────────────────
+async function sendReset() {
+  const email = document.getElementById('resetEmail').value.trim();
+  document.getElementById('resetError').classList.remove('show');
+  document.getElementById('resetSuccess').classList.remove('show');
+
+  if (!email) {
+    document.getElementById('resetErrorText').textContent = 'Please enter your email address.';
+    document.getElementById('resetError').classList.add('show');
+    return;
+  }
+
+  document.getElementById('resetBtn').disabled = true;
+  document.getElementById('resetBtnText').style.display = 'none';
+  document.getElementById('resetSpinner').style.display = 'block';
+
+  const { error } = await db.auth.resetPasswordForEmail(email, {
+    redirectTo: 'https://orderly-sand.vercel.app/orderly-signin.html'
+  });
+
+  document.getElementById('resetBtn').disabled = false;
+  document.getElementById('resetBtnText').style.display = 'inline';
+  document.getElementById('resetSpinner').style.display = 'none';
+
+  if (error) {
+    document.getElementById('resetErrorText').textContent = error.message;
+    document.getElementById('resetError').classList.add('show');
+  } else {
+    document.getElementById('resetSuccess').classList.add('show');
+  }
+}
+
+// ── PANEL SWITCHING ────────────────────────────────────────────────
+function showReset() {
+  document.getElementById('signinPanel').classList.add('hide');
+  document.getElementById('resetPanel').classList.add('show');
+}
+function showSignIn() {
+  document.getElementById('resetPanel').classList.remove('show');
+  document.getElementById('signinPanel').classList.remove('hide');
+}
+
+// ── HELPERS ────────────────────────────────────────────────────────
+function setLoading(loading) {
+  document.getElementById('signInBtn').disabled = loading;
+  document.getElementById('spinner').style.display   = loading ? 'block'  : 'none';
+  document.getElementById('btnText').style.display   = loading ? 'none'   : 'inline';
+}
+function showError(msg) {
+  document.getElementById('errorText').textContent = msg;
+  document.getElementById('errorBanner').classList.add('show');
+  document.getElementById('email').classList.add('error');
+  document.getElementById('password').classList.add('error');
+}
+function hideError() {
+  document.getElementById('errorBanner').classList.remove('show');
+  document.getElementById('email').classList.remove('error');
+  document.getElementById('password').classList.remove('error');
+}
+function togglePw() {
+  const pw = document.getElementById('password');
+  pw.type = pw.type === 'password' ? 'text' : 'password';
+  document.getElementById('toggleBtn').textContent = pw.type === 'password' ? '👁' : '🙈';
+}
+function handleEnter(e) { if (e.key === 'Enter') signIn(); }
+function handleResetEnter(e) { if (e.key === 'Enter') sendReset(); }
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+</script>
+</body>
+</html>
