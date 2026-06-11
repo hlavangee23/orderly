@@ -592,11 +592,11 @@ body {
         <button class="card-action">View all</button>
       </div>
 
-      <div class="order-row" onclick="openInvoice('Aisha Davids', 'R280', ['2× Chicken Biryani — R240', '1× Koeksisters (6) — R40'])">
+      <div class="order-row" onclick="openInvoice('Aisha Davids', 280, ['2× Chicken Biryani', '1× Koeksisters (6)'], [240, 40], 'collection', '+27 82 111 2222')">
         <div class="order-status-dot dot-new"></div>
         <div class="order-info">
-          <div class="order-customer">Aisha Davids <span class="order-badge badge-new">New</span></div>
-          <div class="order-items">2× Chicken Biryani, 1× Koeksisters · Collection</div>
+          <div class="order-customer">Aisha Davids <span class="order-badge badge-new">New</span> <span class="order-badge" style="background:#E0F2FE;color:#0369A1;font-size:0.65rem;">🏠 Collection</span></div>
+          <div class="order-items">2× Chicken Biryani, 1× Koeksisters</div>
         </div>
         <div class="order-meta">
           <div class="order-price">R280</div>
@@ -604,15 +604,15 @@ body {
         </div>
         <div class="order-actions">
           <button class="action-btn confirm" onclick="event.stopPropagation(); confirmOrder(this)">Confirm</button>
-          <button class="action-btn" onclick="event.stopPropagation(); openInvoice('Aisha Davids', 'R280', ['2× Chicken Biryani — R240', '1× Koeksisters (6) — R40'])">Invoice</button>
+          <button class="action-btn" onclick="event.stopPropagation(); openInvoice('Aisha Davids', 280, ['2× Chicken Biryani', '1× Koeksisters (6)'], [240, 40], 'collection', '+27 82 111 2222')">🧾 Invoice</button>
         </div>
       </div>
 
-      <div class="order-row" onclick="openInvoice('Zainab Jacobs', 'R195', ['1× Gatsby — R95', '2× Milk Tart — R100'])">
+      <div class="order-row" onclick="openInvoice('Zainab Jacobs', 195, ['1× Full Gatsby', '2× Milk Tart'], [95, 100], 'delivery', '+27 83 222 3333')">
         <div class="order-status-dot dot-new"></div>
         <div class="order-info">
-          <div class="order-customer">Zainab Jacobs <span class="order-badge badge-new">New</span></div>
-          <div class="order-items">1× Gatsby, 2× Milk Tart · Delivery (Bo-Kaap)</div>
+          <div class="order-customer">Zainab Jacobs <span class="order-badge badge-new">New</span> <span class="order-badge" style="background:#F0FDF4;color:#15803D;font-size:0.65rem;">🚗 Delivery</span> <span class="order-badge" style="background:#FFFBEB;color:#92400E;font-size:0.65rem;">⚡ Rush</span></div>
+          <div class="order-items">1× Full Gatsby, 2× Milk Tart · Bo-Kaap</div>
         </div>
         <div class="order-meta">
           <div class="order-price">R195</div>
@@ -620,15 +620,15 @@ body {
         </div>
         <div class="order-actions">
           <button class="action-btn confirm" onclick="event.stopPropagation(); confirmOrder(this)">Confirm</button>
-          <button class="action-btn" onclick="event.stopPropagation(); openInvoice('Zainab Jacobs', 'R195', ['1× Gatsby — R95', '2× Milk Tart — R100'])">Invoice</button>
+          <button class="action-btn" onclick="event.stopPropagation(); openInvoice('Zainab Jacobs', 195, ['1× Full Gatsby', '2× Milk Tart'], [95, 100], 'delivery', '+27 83 222 3333')">🧾 Invoice</button>
         </div>
       </div>
 
-      <div class="order-row" onclick="openInvoice('Nadia Williams', 'R340', ['3× Samoosas (5pk) — R165', '1× Lamb Curry — R175'])">
+      <div class="order-row" onclick="openInvoice('Nadia Williams', 340, ['3× Samoosas (5pk)', '1× Lamb Curry'], [165, 175], 'collection', '+27 84 333 4444')">
         <div class="order-status-dot dot-new"></div>
         <div class="order-info">
-          <div class="order-customer">Nadia Williams <span class="order-badge badge-new">New</span></div>
-          <div class="order-items">3× Samoosas, 1× Lamb Curry · Collection</div>
+          <div class="order-customer">Nadia Williams <span class="order-badge badge-new">New</span> <span class="order-badge" style="background:#E0F2FE;color:#0369A1;font-size:0.65rem;">🏠 Collection</span></div>
+          <div class="order-items">3× Samoosas, 1× Lamb Curry</div>
         </div>
         <div class="order-meta">
           <div class="order-price">R340</div>
@@ -636,37 +636,37 @@ body {
         </div>
         <div class="order-actions">
           <button class="action-btn confirm" onclick="event.stopPropagation(); confirmOrder(this)">Confirm</button>
-          <button class="action-btn" onclick="event.stopPropagation(); openInvoice('Nadia Williams', 'R340', ['3× Samoosas (5pk) — R165', '1× Lamb Curry — R175'])">Invoice</button>
+          <button class="action-btn" onclick="event.stopPropagation(); openInvoice('Nadia Williams', 340, ['3× Samoosas (5pk)', '1× Lamb Curry'], [165, 175], 'collection', '+27 84 333 4444')">🧾 Invoice</button>
         </div>
       </div>
 
       <div class="order-row">
         <div class="order-status-dot dot-pending"></div>
         <div class="order-info">
-          <div class="order-customer">Mariam Hendricks <span class="order-badge badge-pending">Pending</span></div>
-          <div class="order-items">2× Malva Pudding, 1× Bobotie · Delivery</div>
+          <div class="order-customer">Mariam Hendricks <span class="order-badge badge-pending">Confirmed</span> <span class="order-badge" style="background:#F0FDF4;color:#15803D;font-size:0.65rem;">🚗 Delivery</span></div>
+          <div class="order-items">2× Malva Pudding, 1× Bobotie</div>
         </div>
         <div class="order-meta">
           <div class="order-price">R225</div>
           <div class="order-time">Yesterday</div>
         </div>
         <div class="order-actions">
-          <button class="action-btn" onclick="event.stopPropagation(); openInvoice('Mariam Hendricks', 'R225', ['2× Malva Pudding — R90', '1× Bobotie — R135'])">Invoice</button>
+          <button class="action-btn" onclick="event.stopPropagation(); openInvoice('Mariam Hendricks', 225, ['2× Malva Pudding', '1× Bobotie'], [90, 135], 'delivery', '+27 85 444 5555')">🧾 Invoice</button>
         </div>
       </div>
 
       <div class="order-row">
         <div class="order-status-dot dot-done"></div>
         <div class="order-info">
-          <div class="order-customer">Leila Samuels <span class="order-badge badge-done">Done</span></div>
-          <div class="order-items">1× Full Gatsby · Collection</div>
+          <div class="order-customer">Leila Samuels <span class="order-badge badge-done">Done</span> <span class="order-badge" style="background:#E0F2FE;color:#0369A1;font-size:0.65rem;">🏠 Collection</span></div>
+          <div class="order-items">1× Full Gatsby</div>
         </div>
         <div class="order-meta">
           <div class="order-price">R95</div>
           <div class="order-time">Yesterday</div>
         </div>
         <div class="order-actions">
-          <button class="action-btn" onclick="event.stopPropagation(); openInvoice('Leila Samuels', 'R95', ['1× Full Gatsby — R95'])">Invoice</button>
+          <button class="action-btn" onclick="event.stopPropagation(); openInvoice('Leila Samuels', 95, ['1× Full Gatsby'], [95], 'collection', '+27 86 555 6666')">🧾 Invoice</button>
         </div>
       </div>
     </div>
@@ -751,8 +751,18 @@ body {
         <div class="invoice-head-num" id="invNum">INV-0024</div>
       </div>
       <div class="invoice-body">
-        <div class="invoice-to">Invoice for</div>
-        <div class="invoice-customer" id="invCustomer">Aisha Davids</div>
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem;">
+          <div>
+            <div class="invoice-to">Invoice for</div>
+            <div class="invoice-customer" id="invCustomer">Aisha Davids</div>
+            <div style="font-size:0.72rem;color:#7A9A85;margin-top:2px;" id="invPhone">+27 82 111 2222</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:0.7rem;color:#7A9A85;text-transform:uppercase;letter-spacing:0.06em;">Date</div>
+            <div style="font-size:0.8rem;font-weight:500;" id="invDate"></div>
+            <div style="font-size:0.7rem;margin-top:4px;padding:2px 8px;border-radius:20px;" id="invDeliveryBadge"></div>
+          </div>
+        </div>
         <div id="invLines"></div>
       </div>
       <div class="invoice-total-row">
@@ -762,8 +772,8 @@ body {
     </div>
     <div class="modal-actions">
       <button class="modal-btn" onclick="closeModal()">Close</button>
-      <button class="modal-btn" onclick="showToast('Opening WhatsApp... 💬'); closeModal()">Send on WhatsApp</button>
-      <button class="modal-btn primary" onclick="showToast('Invoice downloaded! ✓'); closeModal()">Download PDF</button>
+      <button class="modal-btn" id="invWaBtn" onclick="sendInvoiceWhatsApp()">💬 Send on WhatsApp</button>
+      <button class="modal-btn primary" onclick="printInvoice()">⬇️ Download PDF</button>
     </div>
   </div>
 </div>
@@ -773,16 +783,58 @@ body {
 
 <script>
 let invoiceCount = 24;
+let currentInvoiceData = {};
 
-function openInvoice(customer, total, lines) {
+function openInvoice(customer, total, itemNames, itemPrices, deliveryType, phone) {
   invoiceCount++;
+  currentInvoiceData = { customer, total, itemNames, itemPrices, deliveryType, phone };
+
   document.getElementById('invCustomer').textContent = customer;
-  document.getElementById('invTotal').textContent = total;
-  document.getElementById('invNum').textContent = 'INV-00' + invoiceCount;
-  document.getElementById('invLines').innerHTML = lines.map(l =>
-    `<div class="invoice-line"><span>${l.split('—')[0]}</span><span>${l.split('—')[1] || ''}</span></div>`
+  document.getElementById('invPhone').textContent = phone || '';
+  document.getElementById('invTotal').textContent = 'R' + total;
+  document.getElementById('invNum').textContent = 'INV-' + String(invoiceCount).padStart(4, '0');
+  document.getElementById('invDate').textContent = new Date().toLocaleDateString('en-ZA', { day:'numeric', month:'short', year:'numeric' });
+
+  const badge = document.getElementById('invDeliveryBadge');
+  if (deliveryType === 'delivery') {
+    badge.textContent = '🚗 Delivery';
+    badge.style.background = '#F0FDF4';
+    badge.style.color = '#15803D';
+  } else {
+    badge.textContent = '🏠 Collection';
+    badge.style.background = '#E0F2FE';
+    badge.style.color = '#0369A1';
+  }
+
+  document.getElementById('invLines').innerHTML = itemNames.map((name, i) =>
+    `<div class="invoice-line"><span>${name}</span><span>R${itemPrices[i]}</span></div>`
   ).join('');
+
   document.getElementById('invoiceModal').classList.add('open');
+}
+
+function sendInvoiceWhatsApp() {
+  const d = currentInvoiceData;
+  const lines = d.itemNames.map((n, i) => `${n} — R${d.itemPrices[i]}`).join('\n');
+  const msg = encodeURIComponent(
+    `🧾 *Invoice from Fatima's Kitchen*\n` +
+    `INV-${String(invoiceCount).padStart(4,'0')} · ${new Date().toLocaleDateString('en-ZA')}\n\n` +
+    `*${d.customer}*\n\n` +
+    lines + `\n\n` +
+    `${d.deliveryType === 'delivery' ? '🚗 Delivery' : '🏠 Collection'}\n` +
+    `*Total: R${d.total}*\n\n` +
+    `Thank you for your order! 🙏`
+  );
+  const phone = d.phone?.replace(/\D/g,'') || '';
+  const formatted = phone.startsWith('0') ? '27' + phone.slice(1) : phone;
+  window.open(`https://wa.me/${formatted}?text=${msg}`, '_blank');
+  showToast('Invoice sent on WhatsApp ✓');
+  closeModal();
+}
+
+function printInvoice() {
+  window.print();
+  showToast('Saving as PDF... ✓');
 }
 
 function closeModal() {
