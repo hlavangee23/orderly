@@ -217,50 +217,62 @@ let invoiceNumber = Math.floor(Math.random() * 9000) + 1000;
 
 // ── LOAD STORE ─────────────────────────────────────────────────────
 async function loadStore() {
-  // Get slug from URL: order-page.html?store=fatimaskitchen
   const params = new URLSearchParams(window.location.search);
-  const slug = params.get('store') || 'fatimaskitchen';
+  const slug = params.get('store');
 
-  const { data: profile } = await db
+  if (!slug) {
+    document.getElementById('storeName').textContent = 'Store not found';
+    document.getElementById('menuContainer').innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;padding:1rem 0;">No store specified in the URL.</p>';
+    return;
+  }
+
+  const { data: profile, error } = await db
     .from('profiles')
     .select('*')
     .eq('store_slug', slug)
     .maybeSingle();
 
-  if (profile) {
-    storeProfile = profile;
-    const initials = profile.store_name.split(' ').map(w => w[0]).join('').substring(0,2).toUpperCase();
-    document.getElementById('storeAvatar').textContent = initials;
-    document.getElementById('storeName').textContent = profile.store_name;
-    document.getElementById('storeCity').textContent = (profile.city || '') + (profile.food_type ? ' · ' + profile.food_type : '');
-    document.title = profile.store_name + ' — Order Now';
-    if (!profile.delivery_fee || profile.delivery_fee === 0) {
-      document.getElementById('deliveryBadge').style.display = 'none';
-    }
+  if (!profile) {
+    document.getElementById('storeName').textContent = 'Store not found';
+    document.getElementById('storeCity').textContent = 'This store does not exist';
+    document.getElementById('menuContainer').innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;padding:1rem 0;">We could not find this store.</p>';
+    return;
   }
 
-  await loadMenu(profile?.id);
+  storeProfile = profile;
+  const initials = profile.store_name.split(' ').map(w => w[0]).join('').substring(0,2).toUpperCase();
+  document.getElementById('storeAvatar').textContent = initials;
+  document.getElementById('storeName').textContent = profile.store_name;
+  document.getElementById('storeCity').textContent = (profile.city || '') + (profile.food_type ? ' · ' + profile.food_type : '');
+  document.title = profile.store_name + ' — Order Now';
+  if (!profile.delivery_fee || profile.delivery_fee === 0) {
+    document.getElementById('deliveryBadge').style.display = 'none';
+  }
+
+  await loadMenu(profile.id);
 }
 
 // ── LOAD MENU ──────────────────────────────────────────────────────
 async function loadMenu(profileId) {
-  let query = db.from('menu_items').select('*').eq('is_available', true);
-  if (profileId) query = query.eq('profile_id', profileId);
+  if (!profileId) {
+    // No profile found — show empty state
+    menuItems = [];
+    document.getElementById('menuContainer').innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;padding:1rem 0;">This store has not added any items yet.</p>';
+    return;
+  }
 
-  const { data: items } = await query;
+  const { data: items, error } = await db
+    .from('menu_items')
+    .select('id, name, price, emoji, is_available')
+    .eq('profile_id', profileId)
+    .eq('is_available', true);
 
   if (items && items.length > 0) {
     menuItems = items;
   } else {
-    // Demo items if no real menu yet
-    menuItems = [
-      { id:1, cat:'mains', emoji:'🍛', name:'Chicken Biryani', price:120, description:'Served with raita & salad' },
-      { id:2, cat:'mains', emoji:'🥘', name:'Lamb Curry', price:150, description:'Slow cooked, served with rice' },
-      { id:3, cat:'mains', emoji:'🥙', name:'Full Gatsby', price:95, description:'Your choice of filling' },
-      { id:4, cat:'sides', emoji:'🥧', name:'Milk Tart', price:50, description:'Homemade, whole tart' },
-      { id:5, cat:'sides', emoji:'🍢', name:'Samoosas (5pk)', price:55, description:'Crispy, spiced filling' },
-      { id:6, cat:'sides', emoji:'🍰', name:'Malva Pudding', price:65, description:'Served warm with custard' },
-    ];
+    menuItems = [];
+    document.getElementById('menuContainer').innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;padding:1rem 0;">No items available yet — check back soon!</p>';
+    return;
   }
 
   buildCatNav();
