@@ -4,6 +4,7 @@
     { "source": "/signup", "destination": "/orderly-signup.html" },
     { "source": "/signin", "destination": "/orderly-signin.html" },
     { "source": "/dashboard", "destination": "/orderly-dashboard.html" },
+    { "source": "/settings", "destination": "/orderly-settings.html" },
     { "source": "/order/:slug", "destination": "/order-page.html" }
   ]
 }
