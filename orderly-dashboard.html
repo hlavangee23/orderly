@@ -941,6 +941,14 @@ function getStatusMessage(status, order, storeName) {
   return messages[status] || `Hi ${name}, your order from ${storeName} status has been updated to: ${STATUS_INFO[status]?.label || status}`;
 }
 
+// ── ESCAPE HELPER FOR INLINE ONCLICK STRINGS ───────────────────────
+function escJs(str) {
+  return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+}
+function jsArrayLiteral(arr) {
+  return '[' + arr.map(v => `'${escJs(v)}'`).join(',') + ']';
+}
+
 // ── RENDER REAL ORDERS ─────────────────────────────────────────────
 function renderOrders(orders) {
   const container = document.getElementById('ordersPlaceholder').parentElement;
@@ -967,7 +975,7 @@ function renderOrders(orders) {
 
     const timeAgo = getTimeAgo(order.created_at);
     const invNum = String(idx + 1).padStart(4, '0');
-    const orderDataStr = `'${order.customer_name}', ${order.total}, ${JSON.stringify(itemNames)}, ${JSON.stringify(itemPrices)}, '${order.delivery_type}', '${order.customer_phone}', '${invNum}'`;
+    const orderDataStr = `'${escJs(order.customer_name)}', ${order.total}, ${jsArrayLiteral(itemNames)}, [${itemPrices.join(',')}], '${order.delivery_type}', '${escJs(order.customer_phone)}', '${invNum}'`;
 
     html += `
       <div class="order-row" onclick="openInvoice(${orderDataStr})">
@@ -981,7 +989,7 @@ function renderOrders(orders) {
           <div class="order-time">${timeAgo}</div>
         </div>
         <div class="order-actions">
-          ${status !== 'cancelled' && status !== 'delivered' && status !== 'collected' ? `<button class="action-btn confirm" onclick="event.stopPropagation(); openStatusModal('${order.id}', '${order.delivery_type}', '${status}', '${order.customer_name.replace(/'/g,"\\'")}', '${order.customer_phone}')">Update status</button>` : ''}
+          ${status !== 'cancelled' && status !== 'delivered' && status !== 'collected' ? `<button class="action-btn confirm" onclick="event.stopPropagation(); openStatusModal('${order.id}', '${order.delivery_type}', '${status}', '${escJs(order.customer_name)}', '${escJs(order.customer_phone)}')">Update status</button>` : ''}
           <button class="action-btn" onclick="event.stopPropagation(); openInvoice(${orderDataStr})">🧾 Invoice</button>
         </div>
       </div>`;
