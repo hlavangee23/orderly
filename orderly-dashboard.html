@@ -1159,20 +1159,25 @@ async function selectStatus(newStatus) {
   const order = currentStatusOrder;
   if (!order) return;
 
-  await db.from('orders').update({ status: newStatus }).eq('id', order.id);
-
-  // Send WhatsApp to customer
+  // Build and open WhatsApp FIRST — must happen synchronously after click
+  // or browsers may block the popup.
   const storeName = userProfile?.store_name || 'Orderly';
   const message = getStatusMessage(newStatus, { customer_name: order.customerName }, storeName);
   const phone = order.customerPhone?.replace(/\D/g, '') || '';
   const formatted = phone.startsWith('0') ? '27' + phone.slice(1) : phone;
 
+  let waWindow = null;
   if (formatted) {
-    window.open(`https://wa.me/${formatted}?text=${encodeURIComponent(message)}`, '_blank');
+    waWindow = window.open(`https://wa.me/${formatted}?text=${encodeURIComponent(message)}`, '_blank');
   }
 
   closeStatusModal();
   showToast(`Order marked as "${STATUS_INFO[newStatus].label}" ✓`);
+
+  const { error } = await db.from('orders').update({ status: newStatus }).eq('id', order.id);
+  if (error) {
+    showToast('Status saved locally but database update failed — try refreshing');
+  }
   await loadOrders(userProfile.id);
 }
 
@@ -1205,8 +1210,8 @@ async function confirmCancel() {
     if (!reason) { showToast('Please describe the reason'); return; }
   }
 
-  await db.from('orders').update({ status: 'cancelled', cancel_reason: reason }).eq('id', order.id);
-
+  // Open WhatsApp FIRST — synchronously after the click, before any await,
+  // so the browser doesn't block the popup.
   const storeName = userProfile?.store_name || 'Orderly';
   const message = `Hi ${order.customerName}, unfortunately your order from ${storeName} has been cancelled.\n\nReason: ${reason}\n\nWe're sorry for any inconvenience — please feel free to reach out or place a new order anytime. 🙏`;
   const phone = order.customerPhone?.replace(/\D/g, '') || '';
@@ -1218,6 +1223,11 @@ async function confirmCancel() {
 
   closeStatusModal();
   showToast('Order cancelled and customer notified ✓');
+
+  const { error } = await db.from('orders').update({ status: 'cancelled', cancel_reason: reason }).eq('id', order.id);
+  if (error) {
+    showToast('Cancellation message sent, but saving failed — try refreshing');
+  }
   await loadOrders(userProfile.id);
 }
 
