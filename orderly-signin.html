@@ -290,6 +290,38 @@ html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(-
       </p>
     </div>
 
+    <!-- SET NEW PASSWORD PANEL (shown after clicking the email reset link) -->
+    <div class="reset-panel" id="newPasswordPanel">
+      <h1 class="heading">Choose a new<br><em>password.</em></h1>
+      <p class="sub">You're verified — set a new password for your account below.</p>
+
+      <div class="error-banner" id="newPwError">
+        <span>⚠️</span>
+        <span id="newPwErrorText">Something went wrong. Try again.</span>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="newPassword">New password</label>
+        <div class="input-wrap">
+          <input class="form-input" type="password" id="newPassword" placeholder="At least 8 characters" autocomplete="new-password" />
+          <button class="toggle-pw" onclick="toggleNewPw('newPassword')" type="button">👁</button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="confirmNewPassword">Confirm new password</label>
+        <div class="input-wrap">
+          <input class="form-input" type="password" id="confirmNewPassword" placeholder="Same password again" autocomplete="new-password" />
+          <button class="toggle-pw" onclick="toggleNewPw('confirmNewPassword')" type="button">👁</button>
+        </div>
+      </div>
+
+      <button class="btn-primary" onclick="setNewPassword()" id="setPwBtn">
+        <span id="setPwBtnText">Update password</span>
+        <div class="spinner" id="setPwSpinner"></div>
+      </button>
+    </div>
+
     <!-- RESET PASSWORD PANEL -->
     <div class="reset-panel" id="resetPanel">
       <h1 class="heading">Reset your<br><em>password.</em></h1>
@@ -331,14 +363,82 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const { createClient } = supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
+// ── DETECT PASSWORD RECOVERY FLOW ───────────────────────────────────
+// Supabase appends #access_token=...&type=recovery to the URL when the
+// user clicks the email reset link. We must catch this BEFORE the
+// generic "already signed in" check below, or we'd redirect them
+// straight to the dashboard without ever letting them set a new password.
+let isRecoveryFlow = false;
+
+function checkForRecoveryFlow() {
+  const hash = window.location.hash;
+  if (hash.includes('type=recovery')) {
+    isRecoveryFlow = true;
+    showNewPasswordPanel();
+    return true;
+  }
+  return false;
+}
+
 // ── CHECK IF ALREADY SIGNED IN ─────────────────────────────────────
 async function checkSession() {
+  if (checkForRecoveryFlow()) return; // don't auto-redirect during recovery
+
   const { data: { session } } = await db.auth.getSession();
   if (session) {
     window.location.href = 'orderly-dashboard.html';
   }
 }
 checkSession();
+
+// ── SET NEW PASSWORD (after clicking email reset link) ─────────────
+function showNewPasswordPanel() {
+  document.getElementById('signinPanel').classList.add('hide');
+  document.getElementById('resetPanel').classList.remove('show');
+  document.getElementById('newPasswordPanel').classList.add('show');
+}
+
+function toggleNewPw(id) {
+  const el = document.getElementById(id);
+  el.type = el.type === 'password' ? 'text' : 'password';
+}
+
+async function setNewPassword() {
+  const pw = document.getElementById('newPassword').value;
+  const confirm = document.getElementById('confirmNewPassword').value;
+
+  document.getElementById('newPwError').classList.remove('show');
+
+  if (!pw || pw.length < 8) {
+    document.getElementById('newPwErrorText').textContent = 'Password must be at least 8 characters.';
+    document.getElementById('newPwError').classList.add('show');
+    return;
+  }
+  if (pw !== confirm) {
+    document.getElementById('newPwErrorText').textContent = "Passwords don't match.";
+    document.getElementById('newPwError').classList.add('show');
+    return;
+  }
+
+  document.getElementById('setPwBtn').disabled = true;
+  document.getElementById('setPwBtnText').style.display = 'none';
+  document.getElementById('setPwSpinner').style.display = 'block';
+
+  const { error } = await db.auth.updateUser({ password: pw });
+
+  document.getElementById('setPwBtn').disabled = false;
+  document.getElementById('setPwBtnText').style.display = 'inline';
+  document.getElementById('setPwSpinner').style.display = 'none';
+
+  if (error) {
+    document.getElementById('newPwErrorText').textContent = error.message;
+    document.getElementById('newPwError').classList.add('show');
+    return;
+  }
+
+  showToast('Password updated! Redirecting to your dashboard... ✓');
+  setTimeout(() => { window.location.href = 'orderly-dashboard.html'; }, 1200);
+}
 
 // ── SIGN IN ────────────────────────────────────────────────────────
 async function signIn() {
