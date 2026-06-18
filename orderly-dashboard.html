@@ -595,11 +595,10 @@ body {
   <div class="nav-section-label">Menu</div>
   <a class="nav-item active"><span class="icon">📋</span> Orders</a>
   <a class="nav-item" onclick="switchTab('catalog')"><span class="icon">🍽️</span> My Menu</a>
-  <a class="nav-item"><span class="icon">🧾</span> Invoices</a>
   <div class="nav-section-label">Account</div>
   <a class="nav-item" href="orderly-settings.html"><span class="icon">⚙️</span> Settings</a>
   <a class="nav-item" onclick="signOut()" style="cursor:pointer;"><span class="icon">🚪</span> Sign out</a>
-  <a class="nav-item"><span class="icon">💬</span> Support</a>
+  <a class="nav-item" href="mailto:hamzahlavangee@gmail.com?subject=Orderly%20Support"><span class="icon">💬</span> Support</a>
   <div class="sidebar-bottom">
     <div class="sidebar-bottom-name">Fatima Karriem</div>
     <div class="sidebar-bottom-role">Free plan · <span style="color:#3D8B65;cursor:pointer" onclick="showToast('Upgrade coming soon! 🚀')">Upgrade to Pro</span></div>
@@ -707,7 +706,7 @@ body {
         <div class="add-item-row">
           <input class="add-input" id="newItemName" placeholder="Item name" />
           <input class="add-input price" id="newItemPrice" placeholder="Price (R)" type="number" />
-          <button class="add-btn" onclick="addItem()">+ Add</button>
+          <button class="add-btn" id="addItemBtn" onclick="addItem()">+ Add</button>
         </div>
       </div>
 
@@ -1202,9 +1201,15 @@ async function updateTopSellers(menuItems) {
 async function addItem() {
   const nameEl  = document.getElementById('newItemName');
   const priceEl = document.getElementById('newItemPrice');
+  const btn     = document.getElementById('addItemBtn');
   const name  = nameEl.value.trim();
   const price = priceEl.value.trim();
   if (!name || !price) return;
+  if (btn.disabled) return; // guard against double-click while a request is already in flight
+
+  btn.disabled = true;
+  const originalLabel = btn.textContent;
+  btn.textContent = 'Adding...';
 
   const emojis = ['🍱','🥘','🍲','🧆','🥗','🍰','🧁','🍛','🥙','🧁'];
   const emoji = emojis[Math.floor(Math.random() * emojis.length)];
@@ -1213,6 +1218,9 @@ async function addItem() {
     profile_id: userProfile.id,
     name, price: parseFloat(price), emoji,
   }).select().single();
+
+  btn.disabled = false;
+  btn.textContent = originalLabel;
 
   if (error) { showToast('Could not add item — try again'); return; }
 
@@ -1240,6 +1248,9 @@ async function deleteItem(id, btn) {
   const row = btn.closest('.catalog-item');
   const name = row.querySelector('.catalog-name').textContent;
   if (!confirm(`Remove "${name}" from your menu?`)) return;
+  if (btn.disabled) return;
+  btn.disabled = true;
+  btn.textContent = 'Removing...';
   await db.from('menu_items').delete().eq('id', id);
   row.remove();
   showToast(`"${name}" removed ✓`);
