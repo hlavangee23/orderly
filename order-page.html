@@ -719,15 +719,24 @@ async function submitOrder() {
 
   // Save to Supabase
   if (storeProfile) {
+    // Assign a permanent, sequential invoice number for this store —
+    // count existing orders and add 1, rather than recalculating later
+    // from display order (which shifts as orders get cancelled/added).
+    const { count } = await db
+      .from('orders')
+      .select('id', { count: 'exact', head: true })
+      .eq('profile_id', storeProfile.id);
+
     await db.from('orders').insert({
-      profile_id:     storeProfile.id,
-      customer_name:  customer.name,
-      customer_phone: customer.phone,
-      items:          cartItems,
+      profile_id:      storeProfile.id,
+      customer_name:   customer.name,
+      customer_phone:  customer.phone,
+      items:           cartItems,
       total,
-      delivery_type:  deliveryChoice,
-      notes:          (addr ? `Address: ${addr}. ` : '') + (rushChoice === 'rush' ? '⚡ RUSH ORDER. ' : '') + notes,
-      status:         storeProfile.auto_confirm ? 'confirmed' : 'new',
+      delivery_type:   deliveryChoice,
+      notes:           (addr ? `Address: ${addr}. ` : '') + (rushChoice === 'rush' ? '⚡ RUSH ORDER. ' : '') + notes,
+      status:          storeProfile.auto_confirm ? 'confirmed' : 'new',
+      invoice_number:  (count || 0) + 1,
     });
   }
 

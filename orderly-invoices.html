@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Orderly — Invoices</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --white: #FFFFFF;
+  --off-white: #F8FAF7;
+  --green-900: #0F2318;
+  --green-700: #1A3D2B;
+  --green-500: #2D6A4F;
+  --green-400: #3D8B65;
+  --green-100: #E8F4ED;
+  --green-50: #F2FAF5;
+  --text: #0F2318;
+  --text-mid: #3D5A47;
+  --text-muted: #7A9A85;
+  --border: #D6EAD9;
+  --shadow-sm: 0 1px 4px rgba(15,35,24,0.06);
+  --shadow-md: 0 4px 20px rgba(15,35,24,0.08);
+  --radius: 12px;
+  --radius-lg: 16px;
+  --sidebar-w: 220px;
+}
+body { font-family: 'DM Sans', sans-serif; background: var(--off-white); color: var(--text); -webkit-font-smoothing: antialiased; min-height: 100vh; display: flex; }
+
+/* SIDEBAR — matches dashboard/settings */
+.sidebar { width: var(--sidebar-w); background: var(--green-900); height: 100vh; position: fixed; left: 0; top: 0; display: flex; flex-direction: column; padding: 1.5rem 0; z-index: 50; }
+.sidebar-logo { font-family: 'Instrument Serif', serif; font-size: 1.3rem; color: white; padding: 0 1.5rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.08); }
+.sidebar-logo span { color: rgba(255,255,255,0.35); }
+.sidebar-store { padding: 1rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 0.5rem; }
+.sidebar-store-avatar { width: 36px; height: 36px; border-radius: 8px; background: var(--green-500); display: flex; align-items: center; justify-content: center; font-family: 'Instrument Serif', serif; font-size: 14px; color: white; margin-bottom: 0.5rem; }
+.sidebar-store-name { font-size: 0.85rem; font-weight: 500; color: white; }
+.sidebar-store-link { font-size: 0.72rem; color: rgba(255,255,255,0.4); cursor: pointer; transition: color 0.2s; }
+.sidebar-store-link:hover { color: rgba(255,255,255,0.7); }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 0.6rem 1.5rem; font-size: 0.85rem; color: rgba(255,255,255,0.5); cursor: pointer; transition: all 0.15s; text-decoration: none; }
+.nav-item:hover { color: white; background: rgba(255,255,255,0.05); }
+.nav-item.active { color: white; background: rgba(255,255,255,0.1); }
+.nav-item .icon { font-size: 1rem; width: 20px; text-align: center; }
+.nav-section-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.25); padding: 1rem 1.5rem 0.4rem; }
+.sidebar-bottom { margin-top: auto; padding: 1rem 1.5rem; border-top: 1px solid rgba(255,255,255,0.08); }
+.sidebar-bottom-name { font-size: 0.82rem; color: rgba(255,255,255,0.6); }
+.sidebar-bottom-role { font-size: 0.72rem; color: rgba(255,255,255,0.3); }
+
+/* MAIN */
+.main { margin-left: var(--sidebar-w); flex: 1; padding: 2rem; max-width: calc(100% - var(--sidebar-w)); }
+
+/* TOPBAR */
+.topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.75rem; flex-wrap: wrap; gap: 1rem; }
+.topbar h1 { font-family: 'Instrument Serif', serif; font-size: 1.6rem; color: var(--green-900); letter-spacing: -0.02em; }
+.topbar p { font-size: 0.82rem; color: var(--text-muted); margin-top: 2px; }
+
+/* SEARCH BAR */
+.search-row { display: flex; gap: 10px; margin-bottom: 1.25rem; }
+.search-input-wrap { flex: 1; position: relative; max-width: 360px; }
+.search-input { width: 100%; border: 1.5px solid var(--border); border-radius: var(--radius); padding: 0.65rem 0.9rem 0.65rem 2.25rem; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; color: var(--text); background: var(--white); outline: none; transition: border-color 0.2s; }
+.search-input:focus { border-color: var(--green-400); box-shadow: 0 0 0 3px rgba(61,139,101,0.1); }
+.search-icon { position: absolute; left: 0.8rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.85rem; pointer-events: none; }
+
+/* CARD / TABLE */
+.card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); overflow: hidden; position: relative; }
+.invoice-row { display: flex; align-items: center; gap: 14px; padding: 0.9rem 1.4rem; border-bottom: 1px solid var(--border); transition: background 0.15s; cursor: pointer; }
+.invoice-row:last-child { border-bottom: none; }
+.invoice-row:hover { background: var(--off-white); }
+.inv-number { font-family: 'Instrument Serif', serif; font-size: 0.95rem; color: var(--green-700); width: 80px; flex-shrink: 0; }
+.inv-info { flex: 1; min-width: 0; }
+.inv-customer { font-size: 0.85rem; font-weight: 500; color: var(--text); }
+.inv-meta { font-size: 0.74rem; color: var(--text-muted); margin-top: 1px; }
+.inv-amount { font-size: 0.9rem; font-weight: 600; color: var(--green-500); text-align: right; width: 90px; flex-shrink: 0; }
+.inv-date { font-size: 0.74rem; color: var(--text-muted); text-align: right; width: 100px; flex-shrink: 0; }
+.inv-status { width: 100px; flex-shrink: 0; text-align: right; }
+.status-pill { display: inline-block; font-size: 0.68rem; padding: 2px 9px; border-radius: 20px; font-weight: 500; }
+
+/* EMPTY STATE */
+.empty-state { padding: 3rem 1.5rem; text-align: center; }
+.empty-state-icon { font-size: 2rem; margin-bottom: 0.75rem; opacity: 0.5; }
+.empty-state-title { font-size: 0.95rem; font-weight: 500; color: var(--text-mid); margin-bottom: 0.4rem; }
+.empty-state-sub { font-size: 0.82rem; color: var(--text-muted); font-weight: 300; }
+
+/* PRO LOCK OVERLAY */
+.locked-row { position: relative; filter: blur(4px); pointer-events: none; user-select: none; }
+.upgrade-banner { background: linear-gradient(135deg, var(--green-900), var(--green-700)); border-radius: var(--radius-lg); padding: 1.5rem 1.75rem; margin-top: 1.25rem; display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; box-shadow: var(--shadow-md); flex-wrap: wrap; }
+.upgrade-banner-text h3 { font-family: 'Instrument Serif', serif; font-size: 1.15rem; color: white; margin-bottom: 4px; }
+.upgrade-banner-text p { font-size: 0.82rem; color: rgba(255,255,255,0.65); font-weight: 300; max-width: 420px; line-height: 1.5; }
+.upgrade-btn { background: var(--green-400); color: white; border: none; border-radius: 10px; padding: 0.7rem 1.4rem; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 500; cursor: pointer; white-space: nowrap; transition: background 0.2s; }
+.upgrade-btn:hover { background: #4FA378; }
+
+/* LOADING */
+.loading-overlay { position: fixed; inset: 0; background: var(--off-white); display: flex; align-items: center; justify-content: center; z-index: 400; }
+.loading-spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--green-400); border-radius: 50%; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* INVOICE MODAL — reused pattern from dashboard */
+.modal-overlay { position: fixed; inset: 0; background: rgba(15,35,24,0.5); z-index: 200; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.25s; }
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal { background: var(--white); border-radius: var(--radius-lg); width: 100%; max-width: 480px; padding: 2rem; transform: scale(0.96); transition: transform 0.25s; box-shadow: 0 24px 80px rgba(15,35,24,0.2); max-height: 90vh; overflow-y: auto; margin: 0 1rem; }
+.modal-overlay.open .modal { transform: scale(1); }
+.modal-title { font-family: 'Instrument Serif', serif; font-size: 1.3rem; color: var(--green-900); margin-bottom: 0.25rem; }
+.modal-sub { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1.5rem; }
+.invoice-preview { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 1.25rem; }
+.invoice-head { background: var(--green-900); padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: center; }
+.invoice-head-logo { font-family: 'Instrument Serif', serif; font-size: 1.1rem; color: white; }
+.invoice-head-num { font-size: 0.75rem; color: rgba(255,255,255,0.5); }
+.invoice-body { padding: 1rem 1.25rem; }
+.invoice-to { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.06em; }
+.invoice-customer { font-size: 0.9rem; font-weight: 500; color: var(--text); margin-bottom: 1rem; }
+.invoice-line { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-mid); padding: 4px 0; border-bottom: 1px solid var(--border); }
+.invoice-line:last-child { border-bottom: none; }
+.invoice-total-row { display: flex; justify-content: space-between; padding: 0.75rem 1.25rem; background: var(--green-50); border-top: 1px solid var(--border); }
+.invoice-total-label { font-size: 0.82rem; font-weight: 600; color: var(--text-mid); }
+.invoice-total-val { font-family: 'Instrument Serif', serif; font-size: 1.2rem; color: var(--green-700); font-weight: 600; }
+.modal-actions { display: flex; gap: 8px; }
+.modal-btn { flex: 1; padding: 0.75rem; border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: all 0.2s; border: 1.5px solid var(--border); background: var(--white); color: var(--text-mid); }
+.modal-btn:hover { background: var(--off-white); }
+.modal-btn.primary { background: var(--green-700); color: white; border-color: var(--green-700); }
+.modal-btn.primary:hover { background: var(--green-900); }
+
+/* TOAST */
+.toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--green-900); color: white; padding: 0.7rem 1.25rem; border-radius: 10px; font-size: 0.85rem; font-weight: 500; box-shadow: var(--shadow-md); z-index: 300; opacity: 0; transition: all 0.3s; white-space: nowrap; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+@media (max-width: 900px) {
+  .sidebar { display: none; }
+  .main { margin-left: 0; max-width: 100%; padding: 1.25rem; }
+  .inv-date, .inv-meta { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-spinner"></div>
+</div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">Order<span>ly</span></div>
+  <div class="sidebar-store">
+    <div class="sidebar-store-avatar" id="sidebarAvatar">T</div>
+    <div class="sidebar-store-name" id="sidebarName">Your store</div>
+    <div class="sidebar-store-link" id="sidebarLink" onclick="copyOrderLink()">Loading... ↗</div>
+  </div>
+  <div class="nav-section-label">Menu</div>
+  <a class="nav-item" href="orderly-dashboard.html"><span class="icon">📋</span> Orders</a>
+  <a class="nav-item" href="orderly-dashboard.html"><span class="icon">🍽️</span> My Menu</a>
+  <a class="nav-item active"><span class="icon">🧾</span> Invoices</a>
+  <div class="nav-section-label">Account</div>
+  <a class="nav-item" href="orderly-settings.html"><span class="icon">⚙️</span> Settings</a>
+  <a class="nav-item" onclick="signOut()" style="cursor:pointer;"><span class="icon">🚪</span> Sign out</a>
+  <div class="sidebar-bottom">
+    <div class="sidebar-bottom-name" id="sidebarBottomName">—</div>
+    <div class="sidebar-bottom-role" id="sidebarBottomRole">Free plan</div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="topbar">
+    <div>
+      <h1>Invoices</h1>
+      <p>Every invoice generated from your orders, in one place</p>
+    </div>
+  </div>
+
+  <div class="search-row">
+    <div class="search-input-wrap">
+      <span class="search-icon">🔍</span>
+      <input class="search-input" id="searchInput" placeholder="Search by customer name..." oninput="handleSearch()" />
+    </div>
+  </div>
+
+  <div class="card" id="invoicesCard">
+    <div class="empty-state">
+      <div class="empty-state-icon">🧾</div>
+      <div class="empty-state-title">Loading your invoices...</div>
+    </div>
+  </div>
+
+  <!-- UPGRADE BANNER — shown only on Free plan with more than 3 invoices -->
+  <div class="upgrade-banner" id="upgradeBanner" style="display:none;">
+    <div class="upgrade-banner-text">
+      <h3>See your full invoice history</h3>
+      <p>Free shows your 3 most recent invoices. Upgrade to Pro to unlock unlimited history, search, and export.</p>
+    </div>
+    <button class="upgrade-btn" onclick="showToast('Upgrade coming soon! 🚀')">Upgrade to Pro</button>
+  </div>
+</main>
+
+<!-- INVOICE MODAL -->
+<div class="modal-overlay" id="invoiceModal" onclick="handleModalClick(event)">
+  <div class="modal">
+    <div class="modal-title">Invoice</div>
+    <p class="modal-sub">View, send, or download this invoice</p>
+    <div class="invoice-preview">
+      <div class="invoice-head">
+        <div class="invoice-head-logo" id="invoiceHeadLogo">Orderly</div>
+        <div class="invoice-head-num" id="invNum">INV-0001</div>
+      </div>
+      <div class="invoice-body">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem;">
+          <div>
+            <div class="invoice-to">Invoice for</div>
+            <div class="invoice-customer" id="invCustomer">—</div>
+            <div style="font-size:0.72rem;color:#7A9A85;margin-top:2px;" id="invPhone"></div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:0.7rem;color:#7A9A85;text-transform:uppercase;letter-spacing:0.06em;">Date</div>
+            <div style="font-size:0.8rem;font-weight:500;" id="invDate"></div>
+            <div style="font-size:0.7rem;margin-top:4px;padding:2px 8px;border-radius:20px;" id="invDeliveryBadge"></div>
+          </div>
+        </div>
+        <div id="invLines"></div>
+      </div>
+      <div class="invoice-total-row">
+        <div class="invoice-total-label">Total due</div>
+        <div class="invoice-total-val" id="invTotal">R0</div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn" onclick="closeModal()">Close</button>
+      <button class="modal-btn" onclick="sendInvoiceWhatsApp()">💬 Send on WhatsApp</button>
+      <button class="modal-btn primary" onclick="printInvoice()">⬇️ Download PDF</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://qhcdlfnsjdspisjkfndq.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoY2RsZm5zamRzcGlzamtmbmRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwNDc3MTAsImV4cCI6MjA5NjYyMzcxMH0.1S4jvY38z-0XI22QwlB0Kkr4ttt-ptvDKRayEbk5Bgo';
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let userProfile = null;
+let allInvoices = [];
+let currentInvoiceData = {};
+const FREE_PLAN_LIMIT = 3;
+
+// ── ESCAPE / HELPERS reused from dashboard pattern ──────────────────
+function escJs(str) {
+  return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+}
+
+// ── INIT ───────────────────────────────────────────────────────────
+async function init() {
+  const { data: { session } } = await db.auth.getSession();
+  if (!session) { window.location.href = 'orderly-signin.html'; return; }
+
+  const { data: profile } = await db
+    .from('profiles').select('*')
+    .eq('id', session.user.id).maybeSingle();
+
+  if (!profile) { window.location.href = 'orderly-signin.html'; return; }
+
+  userProfile = profile;
+  updateSidebar(profile);
+  await loadInvoices(profile.id);
+  document.getElementById('loadingOverlay').style.display = 'none';
+}
+
+function updateSidebar(p) {
+  const initials = p.store_name.split(' ').map(w => w[0]).join('').substring(0,2).toUpperCase();
+  document.getElementById('sidebarAvatar').textContent = initials;
+  document.getElementById('sidebarName').textContent = p.store_name;
+  document.getElementById('sidebarLink').textContent = p.store_slug + '.orderly.co.za ↗';
+  document.getElementById('sidebarBottomName').textContent = p.store_name;
+  document.getElementById('sidebarBottomRole').innerHTML = p.plan === 'pro'
+    ? 'Pro plan'
+    : 'Free plan · <span style="color:#3D8B65;cursor:pointer" onclick="showToast(\'Upgrade coming soon! 🚀\')">Upgrade to Pro</span>';
+}
+
+// ── LOAD INVOICES (= orders, sorted by invoice_number) ──────────────
+async function loadInvoices(profileId) {
+  const { data: orders, error } = await db
+    .from('orders')
+    .select('*')
+    .eq('profile_id', profileId)
+    .order('invoice_number', { ascending: false });
+
+  if (error || !orders || !orders.length) {
+    allInvoices = [];
+    renderInvoices([]);
+    return;
+  }
+
+  allInvoices = orders;
+  renderInvoices(allInvoices);
+}
+
+// ── RENDER ─────────────────────────────────────────────────────────
+function renderInvoices(invoices) {
+  const card = document.getElementById('invoicesCard');
+  const isPro = userProfile?.plan === 'pro';
+  const banner = document.getElementById('upgradeBanner');
+
+  if (!invoices.length) {
+    card.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state-icon">🧾</div>
+        <div class="empty-state-title">No invoices yet</div>
+        <div class="empty-state-sub">Invoices are created automatically from your orders — share your order link to get started.</div>
+      </div>`;
+    banner.style.display = 'none';
+    return;
+  }
+
+  const visibleCount = isPro ? invoices.length : Math.min(FREE_PLAN_LIMIT, invoices.length);
+  const visible = invoices.slice(0, visibleCount);
+  const locked = invoices.slice(visibleCount);
+
+  let html = visible.map(o => renderRow(o, false)).join('');
+  html += locked.map(o => renderRow(o, true)).join('');
+
+  card.innerHTML = html;
+  banner.style.display = (!isPro && locked.length > 0) ? 'flex' : 'none';
+}
+
+function renderRow(order, locked) {
+  const statusColors = {
+    new: ['#DCFCE7', '#15803D'], confirmed: ['#DBEAFE', '#1D4ED8'], preparing: ['#FEF3C7', '#B45309'],
+    packing: ['#EDE9FE', '#6D28D9'], ready: ['#CCFBF1', '#0F766E'], out_for_delivery: ['#CCFBF1', '#0F766E'],
+    delivered: ['#F3F4F6', '#6B7280'], collected: ['#F3F4F6', '#6B7280'], cancelled: ['#FEE2E2', '#B91C1C'],
+  };
+  const status = order.status || 'new';
+  const [bg, fg] = statusColors[status] || statusColors.new;
+  const statusLabel = status.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+
+  const invNum = String(order.invoice_number || 0).padStart(4, '0');
+  const date = new Date(order.created_at).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' });
+  const items = Array.isArray(order.items) ? order.items : [];
+  const itemSummary = items.map(i => `${i.qty}× ${i.name}`).join(', ');
+
+  const onclickAttr = locked ? '' : `onclick="openInvoiceFromOrder('${order.id}')"`;
+
+  return `
+    <div class="invoice-row ${locked ? 'locked-row' : ''}" ${onclickAttr}>
+      <div class="inv-number">INV-${invNum}</div>
+      <div class="inv-info">
+        <div class="inv-customer">${order.customer_name}</div>
+        <div class="inv-meta">${itemSummary || 'No items'}</div>
+      </div>
+      <div class="inv-amount">R${order.total}</div>
+      <div class="inv-date">${date}</div>
+      <div class="inv-status"><span class="status-pill" style="background:${bg};color:${fg};">${statusLabel}</span></div>
+    </div>`;
+}
+
+// ── SEARCH ─────────────────────────────────────────────────────────
+function handleSearch() {
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  if (!q) { renderInvoices(allInvoices); return; }
+  const filtered = allInvoices.filter(o => o.customer_name.toLowerCase().includes(q));
+  renderInvoices(filtered);
+}
+
+// ── OPEN INVOICE MODAL ─────────────────────────────────────────────
+function openInvoiceFromOrder(orderId) {
+  const order = allInvoices.find(o => o.id === orderId);
+  if (!order) return;
+
+  const items = Array.isArray(order.items) ? order.items : [];
+  const itemNames = items.map(i => `${i.qty}× ${i.name}`);
+  const itemPrices = items.map(i => i.price * i.qty);
+  const invNum = String(order.invoice_number || 0).padStart(4, '0');
+
+  currentInvoiceData = {
+    customer: order.customer_name, total: order.total, itemNames, itemPrices,
+    deliveryType: order.delivery_type, phone: order.customer_phone, invNum,
+  };
+
+  document.getElementById('invCustomer').textContent = order.customer_name;
+  document.getElementById('invPhone').textContent = order.customer_phone || '';
+  document.getElementById('invTotal').textContent = 'R' + order.total;
+  document.getElementById('invNum').textContent = 'INV-' + invNum;
+  document.getElementById('invDate').textContent = new Date(order.created_at).toLocaleDateString('en-ZA', { day:'numeric', month:'short', year:'numeric' });
+  document.getElementById('invoiceHeadLogo').textContent = userProfile?.store_name || 'Orderly';
+
+  const badge = document.getElementById('invDeliveryBadge');
+  badge.textContent = order.delivery_type === 'delivery' ? '🚗 Delivery' : '🏠 Collection';
+  badge.style.background = order.delivery_type === 'delivery' ? '#F0FDF4' : '#E0F2FE';
+  badge.style.color = order.delivery_type === 'delivery' ? '#15803D' : '#0369A1';
+
+  document.getElementById('invLines').innerHTML = itemNames.map((name, i) =>
+    `<div class="invoice-line"><span>${name}</span><span>R${itemPrices[i]}</span></div>`
+  ).join('');
+
+  document.getElementById('invoiceModal').classList.add('open');
+}
+
+function sendInvoiceWhatsApp() {
+  const d = currentInvoiceData;
+  const storeName = userProfile?.store_name || 'Orderly';
+  const lines = d.itemNames.map((n, i) => `${n} — R${d.itemPrices[i]}`).join('\n');
+  const msg = encodeURIComponent(
+    `🧾 *Invoice from ${storeName}*\n` +
+    `INV-${d.invNum} · ${new Date().toLocaleDateString('en-ZA')}\n\n` +
+    `*${d.customer}*\n\n` +
+    lines + `\n\n` +
+    `${d.deliveryType === 'delivery' ? '🚗 Delivery' : '🏠 Collection'}\n` +
+    `*Total: R${d.total}*\n\n` +
+    `Thank you for your order! 🙏`
+  );
+  const phone = d.phone?.replace(/\D/g,'') || '';
+  const formatted = phone.startsWith('0') ? '27' + phone.slice(1) : phone;
+  window.open(`https://wa.me/${formatted}?text=${msg}`, '_blank');
+  showToast('Invoice sent on WhatsApp ✓');
+  closeModal();
+}
+
+function printInvoice() {
+  window.print();
+  showToast('Saving as PDF... ✓');
+}
+
+function closeModal() {
+  document.getElementById('invoiceModal').classList.remove('open');
+}
+
+function handleModalClick(e) {
+  if (e.target === document.getElementById('invoiceModal')) closeModal();
+}
+
+// ── SHARE LINK ─────────────────────────────────────────────────────
+function copyOrderLink() {
+  const link = `https://orderly-sand.vercel.app/order-page.html?store=${userProfile?.store_slug}`;
+  navigator.clipboard.writeText(link).catch(() => {});
+  showToast('Order link copied! 🔗');
+}
+
+// ── SIGN OUT ───────────────────────────────────────────────────────
+async function signOut() {
+  await db.auth.signOut();
+  localStorage.clear();
+  window.location.href = 'orderly-signin.html';
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+init();
+</script>
+</body>
+</html>
