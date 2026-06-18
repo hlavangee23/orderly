@@ -574,6 +574,12 @@ body {
 .send-progress-bar-bg { background: var(--border); height: 6px; border-radius: 3px; overflow: hidden; }
 .send-progress-bar-fill { background: var(--green-400); height: 100%; transition: width 0.3s; width: 0%; }
 
+/* EDIT ITEM MODAL */
+.emoji-picker-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+.emoji-pick-btn { width: 38px; height: 38px; border-radius: 8px; border: 1.5px solid var(--border); background: var(--white); font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+.emoji-pick-btn:hover { border-color: var(--green-400); background: var(--green-50); }
+.emoji-pick-btn.selected { border-color: var(--green-400); background: var(--green-50); box-shadow: 0 0 0 2px rgba(61,139,101,0.15); }
+
 @media (max-width: 900px) {
   .sidebar { display: none; }
   .main { margin-left: 0; max-width: 100%; padding: 1.25rem; }
@@ -676,33 +682,9 @@ body {
       <div class="card">
         <div class="card-header">
           <span class="card-title">My menu</span>
-          <button class="card-action">Edit all</button>
         </div>
         <div id="catalogList">
-          <div class="catalog-item">
-            <div class="catalog-emoji">🍛</div>
-            <div class="catalog-name">Chicken Biryani</div>
-            <div class="catalog-price">R120</div>
-            <button class="catalog-edit">Edit</button>
-          </div>
-          <div class="catalog-item">
-            <div class="catalog-emoji">🥙</div>
-            <div class="catalog-name">Full Gatsby</div>
-            <div class="catalog-price">R95</div>
-            <button class="catalog-edit">Edit</button>
-          </div>
-          <div class="catalog-item">
-            <div class="catalog-emoji">🥧</div>
-            <div class="catalog-name">Milk Tart</div>
-            <div class="catalog-price">R50</div>
-            <button class="catalog-edit">Edit</button>
-          </div>
-          <div class="catalog-item">
-            <div class="catalog-emoji">🍢</div>
-            <div class="catalog-name">Samoosas (5pk)</div>
-            <div class="catalog-price">R55</div>
-            <button class="catalog-edit">Edit</button>
-          </div>
+          <div style="padding:1rem 1.4rem;font-size:0.82rem;color:var(--text-muted);">Loading your menu...</div>
         </div>
         <div class="add-item-row">
           <input class="add-input" id="newItemName" placeholder="Item name" />
@@ -850,6 +832,34 @@ body {
       <div class="modal-actions" style="margin-top:1.25rem;">
         <button class="modal-btn primary" id="nextSendBtn" onclick="sendNextInQueue()">Open next WhatsApp →</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT ITEM MODAL -->
+<div class="modal-overlay" id="editItemModal" onclick="handleEditItemModalClick(event)">
+  <div class="modal">
+    <div class="modal-title">Edit item</div>
+    <p class="modal-sub">Update this menu item's details.</p>
+
+    <div class="form-group" style="margin-bottom:1rem;">
+      <label class="form-label" style="display:block;font-size:0.75rem;font-weight:500;color:var(--text-mid);margin-bottom:5px;">Item name</label>
+      <input class="add-input" id="editItemName" style="width:100%;padding:0.7rem 0.9rem;" />
+    </div>
+
+    <div class="form-group" style="margin-bottom:1rem;">
+      <label class="form-label" style="display:block;font-size:0.75rem;font-weight:500;color:var(--text-mid);margin-bottom:5px;">Price (R)</label>
+      <input class="add-input" id="editItemPrice" type="number" style="width:100%;padding:0.7rem 0.9rem;" />
+    </div>
+
+    <div class="form-group" style="margin-bottom:1.25rem;">
+      <label class="form-label" style="display:block;font-size:0.75rem;font-weight:500;color:var(--text-mid);margin-bottom:5px;">Emoji</label>
+      <div class="emoji-picker-row" id="emojiPickerRow"></div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="modal-btn" onclick="closeEditItemModal()">Cancel</button>
+      <button class="modal-btn primary" id="saveEditItemBtn" onclick="saveEditItem()">Save changes</button>
     </div>
   </div>
 </div>
@@ -1159,6 +1169,7 @@ async function loadMenu(profileId) {
       <div class="catalog-emoji">${item.emoji || '🍱'}</div>
       <div class="catalog-name">${item.name}</div>
       <div class="catalog-price">R${item.price}</div>
+      <button class="catalog-edit" onclick="openEditItemModal('${item.id}', '${escJs(item.name)}', ${item.price}, '${escJs(item.emoji || '🍱')}')">Edit</button>
       <button class="catalog-edit" onclick="deleteItem('${item.id}', this)">Remove</button>
     </div>
   `).join('');
@@ -1255,6 +1266,68 @@ async function deleteItem(id, btn) {
   await db.from('menu_items').delete().eq('id', id);
   row.remove();
   showToast(`"${name}" removed ✓`);
+}
+
+// ── EDIT MENU ITEM ──────────────────────────────────────────────────
+const EDIT_EMOJI_OPTIONS = ['🍱','🥘','🍲','🧆','🥗','🍰','🧁','🍛','🥙','🥧','🍢','🍕','🍔','🌮','🥟','🍩'];
+let currentEditItemId = null;
+let currentEditEmoji = null;
+
+function openEditItemModal(id, name, price, emoji) {
+  currentEditItemId = id;
+  currentEditEmoji = emoji;
+
+  document.getElementById('editItemName').value = name;
+  document.getElementById('editItemPrice').value = price;
+
+  const row = document.getElementById('emojiPickerRow');
+  row.innerHTML = EDIT_EMOJI_OPTIONS.map(e =>
+    `<button class="emoji-pick-btn ${e === emoji ? 'selected' : ''}" onclick="selectEditEmoji(this, '${e}')" type="button">${e}</button>`
+  ).join('');
+
+  document.getElementById('editItemModal').classList.add('open');
+}
+
+function selectEditEmoji(btn, emoji) {
+  currentEditEmoji = emoji;
+  document.querySelectorAll('#emojiPickerRow .emoji-pick-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+async function saveEditItem() {
+  const name = document.getElementById('editItemName').value.trim();
+  const price = document.getElementById('editItemPrice').value.trim();
+
+  if (!name || !price) { showToast('Please fill in both fields'); return; }
+  if (!currentEditItemId) return;
+
+  const btn = document.getElementById('saveEditItemBtn');
+  if (btn.disabled) return;
+  btn.disabled = true;
+  btn.textContent = 'Saving...';
+
+  const { error } = await db.from('menu_items')
+    .update({ name, price: parseFloat(price), emoji: currentEditEmoji })
+    .eq('id', currentEditItemId);
+
+  btn.disabled = false;
+  btn.textContent = 'Save changes';
+
+  if (error) { showToast('Could not save changes — try again'); return; }
+
+  closeEditItemModal();
+  showToast(`"${name}" updated ✓`);
+  await loadMenu(userProfile.id);
+}
+
+function closeEditItemModal() {
+  document.getElementById('editItemModal').classList.remove('open');
+  currentEditItemId = null;
+  currentEditEmoji = null;
+}
+
+function handleEditItemModalClick(e) {
+  if (e.target === document.getElementById('editItemModal')) closeEditItemModal();
 }
 
 // ── STATUS MODAL ─────────────────────────────────────────────────────
