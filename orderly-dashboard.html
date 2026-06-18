@@ -596,7 +596,7 @@ body {
   <div class="sidebar-store">
     <div class="sidebar-store-avatar">FK</div>
     <div class="sidebar-store-name">Fatima's Kitchen</div>
-    <div class="sidebar-store-link" onclick="showToast('Link copied! 🔗')">orderly.co.za/fatimas-kitchen ↗</div>
+    <div class="sidebar-store-link" onclick="copyLink()">Loading... ↗</div>
   </div>
   <div class="nav-section-label">Menu</div>
   <a class="nav-item active"><span class="icon">📋</span> Orders</a>
@@ -630,7 +630,7 @@ body {
   <!-- SHARE BANNER -->
   <div class="share-banner">
     <div class="share-banner-text">Your order page is <strong>live</strong> — share this link with your customers to start getting orders</div>
-    <div class="share-banner-link" onclick="showToast('Link copied! 🔗')">orderly.co.za/fatimas-kitchen</div>
+    <div class="share-banner-link" id="shareBannerLink" onclick="copyLink()">Loading...</div>
   </div>
 
   <!-- STATS -->
@@ -918,9 +918,13 @@ function updateStoreUI(profile) {
   // Sidebar
   document.querySelector('.sidebar-store-avatar').textContent = initials;
   document.querySelector('.sidebar-store-name').textContent = profile.store_name;
-  document.querySelector('.sidebar-store-link').textContent = profile.store_slug + '.orderly.co.za ↗';
+  document.querySelector('.sidebar-store-link').textContent = 'Copy my order link ↗';
   document.querySelector('.sidebar-bottom-name').textContent = profile.store_name;
   document.querySelector('.sidebar-bottom-role').innerHTML = `${profile.plan === 'pro' ? 'Pro plan' : 'Free plan'} · <span style="color:#3D8B65;cursor:pointer" onclick="showToast('Upgrade coming soon! 🚀')">Upgrade to Pro</span>`;
+
+  // Share banner — real order link, not the leftover demo slug
+  const shareLink = document.getElementById('shareBannerLink');
+  if (shareLink) shareLink.textContent = `orderly-sand.vercel.app/order-page.html?store=${profile.store_slug}`;
 
   // Topbar
   document.querySelector('.topbar-left h1').textContent = `${greeting}, ${firstName} 👋`;
