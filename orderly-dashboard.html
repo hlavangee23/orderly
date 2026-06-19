@@ -1649,7 +1649,7 @@ function sendNextInQueue() {
   if (bulkSendIndex >= bulkSendQueue.length) {
     document.getElementById('sendProgressText').textContent = `All ${bulkSendQueue.length} messages sent! ✓`;
     document.getElementById('sendProgressFill').style.width = '100%';
-    document.getElementById('nextSendBtn').textContent = 'Done';
+    document.getElementById('nextSendBtn').textContent = 'Done ✓';
     document.getElementById('nextSendBtn').onclick = () => { closeCannedModal(); exitSelectMode(); };
     showToast('All messages sent ✓');
     return;
@@ -1657,20 +1657,23 @@ function sendNextInQueue() {
 
   const item = bulkSendQueue[bulkSendIndex];
   const phone = item.phone?.replace(/\D/g, '') || '';
-  const formatted = phone.startsWith('0') ? '27' + phone.slice(1) : phone;
-
-  if (formatted) {
-    window.open(`https://wa.me/${formatted}?text=${encodeURIComponent(item.message)}`, '_blank');
-  }
+  const formatted = phone.startsWith('0') ? '27' + phone.slice(1) : phone.startsWith('27') ? phone : '27' + phone;
 
   bulkSendIndex++;
   const pct = Math.round((bulkSendIndex / bulkSendQueue.length) * 100);
   document.getElementById('sendProgressFill').style.width = pct + '%';
 
-  if (bulkSendIndex < bulkSendQueue.length) {
-    document.getElementById('sendProgressText').textContent = `Sent to ${item.name}. Opening WhatsApp for ${bulkSendQueue[bulkSendIndex].name} (${bulkSendIndex + 1} of ${bulkSendQueue.length})...`;
+  if (formatted && formatted.length >= 10) {
+    window.open(`https://wa.me/${formatted}?text=${encodeURIComponent(item.message)}`, '_blank');
   } else {
-    document.getElementById('sendProgressText').textContent = `Sent to ${item.name}. That's everyone!`;
+    showToast(`⚠️ No valid number for ${item.name} — skipped`);
+  }
+
+  if (bulkSendIndex < bulkSendQueue.length) {
+    document.getElementById('sendProgressText').textContent = `Sent to ${item.name}. Tap the button for ${bulkSendQueue[bulkSendIndex].name} (${bulkSendIndex + 1} of ${bulkSendQueue.length})`;
+    document.getElementById('nextSendBtn').textContent = `Next → ${bulkSendQueue[bulkSendIndex].name}`;
+  } else {
+    document.getElementById('sendProgressText').textContent = `Sent to ${item.name}. That's everyone! ✓`;
     document.getElementById('nextSendBtn').textContent = 'Done ✓';
     document.getElementById('nextSendBtn').onclick = () => { closeCannedModal(); exitSelectMode(); showToast('All messages sent ✓'); };
   }
