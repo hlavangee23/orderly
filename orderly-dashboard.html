@@ -600,12 +600,12 @@ body {
   </div>
   <div class="nav-section-label">Menu</div>
   <a class="nav-item active"><span class="icon">📋</span> Orders</a>
-  <a class="nav-item" onclick="switchTab('catalog')"><span class="icon">🍽️</span> My Menu</a>
+  <a class="nav-item" onclick="scrollToMenu()"><span class="icon">🍽️</span> My Menu</a>
   <a class="nav-item" href="orderly-invoices.html"><span class="icon">🧾</span> Invoices</a>
   <div class="nav-section-label">Account</div>
   <a class="nav-item" href="orderly-settings.html"><span class="icon">⚙️</span> Settings</a>
-  <a class="nav-item" onclick="signOut()" style="cursor:pointer;"><span class="icon">🚪</span> Sign out</a>
   <a class="nav-item" href="mailto:hamzahlavangee@gmail.com?subject=Orderly%20Support"><span class="icon">💬</span> Support</a>
+  <a class="nav-item" onclick="signOut()" style="cursor:pointer;"><span class="icon">🚪</span> Sign out</a>
   <div class="sidebar-bottom">
     <div class="sidebar-bottom-name">Fatima Karriem</div>
     <div class="sidebar-bottom-role">Free plan · <span style="color:#3D8B65;cursor:pointer" onclick="showToast('Upgrade coming soon! 🚀')">Upgrade to Pro</span></div>
@@ -679,7 +679,7 @@ body {
     <div style="display:flex;flex-direction:column;gap:1.25rem;">
 
       <!-- CATALOG -->
-      <div class="card">
+      <div class="card" id="menuCard">
         <div class="card-header">
           <span class="card-title">My menu</span>
         </div>
@@ -1531,6 +1531,14 @@ function closeModal() {
 
 function handleModalClick(e) {
   if (e.target === document.getElementById('invoiceModal')) closeModal();
+}
+
+// ── SCROLL TO MENU ─────────────────────────────────────────────────
+function scrollToMenu() {
+  const el = document.getElementById('menuCard');
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  // Also focus the item name input so they can immediately add an item
+  setTimeout(() => document.getElementById('newItemName')?.focus(), 400);
 }
 
 // ── SHARE LINK ─────────────────────────────────────────────────────
