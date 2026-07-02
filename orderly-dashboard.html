@@ -594,9 +594,9 @@ body {
 <aside class="sidebar">
   <div class="sidebar-logo">Order<span>ly</span></div>
   <div class="sidebar-store">
-    <div class="sidebar-store-avatar">FK</div>
-    <div class="sidebar-store-name">Fatima's Kitchen</div>
-    <div class="sidebar-store-link" onclick="copyLink()">Loading... ↗</div>
+    <div class="sidebar-store-avatar" id="sidebarAvatar">—</div>
+    <div class="sidebar-store-name" id="sidebarStoreName">Loading...</div>
+    <div class="sidebar-store-link" onclick="copyLink()" id="sidebarStoreLink">Copy my order link ↗</div>
   </div>
   <div class="nav-section-label">Menu</div>
   <a class="nav-item active"><span class="icon">📋</span> Orders</a>
@@ -607,8 +607,8 @@ body {
   <a class="nav-item" href="mailto:hello@orderlyapp.co.za?subject=Orderly%20Support"><span class="icon">💬</span> Support</a>
   <a class="nav-item" onclick="signOut()" style="cursor:pointer;"><span class="icon">🚪</span> Sign out</a>
   <div class="sidebar-bottom">
-    <div class="sidebar-bottom-name">Fatima Karriem</div>
-    <div class="sidebar-bottom-role">Free plan · <span style="color:#3D8B65;cursor:pointer" onclick="showToast('Upgrade coming soon! 🚀')">Upgrade to Pro</span></div>
+    <div class="sidebar-bottom-name" id="sidebarBottomName">—</div>
+    <div class="sidebar-bottom-role" id="sidebarBottomRole">Loading...</div>
   </div>
 </aside>
 
@@ -618,8 +618,8 @@ body {
   <!-- TOPBAR -->
   <div class="topbar">
     <div class="topbar-left">
-      <h1>Good morning, Fatima 👋</h1>
-      <p>Tuesday, 9 June 2026 · 3 new orders overnight</p>
+      <h1 id="topbarGreeting">Welcome back 👋</h1>
+      <p id="topbarDate">Loading...</p>
     </div>
     <div class="topbar-right">
       <button class="share-btn" onclick="copyLink()">🔗 Share my order page</button>
@@ -637,23 +637,23 @@ body {
   <div class="stats-row">
     <div class="stat-card">
       <div class="stat-label">Orders this month</div>
-      <div class="stat-value">24</div>
-      <div class="stat-change">↑ 6 from last month</div>
+      <div class="stat-value" id="statOrders">—</div>
+      <div class="stat-change" id="statOrdersChange">Loading...</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Revenue this month</div>
-      <div class="stat-value">R4 820</div>
-      <div class="stat-change">↑ R1 200 from last month</div>
+      <div class="stat-value" id="statRevenue">—</div>
+      <div class="stat-change" id="statRevenueChange">Loading...</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">New today</div>
-      <div class="stat-value">3</div>
-      <div class="stat-change">↑ Busiest Tuesday yet</div>
+      <div class="stat-value" id="statToday">—</div>
+      <div class="stat-change" id="statTodayChange">Loading...</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Avg. order value</div>
-      <div class="stat-value">R201</div>
-      <div class="stat-change">↑ R18 from last month</div>
+      <div class="stat-value" id="statAvg">—</div>
+      <div class="stat-change" id="statAvgChange">Loading...</div>
     </div>
   </div>
 
@@ -694,25 +694,12 @@ body {
       </div>
 
       <!-- TOP ITEMS -->
-      <div class="card">
+      <div class="card" id="topSellersCard">
         <div class="card-header">
           <span class="card-title">Top sellers this month</span>
         </div>
         <div class="side-stat">
-          <span class="side-stat-label">🍛 Chicken Biryani</span>
-          <span class="side-stat-val">9 orders</span>
-        </div>
-        <div class="side-stat">
-          <span class="side-stat-label">🥙 Full Gatsby</span>
-          <span class="side-stat-val">7 orders</span>
-        </div>
-        <div class="side-stat">
-          <span class="side-stat-label">🥧 Milk Tart</span>
-          <span class="side-stat-val">5 orders</span>
-        </div>
-        <div class="side-stat">
-          <span class="side-stat-label">🍢 Samoosas</span>
-          <span class="side-stat-val">3 orders</span>
+          <span class="side-stat-label" style="color:var(--text-muted);font-size:0.78rem;">Loading...</span>
         </div>
       </div>
 
@@ -734,7 +721,7 @@ body {
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem;">
           <div>
             <div class="invoice-to">Invoice for</div>
-            <div class="invoice-customer" id="invCustomer">Aisha Davids</div>
+            <div class="invoice-customer" id="invCustomer">—</div>
             <div style="font-size:0.72rem;color:#7A9A85;margin-top:2px;" id="invPhone">+27 82 111 2222</div>
           </div>
           <div style="text-align:right;">
@@ -950,22 +937,20 @@ function updateStoreUI(profile) {
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
 
-  // Sidebar
-  document.querySelector('.sidebar-store-avatar').textContent = initials;
-  document.querySelector('.sidebar-store-name').textContent = profile.store_name;
-  document.querySelector('.sidebar-store-link').textContent = 'Copy my order link ↗';
-  document.querySelector('.sidebar-bottom-name').textContent = profile.store_name;
-  document.querySelector('.sidebar-bottom-role').innerHTML = `${profile.plan === 'pro' ? 'Pro plan' : 'Free plan'} · <span style="color:#3D8B65;cursor:pointer" onclick="showToast('Upgrade coming soon! 🚀')">Upgrade to Pro</span>`;
-
-  // Share banner — real order link, not the leftover demo slug
-  const shareLink = document.getElementById('shareBannerLink');
-  if (shareLink) shareLink.textContent = `orderlyapp.co.za/order-page.html?store=${profile.store_slug}`;
+  // Sidebar — all via IDs now, no fragile querySelector
+  document.getElementById('sidebarAvatar').textContent = initials;
+  document.getElementById('sidebarStoreName').textContent = profile.store_name;
+  document.getElementById('sidebarBottomName').textContent = profile.store_name;
+  document.getElementById('sidebarBottomRole').innerHTML = `${profile.plan === 'pro' ? 'Pro plan' : 'Free plan'} · <span style="color:#3D8B65;cursor:pointer" onclick="showToast('Upgrade coming soon! 🚀')">Upgrade to Pro</span>`;
 
   // Topbar
-  document.querySelector('.topbar-left h1').textContent = `${greeting}, ${firstName} 👋`;
-
+  document.getElementById('topbarGreeting').textContent = `${greeting}, ${firstName} 👋`;
   const today = new Date().toLocaleDateString('en-ZA', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
-  document.querySelector('.topbar-left p').textContent = today;
+  document.getElementById('topbarDate').textContent = today;
+
+  // Share banner
+  const shareLink = document.getElementById('shareBannerLink');
+  if (shareLink) shareLink.textContent = `orderlyapp.co.za/order-page.html?store=${profile.store_slug}`;
 }
 
 // ── LOAD REAL ORDERS ───────────────────────────────────────────────
@@ -990,12 +975,14 @@ async function loadOrders(profileId) {
 // ── UPDATE STATS ───────────────────────────────────────────────────
 function updateStats(orders, isEmpty) {
   if (isEmpty) {
-    document.querySelector('.stats-row').innerHTML = `
-      <div class="stat-card" style="grid-column:1/-1;text-align:center;padding:2rem;">
-        <p style="font-size:0.9rem;color:var(--text-muted);margin-bottom:0.5rem;">No orders yet</p>
-        <p style="font-size:0.82rem;color:var(--text-muted);font-weight:300;">Share your order link to start receiving orders</p>
-        <button onclick="copyLink()" style="margin-top:1rem;background:var(--green-700);color:white;border:none;border-radius:8px;padding:0.5rem 1.25rem;font-family:'DM Sans',sans-serif;font-size:0.82rem;cursor:pointer;">Copy my order link</button>
-      </div>`;
+    document.getElementById('statOrders').textContent = '0';
+    document.getElementById('statOrdersChange').textContent = 'No orders yet';
+    document.getElementById('statRevenue').textContent = 'R0';
+    document.getElementById('statRevenueChange').textContent = 'Share your link to get started';
+    document.getElementById('statToday').textContent = '0';
+    document.getElementById('statTodayChange').textContent = 'No orders today';
+    document.getElementById('statAvg').textContent = 'R0';
+    document.getElementById('statAvgChange').textContent = 'No data yet';
     return;
   }
 
@@ -1007,32 +994,22 @@ function updateStats(orders, isEmpty) {
   const revenue = thisMonth.reduce((s, o) => s + (o.total || 0), 0);
   const lastRevenue = lastMonth.reduce((s, o) => s + (o.total || 0), 0);
   const avgOrder = thisMonth.length ? Math.round(revenue / thisMonth.length) : 0;
+  const orderDiff = Math.abs(thisMonth.length - lastMonth.length);
+  const revDiff = Math.abs(revenue - lastRevenue);
 
-  document.querySelector('.stats-row').innerHTML = `
-    <div class="stat-card">
-      <div class="stat-label">Orders this month</div>
-      <div class="stat-value">${thisMonth.length}</div>
-      <div class="stat-change ${thisMonth.length >= lastMonth.length ? '' : 'down'}">
-        ${thisMonth.length >= lastMonth.length ? '↑' : '↓'} ${Math.abs(thisMonth.length - lastMonth.length)} from last month
-      </div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Revenue this month</div>
-      <div class="stat-value">R${revenue.toLocaleString()}</div>
-      <div class="stat-change ${revenue >= lastRevenue ? '' : 'down'}">
-        ${revenue >= lastRevenue ? '↑' : '↓'} R${Math.abs(revenue - lastRevenue).toLocaleString()} from last month
-      </div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">New today</div>
-      <div class="stat-value">${today.length}</div>
-      <div class="stat-change">↑ Orders today</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Avg. order value</div>
-      <div class="stat-value">R${avgOrder}</div>
-      <div class="stat-change">This month</div>
-    </div>`;
+  document.getElementById('statOrders').textContent = thisMonth.length;
+  document.getElementById('statOrdersChange').textContent = `${thisMonth.length >= lastMonth.length ? '↑' : '↓'} ${orderDiff} from last month`;
+  document.getElementById('statOrdersChange').className = `stat-change ${thisMonth.length >= lastMonth.length ? '' : 'down'}`;
+
+  document.getElementById('statRevenue').textContent = `R${revenue.toLocaleString()}`;
+  document.getElementById('statRevenueChange').textContent = `${revenue >= lastRevenue ? '↑' : '↓'} R${revDiff.toLocaleString()} from last month`;
+  document.getElementById('statRevenueChange').className = `stat-change ${revenue >= lastRevenue ? '' : 'down'}`;
+
+  document.getElementById('statToday').textContent = today.length;
+  document.getElementById('statTodayChange').textContent = today.length === 1 ? '1 order today' : `${today.length} orders today`;
+
+  document.getElementById('statAvg').textContent = `R${avgOrder}`;
+  document.getElementById('statAvgChange').textContent = 'This month';
 }
 
 // ── STATUS DEFINITIONS ──────────────────────────────────────────────
@@ -1224,7 +1201,19 @@ async function updateTopSellers(menuItems) {
     .select('items')
     .eq('profile_id', userProfile.id);
 
-  if (!orders || !orders.length) return;
+  const container = document.getElementById('topSellersCard');
+  if (!container) return;
+
+  if (!orders || !orders.length) {
+    container.innerHTML = `
+      <div class="card-header"><span class="card-title">Top sellers this month</span></div>
+      <div class="side-stat"><span class="side-stat-label" style="color:var(--text-muted);font-size:0.78rem;">No orders yet</span></div>`;
+    return;
+  }
+
+  // Build emoji lookup from the actual menu items the owner has
+  const emojiMap = {};
+  (menuItems || []).forEach(item => { emojiMap[item.name] = item.emoji || '🍱'; });
 
   const counts = {};
   orders.forEach(order => {
@@ -1234,15 +1223,18 @@ async function updateTopSellers(menuItems) {
   });
 
   const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 4);
-  if (!sorted.length) return;
 
-  const emojis = { 'Chicken Biryani':'🍛', 'Gatsby':'🥙', 'Milk Tart':'🥧', 'Samoosas':'🍢' };
-  const container = document.querySelectorAll('.card')[2];
-  if (!container) return;
+  if (!sorted.length) {
+    container.innerHTML = `
+      <div class="card-header"><span class="card-title">Top sellers this month</span></div>
+      <div class="side-stat"><span class="side-stat-label" style="color:var(--text-muted);font-size:0.78rem;">Not enough data yet</span></div>`;
+    return;
+  }
+
   const header = container.querySelector('.card-header').outerHTML;
   container.innerHTML = header + sorted.map(([name, count]) =>
     `<div class="side-stat">
-      <span class="side-stat-label">${emojis[name] || '🍱'} ${name}</span>
+      <span class="side-stat-label">${emojiMap[name] || '🍱'} ${name}</span>
       <span class="side-stat-val">${count} order${count > 1 ? 's' : ''}</span>
     </div>`
   ).join('');
