@@ -475,7 +475,7 @@ function populateForm(p) {
   setChecked('allowNotes', p.allow_notes !== false);
 
   // Order link
-  const link = `orderly-sand.vercel.app/order-page.html?store=${p.store_slug}`;
+  const link = `orderlyapp.co.za/order-page.html?store=${p.store_slug}`;
   document.getElementById('orderLink').textContent = link;
 
   toggleDeliveryFee();
@@ -567,7 +567,7 @@ async function confirmDeleteStore() {
 
 // ── COPY LINK ──────────────────────────────────────────────────────
 function copyOrderLink() {
-  const link = `https://orderly-sand.vercel.app/order-page.html?store=${userProfile?.store_slug}`;
+  const link = `https://orderlyapp.co.za/order-page.html?store=${userProfile?.store_slug}`;
   navigator.clipboard.writeText(link).catch(() => {});
   showToast('Order link copied! 🔗');
 }

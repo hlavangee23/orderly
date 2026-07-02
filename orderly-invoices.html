@@ -429,7 +429,7 @@ function handleModalClick(e) {
 
 // ── SHARE LINK ─────────────────────────────────────────────────────
 function copyOrderLink() {
-  const link = `https://orderly-sand.vercel.app/order-page.html?store=${userProfile?.store_slug}`;
+  const link = `https://orderlyapp.co.za/order-page.html?store=${userProfile?.store_slug}`;
   navigator.clipboard.writeText(link).catch(() => {});
   showToast('Order link copied! 🔗');
 }

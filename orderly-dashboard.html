@@ -959,7 +959,7 @@ function updateStoreUI(profile) {
 
   // Share banner — real order link, not the leftover demo slug
   const shareLink = document.getElementById('shareBannerLink');
-  if (shareLink) shareLink.textContent = `orderly-sand.vercel.app/order-page.html?store=${profile.store_slug}`;
+  if (shareLink) shareLink.textContent = `orderlyapp.co.za/order-page.html?store=${profile.store_slug}`;
 
   // Topbar
   document.querySelector('.topbar-left h1').textContent = `${greeting}, ${firstName} 👋`;
@@ -1579,7 +1579,7 @@ function scrollToMenu() {
 // ── SHARE LINK ─────────────────────────────────────────────────────
 function copyLink() {
   const slug = userProfile?.store_slug || localStorage.getItem('orderly_slug') || '';
-  const link = `https://orderly-sand.vercel.app/order-page.html?store=${slug}`;
+  const link = `https://orderlyapp.co.za/order-page.html?store=${slug}`;
   navigator.clipboard.writeText(link).catch(() => {});
   showToast('Order link copied! 🔗');
 }

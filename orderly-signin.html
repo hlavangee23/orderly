@@ -505,7 +505,7 @@ async function sendReset() {
   document.getElementById('resetSpinner').style.display = 'block';
 
   const { error } = await db.auth.resetPasswordForEmail(email, {
-    redirectTo: 'https://orderly-sand.vercel.app/orderly-signin.html'
+    redirectTo: 'https://orderlyapp.co.za/orderly-signin.html'
   });
 
   document.getElementById('resetBtn').disabled = false;
