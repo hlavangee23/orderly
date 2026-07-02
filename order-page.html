@@ -84,6 +84,13 @@ html, body { min-height: 100vh; font-family: 'DM Sans', sans-serif; background: 
 .btn-back { background: transparent; color: var(--text-muted); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 0.75rem; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; cursor: pointer; width: 100%; margin-top: 0.75rem; transition: all 0.2s; }
 .btn-back:hover { border-color: var(--text-muted); color: var(--text); }
 
+/* WHATSAPP NOTICE */
+.whatsapp-notice { background: #FFF8E6; border: 1px solid #F59E0B; border-radius: var(--radius); padding: 0.75rem 0.9rem; font-size: 0.78rem; color: #92400E; line-height: 1.6; margin-top: 8px; }
+
+/* FIELD ERRORS */
+.field-error { font-size: 0.75rem; color: #DC2626; margin-top: 5px; display: none; }
+.field-error.show { display: block; }
+
 /* ── STEP 2: MENU ────────────────────────────────────────── */
 .cat-nav { background: var(--green-900); border-top: 1px solid rgba(255,255,255,0.07); overflow-x: auto; scrollbar-width: none; }
 .cat-nav::-webkit-scrollbar { display: none; }
@@ -204,6 +211,7 @@ html, body { min-height: 100vh; font-family: 'DM Sans', sans-serif; background: 
         <div class="form-group">
           <label class="form-label">First name</label>
           <input class="form-input" type="text" id="firstName" placeholder="Aisha" autocomplete="given-name" />
+          <div class="field-error" id="firstNameError">Please enter your first name</div>
         </div>
         <div class="form-group">
           <label class="form-label">Last name</label>
@@ -211,8 +219,17 @@ html, body { min-height: 100vh; font-family: 'DM Sans', sans-serif; background: 
         </div>
       </div>
       <div class="form-group">
-        <label class="form-label">WhatsApp number</label>
-        <input class="form-input" type="tel" id="phone" placeholder="+27 82 000 0000" autocomplete="tel" />
+        <label class="form-label">
+          <span style="display:flex;align-items:center;gap:6px;">
+            <span style="background:#25D366;color:white;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:0.7rem;flex-shrink:0;">💬</span>
+            WhatsApp number
+          </span>
+        </label>
+        <input class="form-input" type="tel" id="phone" placeholder="082 000 0000" autocomplete="tel" oninput="formatPhoneInput(this)" />
+        <div class="field-error" id="phoneError">Please enter a valid WhatsApp number</div>
+        <div class="whatsapp-notice">
+          ⚠️ Please use the WhatsApp number where you want to receive order updates. Entering an incorrect number means you won't receive any communication from the store about your order.
+        </div>
       </div>
       <div class="form-group">
         <label class="form-label">Delivery address <span style="color:var(--text-muted);font-weight:300;font-size:0.72rem;">(optional — required if you choose delivery)</span></label>
@@ -617,22 +634,67 @@ function goToStep(n) {
   window.scrollTo(0, 0);
 }
 
+// ── PHONE FORMATTING ───────────────────────────────────────────────
+function formatPhoneInput(input) {
+  // Strip everything except digits and +
+  let val = input.value.replace(/[^\d+]/g, '');
+  // If starts with 27, show as 0XX format for SA readability
+  input.value = val;
+  // Clear error as they type
+  document.getElementById('phone').classList.remove('error');
+  document.getElementById('phoneError').classList.remove('show');
+}
+
+function isValidSAPhone(phone) {
+  // Strip all non-digits
+  const digits = phone.replace(/\D/g, '');
+  // Valid SA formats: 0XXXXXXXXX (10 digits), 27XXXXXXXXX (11 digits), +27XXXXXXXXX (11 digits)
+  if (digits.length === 10 && digits.startsWith('0')) return true;
+  if (digits.length === 11 && digits.startsWith('27')) return true;
+  if (digits.length === 12 && digits.startsWith('270')) return false; // invalid: 270...
+  // Also accept international format with + already stripped
+  return digits.length >= 10 && digits.length <= 12;
+}
+
+// ── GO TO MENU (with proper validation) ───────────────────────────
 function goToMenu() {
   const first = document.getElementById('firstName').value.trim();
-  const last = document.getElementById('lastName').value.trim();
+  const last  = document.getElementById('lastName').value.trim();
   const phone = document.getElementById('phone').value.trim();
 
-  if (!first || !phone) {
-    if (!first) document.getElementById('firstName').classList.add('error');
-    if (!phone) document.getElementById('phone').classList.add('error');
-    return;
+  let valid = true;
+
+  // Name validation — must be at least 2 real characters, not just symbols or numbers
+  const nameClean = first.replace(/[^a-zA-Z\s]/g, '').trim();
+  if (!first || nameClean.length < 2) {
+    document.getElementById('firstName').classList.add('error');
+    document.getElementById('firstNameError').textContent = first
+      ? 'Please enter a valid name (letters only)'
+      : 'Please enter your first name';
+    document.getElementById('firstNameError').classList.add('show');
+    valid = false;
+  } else {
+    document.getElementById('firstName').classList.remove('error');
+    document.getElementById('firstNameError').classList.remove('show');
   }
 
-  document.getElementById('firstName').classList.remove('error');
-  document.getElementById('phone').classList.remove('error');
+  // Phone validation — must be a valid SA number format
+  if (!phone || !isValidSAPhone(phone)) {
+    document.getElementById('phone').classList.add('error');
+    document.getElementById('phoneError').textContent = phone
+      ? 'Please enter a valid SA WhatsApp number (e.g. 082 000 0000)'
+      : 'Please enter your WhatsApp number';
+    document.getElementById('phoneError').classList.add('show');
+    valid = false;
+  } else {
+    document.getElementById('phone').classList.remove('error');
+    document.getElementById('phoneError').classList.remove('show');
+  }
+
+  if (!valid) return;
 
   customer = {
-    name: first + ' ' + last,
+    name: (first + ' ' + last).trim(),
     phone,
     address: document.getElementById('address').value.trim()
   };
