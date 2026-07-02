@@ -807,32 +807,67 @@ body {
   <button class="bulk-bar-cancel" onclick="exitSelectMode()">Cancel</button>
 </div>
 
-<!-- CANNED MESSAGE MODAL -->
+<!-- BULK MESSAGE MODAL — redesigned, mobile-first, owner-focused -->
 <div class="modal-overlay" id="cannedModal" onclick="handleCannedModalClick(event)">
   <div class="modal">
-    <div class="modal-title">Send a message</div>
-    <p class="modal-sub" id="cannedModalSub">Choose a message to send to all selected customers on WhatsApp.</p>
 
-    <div class="recipients-list" id="recipientsList"></div>
+    <!-- VIEW 1: CHOOSE MESSAGE -->
+    <div id="bulkViewChoose">
+      <div class="modal-title" id="bulkModalTitle">Send a message</div>
+      <p class="modal-sub" id="bulkModalSub"></p>
 
-    <div id="templateView">
+      <!-- WHO'S RECEIVING -->
+      <div class="recipients-list" id="recipientsList"></div>
+
+      <!-- TEMPLATES -->
       <div class="template-list" id="templateList"></div>
+
+      <!-- CUSTOM MESSAGE -->
       <div class="custom-template-area" id="customTemplateArea" style="display:none;">
-        <textarea class="add-input" id="customMessageText" placeholder="Write your own message... Use {name} to insert the customer's name." style="width:100%;min-height:80px;resize:vertical;"></textarea>
+        <textarea class="add-input" id="customMessageText" placeholder="Write your own message... Use {name} to insert the customer's name and {store} for your store name." style="width:100%;min-height:80px;resize:vertical;font-family:'DM Sans',sans-serif;"></textarea>
       </div>
+
       <div class="modal-actions" style="margin-top:1rem;">
-        <button class="modal-btn" onclick="closeCannedModal()">Close</button>
-        <button class="modal-btn primary" onclick="startBulkSend()">Send to all →</button>
+        <button class="modal-btn" onclick="closeCannedModal()">Cancel</button>
+        <button class="modal-btn primary" id="startSendBtn" onclick="startBulkSend()">Start sending →</button>
       </div>
     </div>
 
-    <div class="send-progress" id="sendProgress">
-      <p class="send-progress-text" id="sendProgressText">Opening WhatsApp for customer 1 of 5...</p>
-      <div class="send-progress-bar-bg"><div class="send-progress-bar-fill" id="sendProgressFill"></div></div>
-      <div class="modal-actions" style="margin-top:1.25rem;">
-        <button class="modal-btn primary" id="nextSendBtn" onclick="sendNextInQueue()">Open next WhatsApp →</button>
+    <!-- VIEW 2: SENDING FLOW — clean, warm, mobile-first -->
+    <div id="bulkViewSending" style="display:none;text-align:center;padding:0.5rem 0;">
+
+      <!-- REMAINING COUNT — big, clear -->
+      <div id="bulkRemaining" style="font-family:'Instrument Serif',serif;font-size:3rem;color:var(--green-900);line-height:1;margin-bottom:4px;">8</div>
+      <div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:1.5rem;" id="bulkRemainingLabel">customers left to message</div>
+
+      <!-- NEXT CUSTOMER CARD -->
+      <div id="bulkNextCard" style="background:var(--green-50);border:1px solid var(--green-100);border-radius:var(--radius-lg);padding:1.25rem;margin-bottom:1.25rem;">
+        <div style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:6px;">Sending to</div>
+        <div id="bulkNextName" style="font-family:'Instrument Serif',serif;font-size:1.3rem;color:var(--green-900);margin-bottom:4px;">—</div>
+        <div id="bulkNextPhone" style="font-size:0.78rem;color:var(--text-muted);">—</div>
       </div>
+
+      <!-- MESSAGE PREVIEW -->
+      <div id="bulkMessagePreview" style="background:var(--off-white);border:1px solid var(--border);border-radius:var(--radius);padding:0.85rem 1rem;margin-bottom:1.5rem;font-size:0.8rem;color:var(--text-mid);line-height:1.6;text-align:left;max-height:100px;overflow-y:auto;"></div>
+
+      <!-- THE ONE BIG BUTTON -->
+      <button class="btn-primary" id="bulkSendBtn" onclick="sendNextInQueue()" style="font-size:1rem;padding:1rem;">
+        <span id="bulkSendBtnText">Open WhatsApp →</span>
+      </button>
+
+      <!-- SENT LIST -->
+      <div id="bulkSentList" style="margin-top:1.25rem;text-align:left;"></div>
+
     </div>
+
+    <!-- VIEW 3: ALL DONE -->
+    <div id="bulkViewDone" style="display:none;text-align:center;padding:1rem 0;">
+      <div style="font-size:2.5rem;margin-bottom:0.75rem;">🎉</div>
+      <div style="font-family:'Instrument Serif',serif;font-size:1.6rem;color:var(--green-900);margin-bottom:0.5rem;">All done!</div>
+      <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:1.5rem;" id="bulkDoneText">All messages sent.</div>
+      <button class="modal-btn primary" onclick="closeCannedModal(); exitSelectMode();">Back to orders</button>
+    </div>
+
   </div>
 </div>
 
@@ -1023,17 +1058,17 @@ function getStatusFlow(deliveryType) {
 
 // Customer-facing WhatsApp messages per status
 function getStatusMessage(status, order, storeName) {
-  const name = order.customer_name;
+  const name = order.customer_name.split(' ')[0]; // Use first name only — more personal
   const messages = {
-    confirmed: `Hi ${name}! 🎉 Your order from ${storeName} has been confirmed. We'll start working on it soon!`,
-    preparing: `Hi ${name}! 👩‍🍳 Your order from ${storeName} is now being prepared.`,
-    packing: `Hi ${name}! 📦 Your order from ${storeName} is packed and ready to go.`,
-    ready: `Hi ${name}! 📦 Your order from ${storeName} is ready for collection. Come grab it whenever suits you!`,
-    out_for_delivery: `Hi ${name}! 🚗 Your order from ${storeName} is out for delivery — it should arrive soon!`,
-    delivered: `Hi ${name}! ✅ Your order from ${storeName} has been delivered. Enjoy, and thank you for ordering! 🙏`,
-    collected: `Hi ${name}! ✅ Thanks for collecting your order from ${storeName}. Enjoy! 🙏`,
+    confirmed: `Hi ${name}! 🙌 Your order from ${storeName} is confirmed — we're so excited to be baking for you! We'll keep you updated every step of the way.`,
+    preparing: `Hi ${name}! 👩‍🍳 Good news — we've started preparing your order from ${storeName}. The kitchen is busy! We'll let you know when it's ready.`,
+    packing: `Hi ${name}! 📦 Your order from ${storeName} is all packed up and looking good. Almost with you!`,
+    ready: `Hi ${name}! 🎉 Your order from ${storeName} is ready for collection! Come grab it whenever suits you — we can't wait for you to try it.`,
+    out_for_delivery: `Hi ${name}! 🚗 Your order from ${storeName} is on its way to you right now! Keep an eye out — it should be with you soon.`,
+    delivered: `Hi ${name}! ✅ Your order from ${storeName} has been delivered. We hope you love it as much as we loved making it! Thank you so much for your support. 🙏`,
+    collected: `Hi ${name}! ✅ So lovely seeing you! Your order from ${storeName} has been collected. Enjoy every bite and thank you for your support! 🙏`,
   };
-  return messages[status] || `Hi ${name}, your order from ${storeName} status has been updated to: ${STATUS_INFO[status]?.label || status}`;
+  return messages[status] || `Hi ${name}, just a quick update on your order from ${storeName} — the status has been updated to: ${STATUS_INFO[status]?.label || status}. Feel free to reply if you have any questions!`;
 }
 
 // ── ESCAPE HELPER FOR INLINE ONCLICK STRINGS ───────────────────────
@@ -1575,114 +1610,176 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 3000);
 }
 
-// ── CANNED MESSAGES ──────────────────────────────────────────────
+// ── CANNED MESSAGES — redesigned, owner-first ──────────────────────
 const CANNED_TEMPLATES = [
-  { id: 'confirmed', icon: '✅', title: 'Order confirmed', text: "Hi {name}! 🎉 Your order from {store} is confirmed and will be ready as planned. Thank you!" },
-  { id: 'preparing', icon: '👩‍🍳', title: 'Now preparing', text: "Hi {name}! 👩‍🍳 Just letting you know your order from {store} is being prepared right now." },
-  { id: 'ready', icon: '📦', title: 'Ready for collection', text: "Hi {name}! 📦 Your order from {store} is ready for collection whenever suits you." },
-  { id: 'outfordelivery', icon: '🚗', title: 'Out for delivery', text: "Hi {name}! 🚗 Great news — your order from {store} is out for delivery today!" },
-  { id: 'delayed', icon: '⏰', title: 'Small delay', text: "Hi {name}, just a heads up — there's a small delay on your order from {store} due to high demand. We appreciate your patience and will update you soon. 🙏" },
-  { id: 'delayed-distance', icon: '📍', title: 'Delayed — distance', text: "Hi {name}, due to the distance for delivery your order from {store} may take a little longer than expected today. Thank you for understanding!" },
-  { id: 'thankyou', icon: '🙏', title: 'Thank you', text: "Hi {name}! Thank you so much for ordering from {store}. We hope you enjoyed it — see you again soon! 🙏" },
-  { id: 'custom', icon: '✏️', title: 'Write your own message', text: '' },
+  { id: 'confirmed',       icon: '✅', title: 'Order confirmed',       text: "Hi {name}! 🙌 Your order from {store} is confirmed — we're so excited to bake for you! We'll keep you updated every step of the way." },
+  { id: 'preparing',       icon: '👩‍🍳', title: 'Now preparing',         text: "Hi {name}! 👩‍🍳 Good news — we've started preparing your order from {store}. The kitchen is busy! We'll let you know when it's ready." },
+  { id: 'ready',           icon: '📦', title: 'Ready for collection',  text: "Hi {name}! 🎉 Your order from {store} is ready for collection! Come grab it whenever suits you — we can't wait for you to try it." },
+  { id: 'outfordelivery',  icon: '🚗', title: 'Out for delivery',      text: "Hi {name}! 🚗 Your order from {store} is on its way to you right now! Keep an eye out — it should be with you soon." },
+  { id: 'delayed',         icon: '⏰', title: 'Small delay',           text: "Hi {name}, just a quick heads up — there's a small delay on your order from {store} due to high demand. We really appreciate your patience and will update you as soon as it's ready. 🙏" },
+  { id: 'delayed-weather', icon: '🌧️', title: 'Delayed — weather',     text: "Hi {name}, due to the weather today your order from {store} may take a little longer than expected. Thank you so much for understanding — we'll get it to you as soon as possible!" },
+  { id: 'delayed-distance',icon: '📍', title: 'Delayed — distance',    text: "Hi {name}, due to the distance for delivery your order from {store} may arrive a little later than planned today. Thank you for your patience!" },
+  { id: 'thankyou',        icon: '🙏', title: 'Thank you',             text: "Hi {name}! Thank you so much for ordering from {store} — we hope you loved it as much as we loved making it. See you again soon! 🙏" },
+  { id: 'custom',          icon: '✏️', title: 'Write your own message', text: '' },
 ];
 
 let selectedTemplateId = null;
 let bulkSendQueue = [];
 let bulkSendIndex = 0;
+let bulkSentCount = 0;
 
+// ── OPEN MODAL ─────────────────────────────────────────────────────
 function openCannedModal() {
   if (!selectedOrderIndexes.size) return;
   selectedTemplateId = null;
 
-  // Build recipients preview
-  const names = [...selectedOrderIndexes].map(i => allOrdersData[i].customer_name);
-  document.getElementById('recipientsList').innerHTML = names.map(n => `<span class="recipient-chip">👤 ${n}</span>`).join('');
-  document.getElementById('cannedModalSub').textContent = `Choose a message to send to ${names.length} customer${names.length > 1 ? 's' : ''} on WhatsApp.`;
+  const orders = [...selectedOrderIndexes].map(i => allOrdersData[i]);
+  const names = orders.map(o => o.customer_name);
+  const storeName = userProfile?.store_name || 'your store';
+  const firstNameSample = names[0]?.split(' ')[0] || 'Customer';
 
+  // Recipients chips
+  document.getElementById('recipientsList').innerHTML =
+    names.map(n => `<span class="recipient-chip">👤 ${n.split(' ')[0]}</span>`).join('');
+
+  // Header
+  document.getElementById('bulkModalTitle').textContent = `Message ${names.length} customer${names.length > 1 ? 's' : ''}`;
+  document.getElementById('bulkModalSub').textContent = `Choose what to send — each customer gets a personalised message.`;
+
+  // Templates
   document.getElementById('templateList').innerHTML = CANNED_TEMPLATES.map(t => `
     <button class="template-btn" id="tmpl-${t.id}" onclick="selectTemplate('${t.id}')">
       <span class="template-icon">${t.icon}</span>
       <span class="template-text">
         <span class="template-title">${t.title}</span>
-        ${t.text ? `<span class="template-preview">${t.text.replace('{name}', names[0] || 'Customer').replace('{store}', userProfile?.store_name || 'your store')}</span>` : ''}
+        ${t.text ? `<span class="template-preview">${t.text.replace('{name}', firstNameSample).replace('{store}', storeName)}</span>` : '<span class="template-preview" style="color:var(--green-400);">Write your own personalised message</span>'}
       </span>
     </button>`).join('');
 
+  // Reset views
+  document.getElementById('bulkViewChoose').style.display = 'block';
+  document.getElementById('bulkViewSending').style.display = 'none';
+  document.getElementById('bulkViewDone').style.display = 'none';
   document.getElementById('customTemplateArea').style.display = 'none';
-  document.getElementById('templateView').style.display = 'block';
-  document.getElementById('sendProgress').classList.remove('show');
+  document.getElementById('customMessageText').value = '';
   document.getElementById('cannedModal').classList.add('open');
 }
 
+// ── SELECT TEMPLATE ────────────────────────────────────────────────
 function selectTemplate(id) {
   selectedTemplateId = id;
   document.querySelectorAll('.template-btn').forEach(b => b.classList.remove('selected'));
   document.getElementById('tmpl-' + id).classList.add('selected');
   document.getElementById('customTemplateArea').style.display = id === 'custom' ? 'block' : 'none';
+  // Scroll to bottom of modal so they can see the Start button
+  document.querySelector('#cannedModal .modal').scrollTop = 9999;
 }
 
+// ── START BULK SEND ────────────────────────────────────────────────
 function startBulkSend() {
   if (!selectedTemplateId) { showToast('Please choose a message first'); return; }
 
-  let template = CANNED_TEMPLATES.find(t => t.id === selectedTemplateId);
+  const template = CANNED_TEMPLATES.find(t => t.id === selectedTemplateId);
   let messageText = template.text;
 
   if (selectedTemplateId === 'custom') {
     messageText = document.getElementById('customMessageText').value.trim();
-    if (!messageText) { showToast('Please write a message'); return; }
+    if (!messageText) { showToast('Please write your message first'); return; }
   }
+
+  const storeName = userProfile?.store_name || 'your store';
 
   bulkSendQueue = [...selectedOrderIndexes].map(i => {
     const order = allOrdersData[i];
-    const personalised = messageText.replace('{name}', order.customer_name).replace('{store}', userProfile?.store_name || 'your store');
-    return { name: order.customer_name, phone: order.customer_phone, message: personalised };
+    const firstName = order.customer_name.split(' ')[0];
+    const personalised = messageText
+      .replace(/\{name\}/g, firstName)
+      .replace(/\{store\}/g, storeName);
+    return {
+      name: firstName,
+      fullName: order.customer_name,
+      phone: order.customer_phone,
+      message: personalised,
+    };
   });
-  bulkSendIndex = 0;
 
-  document.getElementById('templateView').style.display = 'none';
-  document.getElementById('sendProgress').classList.add('show');
-  sendNextInQueue();
+  bulkSendIndex = 0;
+  bulkSentCount = 0;
+
+  // Switch to sending view
+  document.getElementById('bulkViewChoose').style.display = 'none';
+  document.getElementById('bulkViewSending').style.display = 'block';
+  document.getElementById('bulkSentList').innerHTML = '';
+
+  updateSendingView();
 }
 
+// ── UPDATE SENDING VIEW ────────────────────────────────────────────
+function updateSendingView() {
+  const remaining = bulkSendQueue.length - bulkSendIndex;
+  const next = bulkSendQueue[bulkSendIndex];
+
+  document.getElementById('bulkRemaining').textContent = remaining;
+  document.getElementById('bulkRemainingLabel').textContent =
+    remaining === 1 ? 'customer left to message' : 'customers left to message';
+
+  document.getElementById('bulkNextName').textContent = next.name;
+  document.getElementById('bulkNextPhone').textContent = next.phone;
+  document.getElementById('bulkMessagePreview').textContent = next.message;
+
+  const btn = document.getElementById('bulkSendBtn');
+  btn.style.background = 'var(--green-700)';
+  document.getElementById('bulkSendBtnText').textContent =
+    `Send to ${next.name} on WhatsApp →`;
+}
+
+// ── SEND NEXT ─────────────────────────────────────────────────────
 function sendNextInQueue() {
-  if (bulkSendIndex >= bulkSendQueue.length) {
-    document.getElementById('sendProgressText').textContent = `All ${bulkSendQueue.length} messages sent! ✓`;
-    document.getElementById('sendProgressFill').style.width = '100%';
-    document.getElementById('nextSendBtn').textContent = 'Done ✓';
-    document.getElementById('nextSendBtn').onclick = () => { closeCannedModal(); exitSelectMode(); };
-    showToast('All messages sent ✓');
-    return;
-  }
+  if (bulkSendIndex >= bulkSendQueue.length) return;
 
   const item = bulkSendQueue[bulkSendIndex];
   const phone = item.phone?.replace(/\D/g, '') || '';
-  const formatted = phone.startsWith('0') ? '27' + phone.slice(1) : phone.startsWith('27') ? phone : '27' + phone;
+  const formatted = phone.startsWith('0') ? '27' + phone.slice(1)
+    : phone.startsWith('27') ? phone
+    : '27' + phone;
 
-  bulkSendIndex++;
-  const pct = Math.round((bulkSendIndex / bulkSendQueue.length) * 100);
-  document.getElementById('sendProgressFill').style.width = pct + '%';
-
+  // Open WhatsApp — must be synchronous, directly in click handler
   if (formatted && formatted.length >= 10) {
     window.open(`https://wa.me/${formatted}?text=${encodeURIComponent(item.message)}`, '_blank');
   } else {
     showToast(`⚠️ No valid number for ${item.name} — skipped`);
   }
 
-  if (bulkSendIndex < bulkSendQueue.length) {
-    document.getElementById('sendProgressText').textContent = `Sent to ${item.name}. Tap the button for ${bulkSendQueue[bulkSendIndex].name} (${bulkSendIndex + 1} of ${bulkSendQueue.length})`;
-    document.getElementById('nextSendBtn').textContent = `Next → ${bulkSendQueue[bulkSendIndex].name}`;
+  // Mark as sent in the list below
+  const sentList = document.getElementById('bulkSentList');
+  sentList.innerHTML += `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;font-size:0.8rem;color:var(--green-500);border-bottom:1px solid var(--border);">
+    <span>✓</span><span>${item.fullName}</span>
+  </div>`;
+
+  bulkSendIndex++;
+  bulkSentCount++;
+
+  if (bulkSendIndex >= bulkSendQueue.length) {
+    // All done — show celebration view
+    document.getElementById('bulkViewSending').style.display = 'none';
+    document.getElementById('bulkViewDone').style.display = 'block';
+    document.getElementById('bulkDoneText').textContent =
+      `You messaged ${bulkSentCount} customer${bulkSentCount > 1 ? 's' : ''} — great work! 🙌`;
   } else {
-    document.getElementById('sendProgressText').textContent = `Sent to ${item.name}. That's everyone! ✓`;
-    document.getElementById('nextSendBtn').textContent = 'Done ✓';
-    document.getElementById('nextSendBtn').onclick = () => { closeCannedModal(); exitSelectMode(); showToast('All messages sent ✓'); };
+    // Update for next customer
+    updateSendingView();
+    // Scroll modal back to top so they see the next card
+    document.querySelector('#cannedModal .modal').scrollTop = 0;
   }
 }
 
+// ── CLOSE ─────────────────────────────────────────────────────────
 function closeCannedModal() {
   document.getElementById('cannedModal').classList.remove('open');
-  document.getElementById('nextSendBtn').textContent = 'Open next WhatsApp →';
-  document.getElementById('nextSendBtn').onclick = sendNextInQueue;
+  bulkSendQueue = [];
+  bulkSendIndex = 0;
+  bulkSentCount = 0;
+  selectedTemplateId = null;
 }
 
 function handleCannedModalClick(e) {
