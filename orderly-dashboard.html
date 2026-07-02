@@ -580,7 +580,25 @@ body {
 .emoji-pick-btn:hover { border-color: var(--green-400); background: var(--green-50); }
 .emoji-pick-btn.selected { border-color: var(--green-400); background: var(--green-50); box-shadow: 0 0 0 2px rgba(61,139,101,0.15); }
 
-/* GUIDED TOUR */
+/* TRIAL BANNER */
+.trial-banner { border-radius: var(--radius); padding: 0.85rem 1.25rem; margin-bottom: 1.25rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.trial-banner.trial-active { background: var(--green-50); border: 1px solid var(--green-100); }
+.trial-banner.trial-ending { background: #FFFBEB; border: 1px solid #FCD34D; }
+.trial-banner.trial-expired { background: #FEF2F2; border: 1px solid #FECACA; }
+.trial-banner-text { font-size: 0.82rem; color: var(--text-mid); line-height: 1.5; }
+.trial-banner-text strong { color: var(--text); }
+.trial-banner.trial-ending .trial-banner-text { color: #92400E; }
+.trial-banner.trial-expired .trial-banner-text { color: #B91C1C; }
+.trial-banner-btn { background: var(--green-700); color: white; border: none; border-radius: 8px; padding: 0.45rem 1rem; font-family: 'DM Sans', sans-serif; font-size: 0.78rem; font-weight: 500; cursor: pointer; white-space: nowrap; transition: background 0.2s; }
+.trial-banner-btn:hover { background: var(--green-900); }
+.trial-banner.trial-ending .trial-banner-btn { background: #D97706; }
+.trial-banner.trial-ending .trial-banner-btn:hover { background: #92400E; }
+.trial-banner.trial-expired .trial-banner-btn { background: #DC2626; }
+.trial-banner.trial-expired .trial-banner-btn:hover { background: #B91C1C; }
+
+/* CAP WARNING */
+.cap-warning { background: #FFFBEB; border: 1px solid #FCD34D; border-radius: var(--radius); padding: 0.75rem 1rem; font-size: 0.8rem; color: #92400E; margin-bottom: 0.75rem; display: none; }
+.cap-warning.show { display: block; }
 .tour-card { background: linear-gradient(135deg, var(--green-900), #1A3D2B); border-radius: var(--radius-lg); padding: 1.5rem 1.75rem; margin-bottom: 1.75rem; position: relative; overflow: hidden; }
 .tour-card::before { content: ''; position: absolute; top: -40px; right: -40px; width: 180px; height: 180px; border-radius: 50%; background: rgba(61,139,101,0.15); pointer-events: none; }
 .tour-card-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1.25rem; }
@@ -656,6 +674,12 @@ body {
     <div class="share-banner-text">Your order page is <strong>live</strong> — share this link with your customers to start getting orders</div>
     <div class="share-banner-link" id="shareBannerLink" onclick="copyLink()">Loading...</div>
   </div>
+
+  <!-- TRIAL / PLAN BANNER -->
+  <div id="trialBanner" style="display:none;"></div>
+
+  <!-- ORDER CAP WARNING — shown to Free plan users approaching limit -->
+  <div class="cap-warning" id="orderCapWarning"></div>
 
   <!-- GUIDED TOUR — only shown to new users, dismissed via localStorage -->
   <div class="tour-card" id="tourCard" style="display:none;">
@@ -998,6 +1022,9 @@ async function init() {
   // Update UI with real store data
   updateStoreUI(profile);
 
+  // Show trial/plan banner
+  initTrialBanner(profile);
+
   // Load real orders and menu
   const [ordersResult, menuResult] = await Promise.all([loadOrders(profile.id), loadMenu(profile.id)]);
 
@@ -1007,7 +1034,101 @@ async function init() {
   initTour(profile.id, hasMenuItems, hasOrders);
 }
 
-// ── UPDATE STORE UI ────────────────────────────────────────────────
+// ── TRIAL & PLAN SYSTEM ────────────────────────────────────────────
+const TRIAL_DAYS = 30;
+
+function getTrialState(profile) {
+  // If already on Pro — no trial logic needed
+  if (profile.plan === 'pro') return { state: 'pro' };
+
+  const trialStart = new Date(profile.trial_start_date || profile.created_at);
+  const now = new Date();
+  const msPerDay = 1000 * 60 * 60 * 24;
+  const daysUsed = Math.floor((now - trialStart) / msPerDay);
+  const daysLeft = TRIAL_DAYS - daysUsed;
+
+  if (daysLeft > 10) return { state: 'trial_active', daysLeft };
+  if (daysLeft > 0)  return { state: 'trial_ending', daysLeft };
+  return { state: 'trial_expired', daysLeft: 0 };
+}
+
+function initTrialBanner(profile) {
+  const { state, daysLeft } = getTrialState(profile);
+  const banner = document.getElementById('trialBanner');
+  if (!banner) return;
+
+  if (state === 'pro') {
+    banner.style.display = 'none';
+    return;
+  }
+
+  let cls, text, btnText;
+
+  if (state === 'trial_active') {
+    cls = 'trial-active';
+    text = `🎉 <strong>Pro trial active</strong> — You have <strong>${daysLeft} days</strong> left to explore all Pro features for free. No credit card needed.`;
+    btnText = 'See Pro features';
+  } else if (state === 'trial_ending') {
+    cls = 'trial-ending';
+    text = `⏰ <strong>Your trial ends in ${daysLeft} day${daysLeft === 1 ? '' : 's'}!</strong> Upgrade now and get <strong>15% off for 2 months</strong> — don't lose your Pro features.`;
+    btnText = 'Upgrade to Pro';
+  } else {
+    cls = 'trial-expired';
+    text = `⚠️ <strong>Your free trial has ended.</strong> You're now on the Free plan — 50 orders/month, 20 menu items. Upgrade to Pro to remove all limits and Orderly branding.`;
+    btnText = 'Upgrade to Pro';
+  }
+
+  banner.className = `trial-banner ${cls}`;
+  banner.innerHTML = `
+    <div class="trial-banner-text">${text}</div>
+    <button class="trial-banner-btn" onclick="showToast('Payments coming soon! 🚀')">${btnText}</button>
+  `;
+  banner.style.display = 'flex';
+}
+
+// ── FREE PLAN CAPS ─────────────────────────────────────────────────
+const FREE_ORDER_CAP = 50;
+const FREE_MENU_CAP = 20;
+
+function isOnFreePlan(profile) {
+  const { state } = getTrialState(profile);
+  return state === 'trial_expired' && profile.plan !== 'pro';
+}
+
+function checkMenuCap() {
+  if (!isOnFreePlan(userProfile)) return true; // no cap during trial or on Pro
+  const itemCount = document.querySelectorAll('#catalogList .catalog-item').length;
+  if (itemCount >= FREE_MENU_CAP) {
+    showToast(`Free plan limit — max ${FREE_MENU_CAP} menu items. Upgrade to Pro for unlimited.`);
+    return false;
+  }
+  return true;
+}
+
+function getOrdersThisMonth(orders) {
+  const now = new Date();
+  return orders.filter(o => new Date(o.created_at).getMonth() === now.getMonth() &&
+    new Date(o.created_at).getFullYear() === now.getFullYear()).length;
+}
+
+function showOrderCapWarning(ordersThisMonth) {
+  if (!isOnFreePlan(userProfile)) return;
+  const remaining = FREE_ORDER_CAP - ordersThisMonth;
+  const warningEl = document.getElementById('orderCapWarning');
+  if (!warningEl) return;
+
+  if (remaining <= 10 && remaining > 0) {
+    warningEl.textContent = `⚠️ You've used ${ordersThisMonth} of your ${FREE_ORDER_CAP} free orders this month — ${remaining} remaining. Upgrade to Pro for unlimited orders.`;
+    warningEl.classList.add('show');
+  } else if (remaining <= 0) {
+    warningEl.textContent = `🚫 You've reached your ${FREE_ORDER_CAP} order limit for this month. Customers can't place new orders until next month or you upgrade to Pro.`;
+    warningEl.classList.add('show');
+  } else {
+    warningEl.classList.remove('show');
+  }
+}
+
+
 function updateStoreUI(profile) {
   const initials = profile.store_name.split(' ').map(w => w[0]).join('').substring(0,2).toUpperCase();
   const firstName = profile.store_name.split(' ')[0];
@@ -1087,6 +1208,9 @@ function updateStats(orders, isEmpty) {
 
   document.getElementById('statAvg').textContent = `R${avgOrder}`;
   document.getElementById('statAvgChange').textContent = 'This month';
+
+  // Check if Free plan user is approaching or at order cap
+  showOrderCapWarning(thisMonth.length);
 }
 
 // ── STATUS DEFINITIONS ──────────────────────────────────────────────
@@ -1326,7 +1450,10 @@ async function addItem() {
   const name  = nameEl.value.trim();
   const price = priceEl.value.trim();
   if (!name || !price) return;
-  if (btn.disabled) return; // guard against double-click while a request is already in flight
+  if (btn.disabled) return;
+
+  // Check Free plan menu item cap
+  if (!checkMenuCap()) return;
 
   btn.disabled = true;
   const originalLabel = btn.textContent;
