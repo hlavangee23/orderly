@@ -580,11 +580,35 @@ body {
 .emoji-pick-btn:hover { border-color: var(--green-400); background: var(--green-50); }
 .emoji-pick-btn.selected { border-color: var(--green-400); background: var(--green-50); box-shadow: 0 0 0 2px rgba(61,139,101,0.15); }
 
+/* GUIDED TOUR */
+.tour-card { background: linear-gradient(135deg, var(--green-900), #1A3D2B); border-radius: var(--radius-lg); padding: 1.5rem 1.75rem; margin-bottom: 1.75rem; position: relative; overflow: hidden; }
+.tour-card::before { content: ''; position: absolute; top: -40px; right: -40px; width: 180px; height: 180px; border-radius: 50%; background: rgba(61,139,101,0.15); pointer-events: none; }
+.tour-card-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1.25rem; }
+.tour-card-title { font-family: 'Instrument Serif', serif; font-size: 1.25rem; color: white; letter-spacing: -0.02em; }
+.tour-card-sub { font-size: 0.78rem; color: rgba(255,255,255,0.55); margin-top: 3px; font-weight: 300; }
+.tour-dismiss { background: none; border: none; color: rgba(255,255,255,0.4); font-size: 1.1rem; cursor: pointer; padding: 2px 6px; line-height: 1; transition: color 0.2s; }
+.tour-dismiss:hover { color: rgba(255,255,255,0.8); }
+.tour-steps { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.tour-step { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius); padding: 0.85rem 1rem; display: flex; align-items: flex-start; gap: 10px; cursor: pointer; transition: all 0.2s; }
+.tour-step:hover { background: rgba(255,255,255,0.12); }
+.tour-step.done { background: rgba(61,139,101,0.2); border-color: rgba(61,139,101,0.35); }
+.tour-step-check { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 0.7rem; color: transparent; transition: all 0.2s; margin-top: 1px; }
+.tour-step.done .tour-step-check { background: var(--green-400); border-color: var(--green-400); color: white; }
+.tour-step-text { flex: 1; }
+.tour-step-title { font-size: 0.82rem; font-weight: 500; color: white; }
+.tour-step.done .tour-step-title { color: rgba(255,255,255,0.6); text-decoration: line-through; }
+.tour-step-desc { font-size: 0.72rem; color: rgba(255,255,255,0.45); margin-top: 2px; font-weight: 300; line-height: 1.4; }
+.tour-progress { margin-top: 1rem; display: flex; align-items: center; gap: 10px; }
+.tour-progress-bar { flex: 1; height: 4px; background: rgba(255,255,255,0.15); border-radius: 2px; overflow: hidden; }
+.tour-progress-fill { height: 100%; background: var(--green-400); border-radius: 2px; transition: width 0.4s ease; }
+.tour-progress-text { font-size: 0.72rem; color: rgba(255,255,255,0.5); white-space: nowrap; }
+
 @media (max-width: 900px) {
   .sidebar { display: none; }
   .main { margin-left: 0; max-width: 100%; padding: 1.25rem; }
   .stats-row { grid-template-columns: repeat(2, 1fr); }
   .grid-2 { grid-template-columns: 1fr; }
+  .tour-steps { grid-template-columns: 1fr; }
 }
 </style>
 </head>
@@ -631,6 +655,51 @@ body {
   <div class="share-banner">
     <div class="share-banner-text">Your order page is <strong>live</strong> — share this link with your customers to start getting orders</div>
     <div class="share-banner-link" id="shareBannerLink" onclick="copyLink()">Loading...</div>
+  </div>
+
+  <!-- GUIDED TOUR — only shown to new users, dismissed via localStorage -->
+  <div class="tour-card" id="tourCard" style="display:none;">
+    <div class="tour-card-header">
+      <div>
+        <div class="tour-card-title">Welcome to Orderly! 👋</div>
+        <div class="tour-card-sub">Complete these steps to get your store ready for customers</div>
+      </div>
+      <button class="tour-dismiss" onclick="dismissTour()" title="Dismiss">✕</button>
+    </div>
+    <div class="tour-steps">
+      <div class="tour-step" id="tourStep1" onclick="tourAction(1)">
+        <div class="tour-step-check" id="tourCheck1">✓</div>
+        <div class="tour-step-text">
+          <div class="tour-step-title">Add your first menu item</div>
+          <div class="tour-step-desc">Add what you sell so customers can browse and order</div>
+        </div>
+      </div>
+      <div class="tour-step" id="tourStep2" onclick="tourAction(2)">
+        <div class="tour-step-check" id="tourCheck2">✓</div>
+        <div class="tour-step-text">
+          <div class="tour-step-title">Set up your store</div>
+          <div class="tour-step-desc">Add your welcome message, delivery fee, and preferences</div>
+        </div>
+      </div>
+      <div class="tour-step" id="tourStep3" onclick="tourAction(3)">
+        <div class="tour-step-check" id="tourCheck3">✓</div>
+        <div class="tour-step-text">
+          <div class="tour-step-title">Share your order link</div>
+          <div class="tour-step-desc">Send your link to customers on WhatsApp or Instagram</div>
+        </div>
+      </div>
+      <div class="tour-step" id="tourStep4" onclick="tourAction(4)">
+        <div class="tour-step-check" id="tourCheck4">✓</div>
+        <div class="tour-step-text">
+          <div class="tour-step-title">Get your first order</div>
+          <div class="tour-step-desc">When a customer orders, this will tick automatically</div>
+        </div>
+      </div>
+    </div>
+    <div class="tour-progress">
+      <div class="tour-progress-bar"><div class="tour-progress-fill" id="tourProgressFill" style="width:0%"></div></div>
+      <div class="tour-progress-text" id="tourProgressText">0 of 4 done</div>
+    </div>
   </div>
 
   <!-- STATS -->
@@ -927,7 +996,12 @@ async function init() {
   updateStoreUI(profile);
 
   // Load real orders and menu
-  await Promise.all([loadOrders(profile.id), loadMenu(profile.id)]);
+  const [ordersResult, menuResult] = await Promise.all([loadOrders(profile.id), loadMenu(profile.id)]);
+
+  // Init guided tour — checks what's already set up
+  const hasMenuItems = document.getElementById('catalogList')?.querySelector('.catalog-item') !== null;
+  const hasOrders = document.getElementById('ordersListContainer')?.querySelector('.order-row') !== null;
+  initTour(profile.id, hasMenuItems, hasOrders);
 }
 
 // ── UPDATE STORE UI ────────────────────────────────────────────────
@@ -1107,6 +1181,7 @@ function renderOrders(orders) {
   });
 
   container.innerHTML = html;
+  if (orders.length > 0) markTourStep(4); // tick "Get your first order" in the tour
 }
 
 // ── BULK SELECT MODE ─────────────────────────────────────────────
@@ -1284,6 +1359,7 @@ async function addItem() {
   nameEl.value = '';
   priceEl.value = '';
   showToast(`"${name}" added to your menu ✓`);
+  markTourStep(1); // tick "Add your first menu item" in the tour
 }
 
 // ── DELETE MENU ITEM ───────────────────────────────────────────────
@@ -1558,6 +1634,88 @@ function closeModal() {
 
 function handleModalClick(e) {
   if (e.target === document.getElementById('invoiceModal')) closeModal();
+}
+
+// ── GUIDED TOUR ────────────────────────────────────────────────────
+const TOUR_KEY = 'orderly_tour_'; // prefix + user id for per-account tracking
+
+function initTour(profileId, hasMenuItems, hasOrders) {
+  const key = TOUR_KEY + profileId;
+  const dismissed = localStorage.getItem(key + '_dismissed');
+  if (dismissed) return; // user already dismissed or completed
+
+  const done = JSON.parse(localStorage.getItem(key + '_done') || '[]');
+
+  // Auto-tick step 1 if they already have menu items
+  if (hasMenuItems && !done.includes(1)) done.push(1);
+  // Auto-tick step 4 if they already have orders
+  if (hasOrders && !done.includes(4)) done.push(4);
+
+  localStorage.setItem(key + '_done', JSON.stringify(done));
+
+  // If all 4 steps done, dismiss automatically
+  if (done.length >= 4) {
+    localStorage.setItem(key + '_dismissed', '1');
+    return;
+  }
+
+  // Show tour
+  updateTourUI(done);
+  document.getElementById('tourCard').style.display = 'block';
+}
+
+function updateTourUI(done) {
+  [1,2,3,4].forEach(i => {
+    const step = document.getElementById('tourStep' + i);
+    if (done.includes(i)) {
+      step.classList.add('done');
+    } else {
+      step.classList.remove('done');
+    }
+  });
+
+  const pct = Math.round((done.length / 4) * 100);
+  document.getElementById('tourProgressFill').style.width = pct + '%';
+  document.getElementById('tourProgressText').textContent = `${done.length} of 4 done`;
+}
+
+function tourAction(step) {
+  // Step actions — navigate or trigger the relevant feature
+  if (step === 1) {
+    scrollToMenu();
+    markTourStep(step);
+  } else if (step === 2) {
+    window.location.href = 'orderly-settings.html';
+  } else if (step === 3) {
+    copyLink();
+    markTourStep(step);
+  } else if (step === 4) {
+    showToast('This will tick automatically when you get your first order!');
+  }
+}
+
+function markTourStep(step) {
+  const key = TOUR_KEY + userProfile?.id;
+  const done = JSON.parse(localStorage.getItem(key + '_done') || '[]');
+  if (!done.includes(step)) {
+    done.push(step);
+    localStorage.setItem(key + '_done', JSON.stringify(done));
+    updateTourUI(done);
+
+    if (done.length >= 4) {
+      setTimeout(() => {
+        document.getElementById('tourCard').style.display = 'none';
+        localStorage.setItem(key + '_dismissed', '1');
+        showToast('Setup complete — your store is ready! 🎉');
+      }, 800);
+    }
+  }
+}
+
+function dismissTour() {
+  const key = TOUR_KEY + userProfile?.id;
+  localStorage.setItem(key + '_dismissed', '1');
+  document.getElementById('tourCard').style.display = 'none';
 }
 
 // ── SCROLL TO MENU ─────────────────────────────────────────────────
