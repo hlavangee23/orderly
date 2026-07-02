@@ -783,15 +783,18 @@ body {
     <p class="modal-sub">Send this to your customer via WhatsApp or download as PDF</p>
     <div class="invoice-preview">
       <div class="invoice-head">
-        <div class="invoice-head-logo">Orderly</div>
-        <div class="invoice-head-num" id="invNum">INV-0024</div>
+        <div>
+          <div class="invoice-head-logo">Orderly</div>
+          <div id="invoicePoweredBy" style="font-size:0.62rem;color:rgba(255,255,255,0.35);margin-top:2px;display:none;">Powered by Orderly</div>
+        </div>
+        <div class="invoice-head-num" id="invNum">INV-0001</div>
       </div>
       <div class="invoice-body">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem;">
           <div>
             <div class="invoice-to">Invoice for</div>
             <div class="invoice-customer" id="invCustomer">—</div>
-            <div style="font-size:0.72rem;color:#7A9A85;margin-top:2px;" id="invPhone">+27 82 111 2222</div>
+            <div style="font-size:0.72rem;color:#7A9A85;margin-top:2px;" id="invPhone"></div>
           </div>
           <div style="text-align:right;">
             <div style="font-size:0.7rem;color:#7A9A85;text-transform:uppercase;letter-spacing:0.06em;">Date</div>
@@ -803,7 +806,7 @@ body {
       </div>
       <div class="invoice-total-row">
         <div class="invoice-total-label">Total due</div>
-        <div class="invoice-total-val" id="invTotal">R280</div>
+        <div class="invoice-total-val" id="invTotal">R0</div>
       </div>
     </div>
     <div class="modal-actions">
@@ -1592,9 +1595,14 @@ function openInvoice(customer, total, itemNames, itemPrices, deliveryType, phone
   badge.style.background = deliveryType === 'delivery' ? '#F0FDF4' : '#E0F2FE';
   badge.style.color = deliveryType === 'delivery' ? '#15803D' : '#0369A1';
 
-  // Use store name from profile
-  const storeName = userProfile?.store_name || localStorage.getItem('orderly_store') || 'Orderly';
-  document.querySelector('.invoice-head-logo').textContent = storeName;
+  // Branding swap — Free plan shows "Orderly", Pro shows their own store name
+  const isPro = userProfile?.plan === 'pro';
+  const brandName = isPro ? (userProfile?.store_name || 'Orderly') : 'Orderly';
+  document.querySelector('.invoice-head-logo').textContent = brandName;
+
+  // Pro users also get a subtle "powered by" note removed, Free users see it
+  const poweredBy = document.getElementById('invoicePoweredBy');
+  if (poweredBy) poweredBy.style.display = isPro ? 'none' : 'block';
 
   document.getElementById('invLines').innerHTML = itemNames.map((name, i) =>
     `<div class="invoice-line"><span>${name}</span><span>R${itemPrices[i]}</span></div>`
@@ -1605,10 +1613,11 @@ function openInvoice(customer, total, itemNames, itemPrices, deliveryType, phone
 
 function sendInvoiceWhatsApp() {
   const d = currentInvoiceData;
-  const storeName = userProfile?.store_name || 'Orderly';
+  const isPro = userProfile?.plan === 'pro';
+  const brandName = isPro ? (userProfile?.store_name || 'Orderly') : 'Orderly';
   const lines = d.itemNames.map((n, i) => `${n} — R${d.itemPrices[i]}`).join('\n');
   const msg = encodeURIComponent(
-    `🧾 *Invoice from ${storeName}*\n` +
+    `🧾 *Invoice from ${brandName}*\n` +
     `INV-${d.invNum} · ${new Date().toLocaleDateString('en-ZA')}\n\n` +
     `*${d.customer}*\n\n` +
     lines + `\n\n` +

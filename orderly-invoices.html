@@ -198,7 +198,10 @@ body { font-family: 'DM Sans', sans-serif; background: var(--off-white); color: 
     <p class="modal-sub">View, send, or download this invoice</p>
     <div class="invoice-preview">
       <div class="invoice-head">
-        <div class="invoice-head-logo" id="invoiceHeadLogo">Orderly</div>
+        <div>
+          <div class="invoice-head-logo" id="invoiceHeadLogo">Orderly</div>
+          <div id="invoicePoweredBy" style="font-size:0.62rem;color:rgba(255,255,255,0.35);margin-top:2px;display:none;">Powered by Orderly</div>
+        </div>
         <div class="invoice-head-num" id="invNum">INV-0001</div>
       </div>
       <div class="invoice-body">
@@ -380,7 +383,12 @@ function openInvoiceFromOrder(orderId) {
   document.getElementById('invTotal').textContent = 'R' + order.total;
   document.getElementById('invNum').textContent = 'INV-' + invNum;
   document.getElementById('invDate').textContent = new Date(order.created_at).toLocaleDateString('en-ZA', { day:'numeric', month:'short', year:'numeric' });
-  document.getElementById('invoiceHeadLogo').textContent = userProfile?.store_name || 'Orderly';
+  // Branding swap — Free shows "Orderly", Pro shows their own store name
+  const isPro = userProfile?.plan === 'pro';
+  const brandName = isPro ? (userProfile?.store_name || 'Orderly') : 'Orderly';
+  document.getElementById('invoiceHeadLogo').textContent = brandName;
+  const poweredBy = document.getElementById('invoicePoweredBy');
+  if (poweredBy) poweredBy.style.display = isPro ? 'none' : 'block';
 
   const badge = document.getElementById('invDeliveryBadge');
   badge.textContent = order.delivery_type === 'delivery' ? '🚗 Delivery' : '🏠 Collection';
@@ -396,10 +404,11 @@ function openInvoiceFromOrder(orderId) {
 
 function sendInvoiceWhatsApp() {
   const d = currentInvoiceData;
-  const storeName = userProfile?.store_name || 'Orderly';
+  const isPro = userProfile?.plan === 'pro';
+  const brandName = isPro ? (userProfile?.store_name || 'Orderly') : 'Orderly';
   const lines = d.itemNames.map((n, i) => `${n} — R${d.itemPrices[i]}`).join('\n');
   const msg = encodeURIComponent(
-    `🧾 *Invoice from ${storeName}*\n` +
+    `🧾 *Invoice from ${brandName}*\n` +
     `INV-${d.invNum} · ${new Date().toLocaleDateString('en-ZA')}\n\n` +
     `*${d.customer}*\n\n` +
     lines + `\n\n` +
