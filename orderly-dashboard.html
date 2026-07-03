@@ -2005,6 +2005,7 @@ const CANNED_TEMPLATES = [
   { id: 'delayed-weather', icon: '🌧️', title: 'Delayed — weather',     text: "Hi {name}, due to the weather today your order from {store} may take a little longer than expected. Thank you so much for understanding — we'll get it to you as soon as possible!" },
   { id: 'delayed-distance',icon: '📍', title: 'Delayed — distance',    text: "Hi {name}, due to the distance for delivery your order from {store} may arrive a little later than planned today. Thank you for your patience!" },
   { id: 'thankyou',        icon: '🙏', title: 'Thank you',             text: "Hi {name}! Thank you so much for ordering from {store} — we hope you loved it as much as we loved making it. See you again soon! 🙏" },
+  { id: 'banking',         icon: '🏦', title: 'Send banking details',   text: '{banking}' },
   { id: 'custom',          icon: '✏️', title: 'Write your own message', text: '' },
 ];
 
@@ -2032,14 +2033,24 @@ function openCannedModal() {
   document.getElementById('bulkModalSub').textContent = `Choose what to send — each customer gets a personalised message.`;
 
   // Templates
-  document.getElementById('templateList').innerHTML = CANNED_TEMPLATES.map(t => `
+  document.getElementById('templateList').innerHTML = CANNED_TEMPLATES.map(t => {
+    let preview = '';
+    if (t.id === 'banking') {
+      preview = userProfile?.bank_name
+        ? `Bank: ${userProfile.bank_name} · Acc: ${userProfile.bank_account_number}`
+        : '⚠️ Add banking details in Settings first';
+    } else if (t.text) {
+      preview = t.text.replace('{name}', firstNameSample).replace('{store}', storeName);
+    }
+    return `
     <button class="template-btn" id="tmpl-${t.id}" onclick="selectTemplate('${t.id}')">
       <span class="template-icon">${t.icon}</span>
       <span class="template-text">
         <span class="template-title">${t.title}</span>
-        ${t.text ? `<span class="template-preview">${t.text.replace('{name}', firstNameSample).replace('{store}', storeName)}</span>` : '<span class="template-preview" style="color:var(--green-400);">Write your own personalised message</span>'}
+        ${preview ? `<span class="template-preview">${preview}</span>` : '<span class="template-preview" style="color:var(--green-400);">Write your own personalised message</span>'}
       </span>
-    </button>`).join('');
+    </button>`;
+  }).join('');
 
   // Reset views
   document.getElementById('bulkViewChoose').style.display = 'block';
@@ -2070,6 +2081,24 @@ function startBulkSend() {
   if (selectedTemplateId === 'custom') {
     messageText = document.getElementById('customMessageText').value.trim();
     if (!messageText) { showToast('Please write your message first'); return; }
+  }
+
+  // Banking details template — build from profile
+  if (selectedTemplateId === 'banking') {
+    const b = userProfile;
+    if (!b?.bank_name || !b?.bank_account_number) {
+      showToast('Please add your banking details in Settings first');
+      closeCannedModal();
+      window.location.href = 'orderly-settings.html';
+      return;
+    }
+    messageText = `Hi {name}! Here are the banking details for your order from {store} 🙏\n\n` +
+      `🏦 Bank: ${b.bank_name}\n` +
+      `👤 Account holder: ${b.bank_account_holder || b.store_name}\n` +
+      `💳 Account number: ${b.bank_account_number}\n` +
+      (b.bank_branch_code ? `🔢 Branch code: ${b.bank_branch_code}\n` : '') +
+      `\nReference: Your name\n\n` +
+      `Please send proof of payment once done and we'll confirm your order! 🎉`;
   }
 
   const storeName = userProfile?.store_name || 'your store';

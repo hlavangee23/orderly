@@ -402,6 +402,37 @@ select.form-input { cursor: pointer; }
     </div>
   </div>
 
+  <!-- BANKING DETAILS FULL WIDTH -->
+  <div class="settings-grid full" style="margin-bottom:1.25rem;">
+    <div class="section-card">
+      <div class="section-header">
+        <div class="section-icon">🏦</div>
+        <div>
+          <div class="section-title">Banking details</div>
+          <div class="section-sub">Shown on invoices and used in your "Send banking details" WhatsApp message</div>
+        </div>
+      </div>
+      <div class="section-body" style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:1rem;">
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Bank name</label>
+          <input class="form-input" type="text" id="bankName" placeholder="e.g. FNB" />
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Account holder</label>
+          <input class="form-input" type="text" id="bankAccountHolder" placeholder="Full name on account" />
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Account number</label>
+          <input class="form-input" type="text" id="bankAccountNumber" placeholder="e.g. 62000000000" />
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Branch code</label>
+          <input class="form-input" type="text" id="bankBranchCode" placeholder="e.g. 250655" />
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- DANGER ZONE -->
   <div class="settings-grid full">
     <div class="section-card danger-section">
@@ -475,6 +506,10 @@ function populateForm(p) {
   setChecked('autoConfirm', !!p.auto_confirm);
   setChecked('showBranding', p.show_branding !== false);
   setChecked('allowNotes', p.allow_notes !== false);
+  setValue('bankName', p.bank_name || '');
+  setValue('bankAccountHolder', p.bank_account_holder || '');
+  setValue('bankAccountNumber', p.bank_account_number || '');
+  setValue('bankBranchCode', p.bank_branch_code || '');
 
   // Order link
   const link = `orderlyapp.co.za/order-page.html?store=${p.store_slug}`;
@@ -517,6 +552,10 @@ async function saveAll() {
     auto_confirm:       getChecked('autoConfirm'),
     show_branding:      getChecked('showBranding'),
     allow_notes:        getChecked('allowNotes'),
+    bank_name:          getValue('bankName'),
+    bank_account_holder: getValue('bankAccountHolder'),
+    bank_account_number: getValue('bankAccountNumber'),
+    bank_branch_code:   getValue('bankBranchCode'),
   };
 
   const { error } = await db.from('profiles')
