@@ -117,14 +117,16 @@ body { font-family: 'DM Sans', sans-serif; background: var(--off-white); color: 
       <div class="contact-card-icon">✉️</div>
       <div class="contact-card-title">Send us an email</div>
       <div class="contact-card-sub">Reach out for support, billing questions, or anything else. We read every email and respond personally — no bots, no templates.</div>
-      <a class="contact-card-btn" href="mailto:hellofromorderly@gmail.com?subject=Orderly%20Support">Email us →</a>
+      <div style="background:var(--off-white);border:1px solid var(--border);border-radius:var(--radius);padding:0.75rem 1rem;font-size:0.88rem;color:var(--text);font-weight:500;margin-bottom:0.75rem;">hellofromorderly@gmail.com</div>
+      <button class="contact-card-btn" onclick="copyEmail('hellofromorderly@gmail.com', this)">Copy email address</button>
     </div>
 
     <div class="contact-card">
       <div class="contact-card-icon">💡</div>
       <div class="contact-card-title">Share a suggestion</div>
       <div class="contact-card-sub">Have an idea for a feature? Something that would make your life easier as a home business owner? We genuinely want to hear it — many of Orderly's features came directly from users like you.</div>
-      <a class="contact-card-btn secondary" href="mailto:hellofromorderly@gmail.com?subject=Orderly%20Suggestion%20-%20">Share your idea →</a>
+      <div style="background:var(--off-white);border:1px solid var(--border);border-radius:var(--radius);padding:0.75rem 1rem;font-size:0.88rem;color:var(--text);font-weight:500;margin-bottom:0.75rem;">hellofromorderly@gmail.com</div>
+      <button class="contact-card-btn secondary" onclick="copyEmail('hellofromorderly@gmail.com', this)">Copy email address</button>
     </div>
 
   </div>
@@ -149,6 +151,24 @@ const SUPABASE_URL = 'https://qhcdlfnsjdspisjkfndq.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoY2RsZm5zamRzcGlzamtmbmRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwNDc3MTAsImV4cCI6MjA5NjYyMzcxMH0.1S4jvY38z-0XI22QwlB0Kkr4ttt-ptvDKRayEbk5Bgo';
 const { createClient } = supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+function copyEmail(email, btn) {
+  navigator.clipboard.writeText(email).then(() => {
+    const original = btn.textContent;
+    btn.textContent = 'Copied! ✓';
+    btn.style.background = 'var(--green-500)';
+    btn.style.color = 'white';
+    btn.style.border = 'none';
+    setTimeout(() => {
+      btn.textContent = original;
+      btn.style.background = '';
+      btn.style.color = '';
+      btn.style.border = '';
+    }, 2000);
+  }).catch(() => {
+    showToast('Email: hellofromorderly@gmail.com');
+  });
+}
 
 async function init() {
   const { data: { session } } = await db.auth.getSession();
