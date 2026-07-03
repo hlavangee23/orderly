@@ -6,7 +6,8 @@
     { "source": "/dashboard", "destination": "/orderly-dashboard.html" },
     { "source": "/settings", "destination": "/orderly-settings.html" },
     { "source": "/invoices", "destination": "/orderly-invoices.html" },
-    { "source": "/support", "destination": "/orderly-support.html" },
+    { "source": "/faq", "destination": "/orderly-faq.html" },
+    { "source": "/contact", "destination": "/orderly-contact.html" },
     { "source": "/order/:slug", "destination": "/order-page.html" }
   ]
 }

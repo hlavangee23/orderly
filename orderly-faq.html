@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Orderly — FAQ</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --white: #FFFFFF; --off-white: #F8FAF7; --green-900: #0F2318; --green-700: #1A3D2B;
+  --green-500: #2D6A4F; --green-400: #3D8B65; --green-100: #E8F4ED; --green-50: #F2FAF5;
+  --text: #0F2318; --text-mid: #3D5A47; --text-muted: #7A9A85; --border: #D6EAD9;
+  --shadow-sm: 0 1px 4px rgba(15,35,24,0.06); --shadow-md: 0 4px 20px rgba(15,35,24,0.08);
+  --radius: 12px; --radius-lg: 16px; --sidebar-w: 220px;
+}
+body { font-family: 'DM Sans', sans-serif; background: var(--off-white); color: var(--text); -webkit-font-smoothing: antialiased; min-height: 100vh; display: flex; }
+.sidebar { width: var(--sidebar-w); background: var(--green-900); height: 100vh; position: fixed; left: 0; top: 0; display: flex; flex-direction: column; padding: 1.5rem 0; z-index: 50; }
+.sidebar-logo { font-family: 'Instrument Serif', serif; font-size: 1.3rem; color: white; padding: 0 1.5rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.08); }
+.sidebar-logo span { color: rgba(255,255,255,0.35); }
+.sidebar-store { padding: 1rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 0.5rem; }
+.sidebar-store-avatar { width: 36px; height: 36px; border-radius: 8px; background: var(--green-500); display: flex; align-items: center; justify-content: center; font-family: 'Instrument Serif', serif; font-size: 14px; color: white; margin-bottom: 0.5rem; }
+.sidebar-store-name { font-size: 0.85rem; font-weight: 500; color: white; }
+.sidebar-store-link { font-size: 0.72rem; color: rgba(255,255,255,0.4); cursor: pointer; transition: color 0.2s; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 0.6rem 1.5rem; font-size: 0.85rem; color: rgba(255,255,255,0.5); cursor: pointer; transition: all 0.15s; text-decoration: none; }
+.nav-item:hover { color: white; background: rgba(255,255,255,0.05); }
+.nav-item.active { color: white; background: rgba(255,255,255,0.1); }
+.nav-item .icon { font-size: 1rem; width: 20px; text-align: center; }
+.nav-section-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.25); padding: 1rem 1.5rem 0.4rem; }
+.sidebar-bottom { margin-top: auto; padding: 1rem 1.5rem; border-top: 1px solid rgba(255,255,255,0.08); }
+.sidebar-bottom-name { font-size: 0.82rem; color: rgba(255,255,255,0.6); }
+.sidebar-bottom-role { font-size: 0.72rem; color: rgba(255,255,255,0.3); }
+.main { margin-left: var(--sidebar-w); flex: 1; padding: 2rem; max-width: calc(100% - var(--sidebar-w)); }
+.topbar { margin-bottom: 2rem; }
+.topbar h1 { font-family: 'Instrument Serif', serif; font-size: 1.6rem; color: var(--green-900); letter-spacing: -0.02em; }
+.topbar p { font-size: 0.82rem; color: var(--text-muted); margin-top: 2px; }
+
+/* CONTACT BANNER */
+.contact-banner { background: var(--green-900); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; margin-bottom: 2rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.contact-banner-text { font-size: 0.85rem; color: rgba(255,255,255,0.7); }
+.contact-banner-text strong { color: white; }
+.contact-banner-btn { background: var(--green-400); color: white; border: none; border-radius: 8px; padding: 0.55rem 1.1rem; font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 500; cursor: pointer; white-space: nowrap; text-decoration: none; transition: background 0.2s; }
+.contact-banner-btn:hover { background: var(--green-500); }
+
+/* FAQ */
+.faq-section { margin-bottom: 1.75rem; }
+.faq-section-title { font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 0.75rem; padding-left: 0.25rem; }
+.faq-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-sm); }
+.faq-item { border-bottom: 1px solid var(--border); }
+.faq-item:last-child { border-bottom: none; }
+.faq-question { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.25rem; cursor: pointer; gap: 1rem; transition: background 0.15s; user-select: none; }
+.faq-question:hover { background: var(--off-white); }
+.faq-question-text { font-size: 0.88rem; font-weight: 500; color: var(--text); }
+.faq-chevron { color: var(--text-muted); font-size: 0.75rem; transition: transform 0.2s; flex-shrink: 0; }
+.faq-item.open .faq-chevron { transform: rotate(180deg); }
+.faq-answer { display: none; padding: 0 1.25rem 1rem; font-size: 0.83rem; color: var(--text-mid); line-height: 1.75; font-weight: 300; }
+.faq-answer a { color: var(--green-400); text-decoration: none; }
+.faq-answer a:hover { text-decoration: underline; }
+.faq-item.open .faq-answer { display: block; }
+
+/* STILL NEED HELP */
+.help-footer { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; text-align: center; margin-top: 1rem; box-shadow: var(--shadow-sm); }
+.help-footer-title { font-family: 'Instrument Serif', serif; font-size: 1.1rem; color: var(--green-900); margin-bottom: 0.4rem; }
+.help-footer-sub { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1rem; font-weight: 300; }
+.help-footer-btn { display: inline-block; background: var(--green-700); color: white; border: none; border-radius: var(--radius); padding: 0.75rem 1.5rem; font-family: 'DM Sans', sans-serif; font-size: 0.88rem; font-weight: 500; cursor: pointer; text-decoration: none; transition: background 0.2s; }
+.help-footer-btn:hover { background: var(--green-900); }
+
+.toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--green-900); color: white; padding: 0.7rem 1.25rem; border-radius: 10px; font-size: 0.85rem; font-weight: 500; z-index: 300; opacity: 0; transition: all 0.3s; white-space: nowrap; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+@media (max-width: 900px) {
+  .sidebar { display: none; }
+  .main { margin-left: 0; max-width: 100%; padding: 1.25rem; }
+}
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-logo">Order<span>ly</span></div>
+  <div class="sidebar-store">
+    <div class="sidebar-store-avatar" id="sidebarAvatar">—</div>
+    <div class="sidebar-store-name" id="sidebarName">Your store</div>
+    <div class="sidebar-store-link">orderlyapp.co.za ↗</div>
+  </div>
+  <div class="nav-section-label">Menu</div>
+  <a class="nav-item" href="orderly-dashboard.html"><span class="icon">📋</span> Orders</a>
+  <a class="nav-item" href="orderly-dashboard.html"><span class="icon">🍽️</span> My Menu</a>
+  <a class="nav-item" href="orderly-invoices.html"><span class="icon">🧾</span> Invoices</a>
+  <div class="nav-section-label">Account</div>
+  <a class="nav-item" href="orderly-settings.html"><span class="icon">⚙️</span> Settings</a>
+  <a class="nav-item active"><span class="icon">💬</span> Support</a>
+  <a class="nav-item" onclick="signOut()" style="cursor:pointer;"><span class="icon">🚪</span> Sign out</a>
+  <div class="sidebar-bottom">
+    <div class="sidebar-bottom-name" id="sidebarBottomName">—</div>
+    <div class="sidebar-bottom-role" id="sidebarBottomRole">Free plan</div>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <h1>Frequently asked questions</h1>
+    <p>Quick answers to the most common questions about Orderly</p>
+  </div>
+
+  <!-- CONTACT BANNER -->
+  <div class="contact-banner">
+    <div class="contact-banner-text"><strong>Can't find your answer?</strong> Send us a message — we typically respond within 24 hours.</div>
+    <a class="contact-banner-btn" href="orderly-contact.html">Contact us →</a>
+  </div>
+
+  <!-- GETTING STARTED -->
+  <div class="faq-section">
+    <div class="faq-section-title">Getting started</div>
+    <div class="faq-card">
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <span class="faq-question-text">How do I share my order page with customers?</span>
+          <span class="faq-chevron">▼</span>
+        </div>
+        <div class="faq-answer">Go to your dashboard and click <strong>"Copy my order link"</strong> at the top. This copies a link you can share anywhere — WhatsApp, Instagram bio, Facebook, or directly to your regulars. When a customer opens it, they see your store and can place an order immediately.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <span class="faq-question-text">How do I add items to my menu?</span>
+          <span class="faq-chevron">▼</span>
+        </div>
+        <div class="faq-answer">From your dashboard, scroll down to the <strong>"My Menu"</strong> section on the right side. Type the item name and price, then click <strong>"+ Add"</strong>. Your menu updates instantly — customers will see new items the next time they open your order page.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <span class="faq-question-text">How do I set up my store details and welcome message?</span>
+          <span class="faq-chevron">▼</span>
+        </div>
+        <div class="faq-answer">Go to <a href="orderly-settings.html">Settings</a> from the left sidebar. There you can update your store name, city, food type, welcome message, order deadline, delivery fee, and more. Everything saves with one click.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ORDERS -->
+  <div class="faq-section">
+    <div class="faq-section-title">Orders</div>
+    <div class="faq-card">
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <span class="faq-question-text">How do I know when I get a new order?</span>
+          <span class="faq-chevron">▼</span>
+        </div>
+        <div class="faq-answer">The moment a customer places an order, Orderly opens a pre-filled WhatsApp message with all their order details — name, items, total, and delivery preference. You just hit send. The order also appears on your dashboard immediately.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <span class="faq-question-text">How do I update a customer on their order status?</span>
+          <span class="faq-chevron">▼</span>
+        </div>
+        <div class="faq-answer">On your dashboard, click <strong>"Update status"</strong> next to any order. You'll see the next steps — Confirmed, Preparing, Packing, Out for delivery, Delivered. Each update opens a personalised WhatsApp message to that customer. You just hit send.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <span class="faq-question-text">Can I cancel an order?</span>
+          <span class="faq-chevron">▼</span>
+        </div>
+        <div class="faq-answer">Yes. Click <strong>"Update status"</strong> on the order, then tap <strong>"Cancel this order instead"</strong> at the bottom. Pick a reason and Orderly sends an automatic WhatsApp apology to the customer with the reason included.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <span class="faq-question-text">How do I message multiple customers at once?</span>
+          <span class="faq-chevron">▼</span>
+        </div>
+        <div class="faq-answer">On your dashboard, click <strong>"Select multiple"</strong> at the top of the orders list. Tap the orders you want to include, then click <strong>"💬 Send message"</strong>. Choose a canned template — like "Your order is ready" or "Small delay" — and Orderly walks you through sending to each customer on WhatsApp one by one.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INVOICES -->
+  <div class="faq-section">
+    <div class="faq-section-title">Invoices</div>
+    <div class="faq-card">
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <span class="faq-question-text">How do I send an invoice to a customer?</span>
+          <span class="faq-chevron">▼</span>
+        </div>
+        <div class="faq-answer">Click the <strong>"🧾 Invoice"</strong> button on any order row. A preview appears — then click <strong>"Send on WhatsApp"</strong> to send it directly to that customer, or <strong>"Download PDF"</strong> to save it.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <span class="faq-question-text">Where can I see all my past invoices?</span>
+          <span class="faq-chevron">▼</span>
+        </div>
+        <div class="faq-answer">Go to <a href="orderly-invoices.html">Invoices</a> from the left sidebar. You'll see every invoice with the customer name, amount, and status. Free plan shows your 3 most recent — upgrade to Pro for full history.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PLAN & BILLING -->
+  <div class="faq-section">
+    <div class="faq-section-title">Plan & billing</div>
+    <div class="faq-card">
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <span class="faq-question-text">What's included in my free trial?</span>
+          <span class="faq-chevron">▼</span>
+        </div>
+        <div class="faq-answer">Your first 30 days give you full Pro access — unlimited orders, unlimited menu items, full invoice history, and your own branding on your order page. No credit card required. After 30 days you can stay on Free or upgrade to Pro.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <span class="faq-question-text">What are the Free plan limits?</span>
+          <span class="faq-chevron">▼</span>
+        </div>
+        <div class="faq-answer">Free includes up to <strong>50 orders per month</strong> and <strong>20 menu items</strong>. Your 3 most recent invoices are visible. Orderly branding appears on your order page and invoices. All core features — order management, WhatsApp notifications, status tracking — remain fully available.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <span class="faq-question-text">What does Pro include?</span>
+          <span class="faq-chevron">▼</span>
+        </div>
+        <div class="faq-answer">Pro is <strong>R199/month</strong> or <strong>R2,000/year</strong> (saves R388). It includes unlimited orders, unlimited menu items, your own branding on the order page and invoices, full invoice history, and manual invoice creation for cash/offline sales. Online payments and full analytics are coming soon.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <span class="faq-question-text">Can I get a refund on a yearly subscription?</span>
+          <span class="faq-chevron">▼</span>
+        </div>
+        <div class="faq-answer">Yearly subscriptions are non-refundable if cancelled before the year expires. You keep full Pro access until your paid year ends. If you have concerns, <a href="orderly-contact.html">contact us</a> — we're always happy to help.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACCOUNT -->
+  <div class="faq-section">
+    <div class="faq-section-title">Account</div>
+    <div class="faq-card">
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <span class="faq-question-text">How do I reset my password?</span>
+          <span class="faq-chevron">▼</span>
+        </div>
+        <div class="faq-answer">Go to the <a href="orderly-signin.html">sign in page</a> and click <strong>"Forgot password?"</strong>. Enter your email and we'll send a reset link. Check your inbox — and your spam folder just in case.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <span class="faq-question-text">How do I delete my store?</span>
+          <span class="faq-chevron">▼</span>
+        </div>
+        <div class="faq-answer">Go to <a href="orderly-settings.html">Settings</a> and scroll to the <strong>Danger Zone</strong> at the bottom. Click <strong>"Delete my store"</strong> and confirm by typing your store name. This permanently deletes all data and cannot be undone.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER CTA -->
+  <div class="help-footer">
+    <div class="help-footer-title">Still have questions?</div>
+    <div class="help-footer-sub">We're here to help — and we'd love to hear your suggestions too.</div>
+    <a class="help-footer-btn" href="orderly-contact.html">Contact us →</a>
+  </div>
+
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://qhcdlfnsjdspisjkfndq.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoY2RsZm5zamRzcGlzamtmbmRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwNDc3MTAsImV4cCI6MjA5NjYyMzcxMH0.1S4jvY38z-0XI22QwlB0Kkr4ttt-ptvDKRayEbk5Bgo';
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+async function init() {
+  const { data: { session } } = await db.auth.getSession();
+  if (!session) { window.location.href = 'orderly-signin.html'; return; }
+  const { data: profile } = await db.from('profiles').select('id, store_name, plan').eq('id', session.user.id).maybeSingle();
+  if (!profile) return;
+  const initials = profile.store_name.split(' ').map(w => w[0]).join('').substring(0,2).toUpperCase();
+  document.getElementById('sidebarAvatar').textContent = initials;
+  document.getElementById('sidebarName').textContent = profile.store_name;
+  document.getElementById('sidebarBottomName').textContent = profile.store_name;
+  document.getElementById('sidebarBottomRole').innerHTML = profile.plan === 'pro' ? 'Pro plan' : 'Free plan · <span style="color:#3D8B65;cursor:pointer">Upgrade to Pro</span>';
+}
+
+function toggleFaq(questionEl) {
+  const item = questionEl.closest('.faq-item');
+  const isOpen = item.classList.contains('open');
+  item.closest('.faq-card').querySelectorAll('.faq-item.open').forEach(el => el.classList.remove('open'));
+  if (!isOpen) item.classList.add('open');
+}
+
+async function signOut() {
+  await db.auth.signOut();
+  localStorage.clear();
+  window.location.href = 'orderly-signin.html';
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+init();
+</script>
+</body>
+</html>
