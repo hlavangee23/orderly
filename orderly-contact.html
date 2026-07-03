@@ -280,6 +280,9 @@ async function submitForm() {
   const email     = document.getElementById('email').value.trim();
   const message   = document.getElementById('message').value.trim();
 
+  // Clear previous errors
+  ['firstName','email','message'].forEach(id => document.getElementById(id).classList.remove('error'));
+
   if (!firstName || !email || !message) {
     if (!firstName) document.getElementById('firstName').classList.add('error');
     if (!email)     document.getElementById('email').classList.add('error');
@@ -293,47 +296,30 @@ async function submitForm() {
   document.getElementById('submitBtnText').style.display = 'none';
   document.getElementById('spinner').style.display = 'block';
 
-  // Send via Resend API
-  const body = [
+  const subject = encodeURIComponent(`Orderly: ${selectedReason || 'Message'} from ${firstName} ${lastName}`);
+  const body = encodeURIComponent([
     `From: ${firstName} ${lastName}`,
     `Store: ${storeName || 'Not specified'}`,
     `Phone: ${phone || 'Not provided'}`,
-    `Email: ${email}`,
+    `Reply to: ${email}`,
     `Reason: ${selectedReason || 'Not selected'}`,
     ``,
     `Message:`,
     message
-  ].join('\n');
+  ].join('\n'));
 
-  try {
-    const res = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': 'Bearer re_d5KC53Dr_N9kQ9akKe5pTUKiedhn11XK6',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        from: 'noreply@orderlyapp.co.za',
-        to: 'hello@orderlyapp.co.za',
-        reply_to: email,
-        subject: `Orderly: ${selectedReason || 'Message'} from ${firstName} ${lastName}`,
-        text: body
-      })
-    });
+  // Open mailto — most reliable cross-origin method
+  window.location.href = `mailto:hello@orderlyapp.co.za?subject=${subject}&body=${body}`;
 
-    if (res.ok) {
-      document.getElementById('formState').style.display = 'none';
-      document.getElementById('successEmail').textContent = email;
-      document.getElementById('successState').classList.add('show');
-    } else {
-      throw new Error('Send failed');
-    }
-  } catch {
+  // Show success state after a short delay
+  setTimeout(() => {
     btn.disabled = false;
     document.getElementById('submitBtnText').style.display = 'inline';
     document.getElementById('spinner').style.display = 'none';
-    showToast('Could not send — please email us directly at hello@orderlyapp.co.za');
-  }
+    document.getElementById('formState').style.display = 'none';
+    document.getElementById('successEmail').textContent = 'hello@orderlyapp.co.za';
+    document.getElementById('successState').classList.add('show');
+  }, 1000);
 }
 
 async function signOut() {

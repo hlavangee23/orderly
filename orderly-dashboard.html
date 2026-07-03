@@ -982,6 +982,50 @@ body {
   </div>
 </div>
 
+<!-- PRO FEATURES MODAL -->
+<div class="modal-overlay" id="proFeaturesModal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal">
+    <div class="modal-title">Free vs Pro</div>
+    <p class="modal-sub">You're currently on your 30-day Pro trial. Here's what you get on each plan.</p>
+    <table style="width:100%;border-collapse:collapse;font-size:0.82rem;margin-bottom:1.25rem;">
+      <thead>
+        <tr>
+          <th style="text-align:left;padding:0.6rem 0.5rem;color:var(--text-muted);font-weight:500;border-bottom:1px solid var(--border);">Feature</th>
+          <th style="text-align:center;padding:0.6rem 0.5rem;color:var(--text-muted);font-weight:500;border-bottom:1px solid var(--border);">Free</th>
+          <th style="text-align:center;padding:0.6rem 0.5rem;color:var(--green-700);font-weight:600;border-bottom:1px solid var(--border);">Pro</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${[
+          ['Orders per month',         '50',    'Unlimited'],
+          ['Menu items',               '20',    'Unlimited'],
+          ['Order status tracking',    '✅',    '✅'],
+          ['WhatsApp notifications',   '✅',    '✅'],
+          ['Bulk WhatsApp messaging',  '✅',    '✅'],
+          ['Invoice generation',       '✅',    '✅'],
+          ['Invoice history',          'Last 3','Full history'],
+          ['Manual invoice creation',  '❌',    '✅'],
+          ['Remove Orderly branding',  '❌',    '✅'],
+          ['Online payments',          'Soon',  'Soon'],
+          ['Full analytics',           'Soon',  'Soon'],
+        ].map(([f,fr,pr]) => `
+          <tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:0.55rem 0.5rem;color:var(--text-mid);">${f}</td>
+            <td style="text-align:center;padding:0.55rem 0.5rem;color:var(--text-muted);">${fr}</td>
+            <td style="text-align:center;padding:0.55rem 0.5rem;color:var(--green-600);font-weight:${pr==='✅'?'400':'500'};">${pr}</td>
+          </tr>`).join('')}
+      </tbody>
+    </table>
+    <div style="background:var(--green-50);border:1px solid var(--green-100);border-radius:var(--radius);padding:0.85rem 1rem;margin-bottom:1.25rem;font-size:0.8rem;color:var(--text-mid);line-height:1.6;">
+      <strong style="color:var(--green-700);">R199/month</strong> or <strong style="color:var(--green-700);">R2,000/year</strong> — save R388 on the yearly plan. No refunds on yearly cancellations before the year expires.
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn" onclick="document.getElementById('proFeaturesModal').classList.remove('open')">Close</button>
+      <button class="modal-btn primary" onclick="showToast('Payments coming soon! 🚀');document.getElementById('proFeaturesModal').classList.remove('open')">Upgrade to Pro →</button>
+    </div>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
@@ -1081,7 +1125,7 @@ function initTrialBanner(profile) {
   banner.className = `trial-banner ${cls}`;
   banner.innerHTML = `
     <div class="trial-banner-text">${text}</div>
-    <button class="trial-banner-btn" onclick="showToast('Payments coming soon! 🚀')">${btnText}</button>
+    <button class="trial-banner-btn" onclick="${state === 'trial_active' ? 'showProFeatures()' : 'showToast(\'Payments coming soon! 🚀\')'}">${btnText}</button>
   `;
   banner.style.display = 'flex';
 }
@@ -1139,7 +1183,19 @@ function updateStoreUI(profile) {
   document.getElementById('sidebarAvatar').textContent = initials;
   document.getElementById('sidebarStoreName').textContent = profile.store_name;
   document.getElementById('sidebarBottomName').textContent = profile.store_name;
-  document.getElementById('sidebarBottomRole').innerHTML = `${profile.plan === 'pro' ? 'Pro plan' : 'Free plan'} · <span style="color:#3D8B65;cursor:pointer" onclick="showToast('Upgrade coming soon! 🚀')">Upgrade to Pro</span>`;
+  // Sidebar bottom role — must reflect trial state, not just raw plan field
+  const { state: trialState, daysLeft } = getTrialState(profile);
+  let roleHTML;
+  if (profile.plan === 'pro') {
+    roleHTML = '⭐ Pro plan';
+  } else if (trialState === 'trial_active') {
+    roleHTML = `🎉 Pro trial · <span style="color:rgba(255,255,255,0.5);font-size:0.7rem;">${daysLeft} days left</span>`;
+  } else if (trialState === 'trial_ending') {
+    roleHTML = `⏰ Trial ending · <span style="color:#FCD34D;cursor:pointer" onclick="showToast('Upgrade coming soon! 🚀')">Upgrade now</span>`;
+  } else {
+    roleHTML = `Free plan · <span style="color:#3D8B65;cursor:pointer" onclick="showToast('Upgrade coming soon! 🚀')">Upgrade to Pro</span>`;
+  }
+  document.getElementById('sidebarBottomRole').innerHTML = roleHTML;
 
   // Topbar
   document.getElementById('topbarGreeting').textContent = `${greeting}, ${firstName} 👋`;
@@ -1852,6 +1908,10 @@ function dismissTour() {
   const key = TOUR_KEY + userProfile?.id;
   localStorage.setItem(key + '_dismissed', '1');
   document.getElementById('tourCard').style.display = 'none';
+}
+
+function showProFeatures() {
+  document.getElementById('proFeaturesModal').classList.add('open');
 }
 
 // ── SCROLL TO MENU ─────────────────────────────────────────────────
