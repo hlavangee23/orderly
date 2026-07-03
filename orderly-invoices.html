@@ -245,6 +245,21 @@ let userProfile = null;
 let allInvoices = [];
 let currentInvoiceData = {};
 const FREE_PLAN_LIMIT = 3;
+const TRIAL_DAYS = 30;
+
+function getTrialState(profile) {
+  if (profile.plan === 'pro') return { state: 'pro' };
+  const trialStart = new Date(profile.trial_start_date || profile.created_at);
+  const daysUsed = Math.floor((Date.now() - trialStart) / (1000 * 60 * 60 * 24));
+  const daysLeft = TRIAL_DAYS - daysUsed;
+  if (daysLeft > 0) return { state: 'trial_active', daysLeft };
+  return { state: 'trial_expired', daysLeft: 0 };
+}
+
+function hasProAccess(profile) {
+  const { state } = getTrialState(profile);
+  return state === 'pro' || state === 'trial_active';
+}
 
 // ── ESCAPE / HELPERS reused from dashboard pattern ──────────────────
 function escJs(str) {
@@ -274,9 +289,12 @@ function updateSidebar(p) {
   document.getElementById('sidebarName').textContent = p.store_name;
   document.getElementById('sidebarLink').textContent = p.store_slug + '.orderly.co.za ↗';
   document.getElementById('sidebarBottomName').textContent = p.store_name;
-  document.getElementById('sidebarBottomRole').innerHTML = p.plan === 'pro'
-    ? 'Pro plan'
-    : 'Free plan · <span style="color:#3D8B65;cursor:pointer" onclick="showToast(\'Upgrade coming soon! 🚀\')">Upgrade to Pro</span>';
+  const { state: trialState, daysLeft } = getTrialState(p);
+  let roleHTML;
+  if (p.plan === 'pro') roleHTML = '⭐ Pro plan';
+  else if (trialState === 'trial_active') roleHTML = `🎉 Pro trial · <span style="color:rgba(255,255,255,0.5);font-size:0.7rem;">${daysLeft} days left</span>`;
+  else roleHTML = `Free plan · <span style="color:#3D8B65;cursor:pointer">Upgrade to Pro</span>`;
+  document.getElementById('sidebarBottomRole').innerHTML = roleHTML;
 }
 
 // ── LOAD INVOICES (= orders, sorted by invoice_number) ──────────────
@@ -300,7 +318,7 @@ async function loadInvoices(profileId) {
 // ── RENDER ─────────────────────────────────────────────────────────
 function renderInvoices(invoices) {
   const card = document.getElementById('invoicesCard');
-  const isPro = userProfile?.plan === 'pro';
+  const isPro = hasProAccess(userProfile);
   const banner = document.getElementById('upgradeBanner');
 
   if (!invoices.length) {
@@ -384,7 +402,7 @@ function openInvoiceFromOrder(orderId) {
   document.getElementById('invNum').textContent = 'INV-' + invNum;
   document.getElementById('invDate').textContent = new Date(order.created_at).toLocaleDateString('en-ZA', { day:'numeric', month:'short', year:'numeric' });
   // Branding swap — Free shows "Orderly", Pro shows their own store name
-  const isPro = userProfile?.plan === 'pro';
+  const isPro = hasProAccess(userProfile);
   const brandName = isPro ? (userProfile?.store_name || 'Orderly') : 'Orderly';
   document.getElementById('invoiceHeadLogo').textContent = brandName;
   const poweredBy = document.getElementById('invoicePoweredBy');
@@ -404,7 +422,7 @@ function openInvoiceFromOrder(orderId) {
 
 function sendInvoiceWhatsApp() {
   const d = currentInvoiceData;
-  const isPro = userProfile?.plan === 'pro';
+  const isPro = hasProAccess(userProfile);
   const brandName = isPro ? (userProfile?.store_name || 'Orderly') : 'Orderly';
   const lines = d.itemNames.map((n, i) => `${n} — R${d.itemPrices[i]}`).join('\n');
   const msg = encodeURIComponent(
