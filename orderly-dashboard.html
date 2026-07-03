@@ -646,7 +646,9 @@ body {
   <a class="nav-item" href="orderly-invoices.html"><span class="icon">🧾</span> Invoices</a>
   <div class="nav-section-label">Account</div>
   <a class="nav-item" href="orderly-settings.html"><span class="icon">⚙️</span> Settings</a>
-  <a class="nav-item" href="orderly-faq.html"><span class="icon">💬</span> Support</a>
+  <div class="nav-section-label">Support</div>
+  <a class="nav-item" href="orderly-faq.html"><span class="icon">❓</span> FAQ</a>
+  <a class="nav-item" href="orderly-contact.html"><span class="icon">💬</span> Contact us</a>
   <a class="nav-item" onclick="signOut()" style="cursor:pointer;"><span class="icon">🚪</span> Sign out</a>
   <div class="sidebar-bottom">
     <div class="sidebar-bottom-name" id="sidebarBottomName">—</div>
@@ -990,30 +992,67 @@ body {
     <table style="width:100%;border-collapse:collapse;font-size:0.82rem;margin-bottom:1.25rem;">
       <thead>
         <tr>
-          <th style="text-align:left;padding:0.6rem 0.5rem;color:var(--text-muted);font-weight:500;border-bottom:1px solid var(--border);">Feature</th>
-          <th style="text-align:center;padding:0.6rem 0.5rem;color:var(--text-muted);font-weight:500;border-bottom:1px solid var(--border);">Free</th>
-          <th style="text-align:center;padding:0.6rem 0.5rem;color:var(--green-700);font-weight:600;border-bottom:1px solid var(--border);">Pro</th>
+          <th style="text-align:left;padding:0.6rem 0.5rem;color:var(--text-muted);font-weight:500;border-bottom:2px solid var(--border);">Feature</th>
+          <th style="text-align:center;padding:0.6rem 0.5rem;color:var(--text-muted);font-weight:500;border-bottom:2px solid var(--border);">Free</th>
+          <th style="text-align:center;padding:0.6rem 0.5rem;color:var(--green-700);font-weight:600;border-bottom:2px solid var(--border);">Pro</th>
         </tr>
       </thead>
       <tbody>
-        ${[
-          ['Orders per month',         '50',    'Unlimited'],
-          ['Menu items',               '20',    'Unlimited'],
-          ['Order status tracking',    '✅',    '✅'],
-          ['WhatsApp notifications',   '✅',    '✅'],
-          ['Bulk WhatsApp messaging',  '✅',    '✅'],
-          ['Invoice generation',       '✅',    '✅'],
-          ['Invoice history',          'Last 3','Full history'],
-          ['Manual invoice creation',  '❌',    '✅'],
-          ['Remove Orderly branding',  '❌',    '✅'],
-          ['Online payments',          'Soon',  'Soon'],
-          ['Full analytics',           'Soon',  'Soon'],
-        ].map(([f,fr,pr]) => `
-          <tr style="border-bottom:1px solid var(--border);">
-            <td style="padding:0.55rem 0.5rem;color:var(--text-mid);">${f}</td>
-            <td style="text-align:center;padding:0.55rem 0.5rem;color:var(--text-muted);">${fr}</td>
-            <td style="text-align:center;padding:0.55rem 0.5rem;color:var(--green-600);font-weight:${pr==='✅'?'400':'500'};">${pr}</td>
-          </tr>`).join('')}
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:0.55rem 0.5rem;color:var(--text-mid);">Orders per month</td>
+          <td style="text-align:center;padding:0.55rem 0.5rem;color:var(--text-muted);">50</td>
+          <td style="text-align:center;padding:0.55rem 0.5rem;color:var(--green-500);font-weight:500;">Unlimited</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:0.55rem 0.5rem;color:var(--text-mid);">Menu items</td>
+          <td style="text-align:center;padding:0.55rem 0.5rem;color:var(--text-muted);">20</td>
+          <td style="text-align:center;padding:0.55rem 0.5rem;color:var(--green-500);font-weight:500;">Unlimited</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:0.55rem 0.5rem;color:var(--text-mid);">Order status tracking</td>
+          <td style="text-align:center;padding:0.55rem 0.5rem;">✅</td>
+          <td style="text-align:center;padding:0.55rem 0.5rem;">✅</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:0.55rem 0.5rem;color:var(--text-mid);">WhatsApp notifications</td>
+          <td style="text-align:center;padding:0.55rem 0.5rem;">✅</td>
+          <td style="text-align:center;padding:0.55rem 0.5rem;">✅</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:0.55rem 0.5rem;color:var(--text-mid);">Bulk WhatsApp messaging</td>
+          <td style="text-align:center;padding:0.55rem 0.5rem;">✅</td>
+          <td style="text-align:center;padding:0.55rem 0.5rem;">✅</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:0.55rem 0.5rem;color:var(--text-mid);">Invoice generation</td>
+          <td style="text-align:center;padding:0.55rem 0.5rem;">✅</td>
+          <td style="text-align:center;padding:0.55rem 0.5rem;">✅</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:0.55rem 0.5rem;color:var(--text-mid);">Invoice history</td>
+          <td style="text-align:center;padding:0.55rem 0.5rem;color:var(--text-muted);">Last 3</td>
+          <td style="text-align:center;padding:0.55rem 0.5rem;color:var(--green-500);font-weight:500;">Full history</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:0.55rem 0.5rem;color:var(--text-mid);">Manual invoice creation</td>
+          <td style="text-align:center;padding:0.55rem 0.5rem;">❌</td>
+          <td style="text-align:center;padding:0.55rem 0.5rem;">✅</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:0.55rem 0.5rem;color:var(--text-mid);">Remove Orderly branding</td>
+          <td style="text-align:center;padding:0.55rem 0.5rem;">❌</td>
+          <td style="text-align:center;padding:0.55rem 0.5rem;">✅</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:0.55rem 0.5rem;color:var(--text-mid);">Online payments</td>
+          <td style="text-align:center;padding:0.55rem 0.5rem;color:var(--text-muted);">Soon</td>
+          <td style="text-align:center;padding:0.55rem 0.5rem;color:var(--text-muted);">Soon</td>
+        </tr>
+        <tr>
+          <td style="padding:0.55rem 0.5rem;color:var(--text-mid);">Full analytics</td>
+          <td style="text-align:center;padding:0.55rem 0.5rem;color:var(--text-muted);">Soon</td>
+          <td style="text-align:center;padding:0.55rem 0.5rem;color:var(--text-muted);">Soon</td>
+        </tr>
       </tbody>
     </table>
     <div style="background:var(--green-50);border:1px solid var(--green-100);border-radius:var(--radius);padding:0.85rem 1rem;margin-bottom:1.25rem;font-size:0.8rem;color:var(--text-mid);line-height:1.6;">

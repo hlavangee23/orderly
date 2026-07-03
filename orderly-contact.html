@@ -12,17 +12,18 @@
   --green-500: #2D6A4F; --green-400: #3D8B65; --green-100: #E8F4ED; --green-50: #F2FAF5;
   --text: #0F2318; --text-mid: #3D5A47; --text-muted: #7A9A85; --border: #D6EAD9;
   --shadow-sm: 0 1px 4px rgba(15,35,24,0.06); --shadow-md: 0 4px 20px rgba(15,35,24,0.08);
-  --shadow-lg: 0 12px 40px rgba(15,35,24,0.12);
   --radius: 12px; --radius-lg: 16px; --sidebar-w: 220px;
 }
 body { font-family: 'DM Sans', sans-serif; background: var(--off-white); color: var(--text); -webkit-font-smoothing: antialiased; min-height: 100vh; display: flex; }
+
+/* SIDEBAR */
 .sidebar { width: var(--sidebar-w); background: var(--green-900); height: 100vh; position: fixed; left: 0; top: 0; display: flex; flex-direction: column; padding: 1.5rem 0; z-index: 50; }
 .sidebar-logo { font-family: 'Instrument Serif', serif; font-size: 1.3rem; color: white; padding: 0 1.5rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.08); }
 .sidebar-logo span { color: rgba(255,255,255,0.35); }
 .sidebar-store { padding: 1rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 0.5rem; }
 .sidebar-store-avatar { width: 36px; height: 36px; border-radius: 8px; background: var(--green-500); display: flex; align-items: center; justify-content: center; font-family: 'Instrument Serif', serif; font-size: 14px; color: white; margin-bottom: 0.5rem; }
 .sidebar-store-name { font-size: 0.85rem; font-weight: 500; color: white; }
-.sidebar-store-link { font-size: 0.72rem; color: rgba(255,255,255,0.4); }
+.sidebar-store-link { font-size: 0.72rem; color: rgba(255,255,255,0.4); cursor: pointer; }
 .nav-item { display: flex; align-items: center; gap: 10px; padding: 0.6rem 1.5rem; font-size: 0.85rem; color: rgba(255,255,255,0.5); cursor: pointer; transition: all 0.15s; text-decoration: none; }
 .nav-item:hover { color: white; background: rgba(255,255,255,0.05); }
 .nav-item.active { color: white; background: rgba(255,255,255,0.1); }
@@ -31,66 +32,41 @@ body { font-family: 'DM Sans', sans-serif; background: var(--off-white); color: 
 .sidebar-bottom { margin-top: auto; padding: 1rem 1.5rem; border-top: 1px solid rgba(255,255,255,0.08); }
 .sidebar-bottom-name { font-size: 0.82rem; color: rgba(255,255,255,0.6); }
 .sidebar-bottom-role { font-size: 0.72rem; color: rgba(255,255,255,0.3); }
+
+/* MAIN */
 .main { margin-left: var(--sidebar-w); flex: 1; padding: 2rem; max-width: calc(100% - var(--sidebar-w)); }
 
-/* LAYOUT */
-.contact-grid { display: grid; grid-template-columns: 1fr 360px; gap: 1.5rem; align-items: start; }
-
 /* HERO */
-.contact-hero { background: var(--green-900); border-radius: var(--radius-lg); padding: 2rem; margin-bottom: 1.5rem; position: relative; overflow: hidden; }
+.contact-hero { background: var(--green-900); border-radius: var(--radius-lg); padding: 2.5rem 2rem; margin-bottom: 1.75rem; position: relative; overflow: hidden; }
 .contact-hero::before { content: ''; position: absolute; top: -60px; right: -60px; width: 240px; height: 240px; border-radius: 50%; background: rgba(61,139,101,0.12); pointer-events: none; }
-.contact-hero-title { font-family: 'Instrument Serif', serif; font-size: 1.8rem; color: white; letter-spacing: -0.02em; margin-bottom: 0.5rem; position: relative; }
+.contact-hero-label { font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--green-400); margin-bottom: 0.75rem; }
+.contact-hero-title { font-family: 'Instrument Serif', serif; font-size: 2rem; color: white; letter-spacing: -0.02em; margin-bottom: 0.75rem; line-height: 1.2; position: relative; }
 .contact-hero-title em { font-style: italic; color: var(--green-400); }
-.contact-hero-sub { font-size: 0.88rem; color: rgba(255,255,255,0.6); line-height: 1.7; max-width: 480px; font-weight: 300; position: relative; }
+.contact-hero-sub { font-size: 0.92rem; color: rgba(255,255,255,0.6); line-height: 1.75; max-width: 520px; font-weight: 300; position: relative; }
 
-/* FORM CARD */
-.form-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.75rem; box-shadow: var(--shadow-sm); }
-.form-card-title { font-family: 'Instrument Serif', serif; font-size: 1.15rem; color: var(--green-900); margin-bottom: 1.25rem; }
-.form-group { margin-bottom: 1rem; }
-.form-group:last-of-type { margin-bottom: 0; }
-.form-label { display: block; font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 5px; }
-.form-input { width: 100%; border: 1.5px solid var(--border); border-radius: var(--radius); padding: 0.75rem 0.9rem; font-family: 'DM Sans', sans-serif; font-size: 0.88rem; color: var(--text); background: var(--white); outline: none; transition: border-color 0.2s, box-shadow 0.2s; -webkit-appearance: none; }
-.form-input:focus { border-color: var(--green-400); box-shadow: 0 0 0 3px rgba(61,139,101,0.1); }
-.form-input::placeholder { color: var(--text-muted); font-weight: 300; }
-.form-input.error { border-color: #DC2626; }
-textarea.form-input { resize: vertical; min-height: 120px; line-height: 1.6; }
-.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+/* CARDS GRID */
+.contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.5rem; }
 
-/* REASON CHIPS */
-.reason-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
-.reason-chip { background: var(--off-white); border: 1.5px solid var(--border); border-radius: 20px; padding: 4px 12px; font-size: 0.75rem; color: var(--text-mid); cursor: pointer; transition: all 0.15s; }
-.reason-chip:hover { border-color: var(--green-400); color: var(--green-700); }
-.reason-chip.selected { background: var(--green-50); border-color: var(--green-400); color: var(--green-700); font-weight: 500; }
+/* CONTACT CARD */
+.contact-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.75rem; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; }
+.contact-card-icon { font-size: 2rem; margin-bottom: 1rem; }
+.contact-card-title { font-family: 'Instrument Serif', serif; font-size: 1.15rem; color: var(--green-900); margin-bottom: 0.5rem; }
+.contact-card-sub { font-size: 0.82rem; color: var(--text-muted); line-height: 1.65; font-weight: 300; flex: 1; margin-bottom: 1.25rem; }
+.contact-card-btn { display: inline-block; background: var(--green-700); color: white; border: none; border-radius: var(--radius); padding: 0.85rem 1.25rem; font-family: 'DM Sans', sans-serif; font-size: 0.88rem; font-weight: 500; cursor: pointer; text-decoration: none; text-align: center; transition: background 0.2s, transform 0.15s; }
+.contact-card-btn:hover { background: var(--green-900); transform: translateY(-1px); }
+.contact-card-btn.secondary { background: transparent; color: var(--green-700); border: 1.5px solid var(--green-400); }
+.contact-card-btn.secondary:hover { background: var(--green-50); transform: translateY(-1px); }
 
-/* SUBMIT */
-.submit-btn { width: 100%; background: var(--green-700); color: white; border: none; border-radius: var(--radius); padding: 0.95rem; font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 500; cursor: pointer; margin-top: 1.25rem; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.2s, transform 0.15s; }
-.submit-btn:hover { background: var(--green-900); transform: translateY(-1px); }
-.submit-btn:disabled { background: var(--border); color: var(--text-muted); cursor: not-allowed; transform: none; }
-.spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; display: none; }
-@keyframes spin { to { transform: rotate(360deg); } }
+/* RESPONSE NOTE */
+.response-note { background: var(--green-50); border: 1px solid var(--green-100); border-radius: var(--radius); padding: 1rem 1.25rem; display: flex; align-items: center; gap: 10px; font-size: 0.82rem; color: var(--text-mid); line-height: 1.5; }
+.response-note-icon { font-size: 1.1rem; flex-shrink: 0; }
 
-/* SUCCESS STATE */
-.success-state { display: none; text-align: center; padding: 2rem 1rem; }
-.success-state.show { display: block; }
-.success-icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
-.success-title { font-family: 'Instrument Serif', serif; font-size: 1.3rem; color: var(--green-900); margin-bottom: 0.5rem; }
-.success-sub { font-size: 0.83rem; color: var(--text-muted); line-height: 1.6; font-weight: 300; }
-
-/* RIGHT COLUMN */
-.info-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.4rem; box-shadow: var(--shadow-sm); margin-bottom: 1rem; }
-.info-card-title { font-size: 0.78rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 1rem; }
-.info-row { display: flex; align-items: flex-start; gap: 10px; padding: 0.6rem 0; border-bottom: 1px solid var(--border); }
-.info-row:last-child { border-bottom: none; padding-bottom: 0; }
-.info-row-icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
-.info-row-text { flex: 1; }
-.info-row-label { font-size: 0.78rem; font-weight: 500; color: var(--text); }
-.info-row-sub { font-size: 0.72rem; color: var(--text-muted); margin-top: 1px; font-weight: 300; }
-.info-row-sub a { color: var(--green-400); text-decoration: none; }
-
-.faq-link-card { background: var(--green-50); border: 1px solid var(--green-100); border-radius: var(--radius-lg); padding: 1.25rem; text-align: center; }
-.faq-link-card p { font-size: 0.82rem; color: var(--text-mid); margin-bottom: 0.85rem; line-height: 1.5; font-weight: 300; }
-.faq-link-btn { display: inline-block; background: var(--green-700); color: white; border-radius: 8px; padding: 0.6rem 1.25rem; font-size: 0.82rem; font-weight: 500; text-decoration: none; transition: background 0.2s; }
-.faq-link-btn:hover { background: var(--green-900); }
+/* FAQ NUDGE */
+.faq-nudge { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 1.25rem; box-shadow: var(--shadow-sm); flex-wrap: wrap; }
+.faq-nudge-text { font-size: 0.85rem; color: var(--text-mid); }
+.faq-nudge-text strong { color: var(--text); }
+.faq-nudge-btn { background: var(--off-white); border: 1.5px solid var(--border); color: var(--text-mid); border-radius: 8px; padding: 0.55rem 1rem; font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 500; cursor: pointer; text-decoration: none; white-space: nowrap; transition: all 0.2s; }
+.faq-nudge-btn:hover { border-color: var(--green-400); color: var(--green-700); background: var(--green-50); }
 
 .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--green-900); color: white; padding: 0.7rem 1.25rem; border-radius: 10px; font-size: 0.85rem; font-weight: 500; z-index: 300; opacity: 0; transition: all 0.3s; white-space: nowrap; }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
@@ -99,7 +75,6 @@ textarea.form-input { resize: vertical; min-height: 120px; line-height: 1.6; }
   .sidebar { display: none; }
   .main { margin-left: 0; max-width: 100%; padding: 1.25rem; }
   .contact-grid { grid-template-columns: 1fr; }
-  .form-row { grid-template-columns: 1fr; }
 }
 </style>
 </head>
@@ -110,7 +85,7 @@ textarea.form-input { resize: vertical; min-height: 120px; line-height: 1.6; }
   <div class="sidebar-store">
     <div class="sidebar-store-avatar" id="sidebarAvatar">—</div>
     <div class="sidebar-store-name" id="sidebarName">Your store</div>
-    <div class="sidebar-store-link">orderlyapp.co.za ↗</div>
+    <div class="sidebar-store-link" onclick="copyLink()">Copy my order link ↗</div>
   </div>
   <div class="nav-section-label">Menu</div>
   <a class="nav-item" href="orderly-dashboard.html"><span class="icon">📋</span> Orders</a>
@@ -118,7 +93,9 @@ textarea.form-input { resize: vertical; min-height: 120px; line-height: 1.6; }
   <a class="nav-item" href="orderly-invoices.html"><span class="icon">🧾</span> Invoices</a>
   <div class="nav-section-label">Account</div>
   <a class="nav-item" href="orderly-settings.html"><span class="icon">⚙️</span> Settings</a>
-  <a class="nav-item active"><span class="icon">💬</span> Support</a>
+  <div class="nav-section-label">Support</div>
+  <a class="nav-item" href="orderly-faq.html"><span class="icon">❓</span> FAQ</a>
+  <a class="nav-item active"><span class="icon">💬</span> Contact us</a>
   <a class="nav-item" onclick="signOut()" style="cursor:pointer;"><span class="icon">🚪</span> Sign out</a>
   <div class="sidebar-bottom">
     <div class="sidebar-bottom-name" id="sidebarBottomName">—</div>
@@ -128,112 +105,40 @@ textarea.form-input { resize: vertical; min-height: 120px; line-height: 1.6; }
 
 <main class="main">
 
-  <!-- HERO -->
   <div class="contact-hero">
+    <div class="contact-hero-label">Get in touch</div>
     <div class="contact-hero-title">We'd love to<br><em>hear from you.</em></div>
-    <div class="contact-hero-sub">Need help with something? Have a suggestion? We built Orderly for home business owners like you — your feedback shapes everything we build next.</div>
+    <div class="contact-hero-sub">Need help with something? Have a suggestion on how to make Orderly better? We built Orderly for home business owners like you — your feedback directly shapes what we build next.</div>
   </div>
 
   <div class="contact-grid">
 
-    <!-- FORM -->
-    <div>
-      <div class="form-card">
-        <div class="form-card-title">Send us a message</div>
-
-        <!-- FORM STATE -->
-        <div id="formState">
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">First name</label>
-              <input class="form-input" id="firstName" type="text" placeholder="Aisha" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">Last name</label>
-              <input class="form-input" id="lastName" type="text" placeholder="Davids" />
-            </div>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Store name</label>
-            <input class="form-input" id="storeName" type="text" placeholder="Fatima's Kitchen" />
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">WhatsApp number</label>
-              <input class="form-input" id="phone" type="tel" placeholder="082 000 0000" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">Email address</label>
-              <input class="form-input" id="email" type="email" placeholder="you@example.com" />
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">What's this about?</label>
-            <div class="reason-chips">
-              <div class="reason-chip" onclick="selectReason(this, 'Support — I need help with something')">🆘 I need help</div>
-              <div class="reason-chip" onclick="selectReason(this, 'Suggestion — I have an idea for Orderly')">💡 I have a suggestion</div>
-              <div class="reason-chip" onclick="selectReason(this, 'Bug report — Something isn\'t working')">🐛 Something\'s broken</div>
-              <div class="reason-chip" onclick="selectReason(this, 'Billing — Question about my plan or payment')">💳 Billing question</div>
-              <div class="reason-chip" onclick="selectReason(this, 'Other')">✉️ Other</div>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">Your message</label>
-            <textarea class="form-input" id="message" placeholder="Tell us what's on your mind — the more detail the better. If you have a suggestion, we genuinely want to hear it. After all, we built Orderly for you."></textarea>
-          </div>
-
-          <button class="submit-btn" id="submitBtn" onclick="submitForm()">
-            <span id="submitBtnText">Send message</span>
-            <div class="spinner" id="spinner"></div>
-          </button>
-        </div>
-
-        <!-- SUCCESS STATE -->
-        <div class="success-state" id="successState">
-          <div class="success-icon">🙏</div>
-          <div class="success-title">Message received!</div>
-          <div class="success-sub">Thank you for reaching out. We'll get back to you at <strong id="successEmail"></strong> within 24 hours.<br><br>We read every message — especially the suggestions. You help make Orderly better for every home business owner using it.</div>
-        </div>
-
-      </div>
+    <div class="contact-card">
+      <div class="contact-card-icon">✉️</div>
+      <div class="contact-card-title">Send us an email</div>
+      <div class="contact-card-sub">Reach out for support, billing questions, or anything else. We read every email and respond personally — no bots, no templates.</div>
+      <a class="contact-card-btn" href="mailto:hellofromorderly@gmail.com?subject=Orderly%20Support">Email us →</a>
     </div>
 
-    <!-- RIGHT COLUMN -->
-    <div>
-      <div class="info-card">
-        <div class="info-card-title">Other ways to reach us</div>
-        <div class="info-row">
-          <span class="info-row-icon">✉️</span>
-          <div class="info-row-text">
-            <div class="info-row-label">Email us directly</div>
-            <div class="info-row-sub"><a href="mailto:hello@orderlyapp.co.za">hello@orderlyapp.co.za</a></div>
-          </div>
-        </div>
-        <div class="info-row">
-          <span class="info-row-icon">⏱️</span>
-          <div class="info-row-text">
-            <div class="info-row-label">Response time</div>
-            <div class="info-row-sub">We typically respond within 24 hours, Monday to Friday</div>
-          </div>
-        </div>
-        <div class="info-row">
-          <span class="info-row-icon">💬</span>
-          <div class="info-row-text">
-            <div class="info-row-label">Your feedback matters</div>
-            <div class="info-row-sub">Every suggestion is read by the team. Many of Orderly's features came directly from users like you</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="faq-link-card">
-        <p>Before reaching out, check if your question is already answered in our FAQ — you might get an instant answer.</p>
-        <a class="faq-link-btn" href="orderly-faq.html">Browse the FAQ →</a>
-      </div>
+    <div class="contact-card">
+      <div class="contact-card-icon">💡</div>
+      <div class="contact-card-title">Share a suggestion</div>
+      <div class="contact-card-sub">Have an idea for a feature? Something that would make your life easier as a home business owner? We genuinely want to hear it — many of Orderly's features came directly from users like you.</div>
+      <a class="contact-card-btn secondary" href="mailto:hellofromorderly@gmail.com?subject=Orderly%20Suggestion%20-%20">Share your idea →</a>
     </div>
 
   </div>
+
+  <div class="response-note">
+    <span class="response-note-icon">⏱️</span>
+    <span>We typically respond within <strong>24 hours</strong>, Monday to Friday. For urgent issues, mention it in your subject line and we'll prioritise it.</span>
+  </div>
+
+  <div class="faq-nudge">
+    <div class="faq-nudge-text"><strong>Quick question?</strong> Check the FAQ first — you might get an instant answer without waiting for a reply.</div>
+    <a class="faq-nudge-btn" href="orderly-faq.html">Browse the FAQ →</a>
+  </div>
+
 </main>
 
 <div class="toast" id="toast"></div>
@@ -245,81 +150,29 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const { createClient } = supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-let selectedReason = '';
-let userProfile = null;
-
 async function init() {
   const { data: { session } } = await db.auth.getSession();
   if (!session) { window.location.href = 'orderly-signin.html'; return; }
-  const { data: profile } = await db.from('profiles').select('id, store_name, plan, whatsapp').eq('id', session.user.id).maybeSingle();
+  const { data: profile } = await db.from('profiles').select('id, store_name, store_slug, plan, trial_start_date, created_at').eq('id', session.user.id).maybeSingle();
   if (!profile) return;
-  userProfile = profile;
   const initials = profile.store_name.split(' ').map(w => w[0]).join('').substring(0,2).toUpperCase();
   document.getElementById('sidebarAvatar').textContent = initials;
   document.getElementById('sidebarName').textContent = profile.store_name;
   document.getElementById('sidebarBottomName').textContent = profile.store_name;
-  document.getElementById('sidebarBottomRole').innerHTML = profile.plan === 'pro' ? 'Pro plan' : 'Free plan · <span style="color:#3D8B65;cursor:pointer">Upgrade to Pro</span>';
 
-  // Pre-fill store name if known
-  document.getElementById('storeName').value = profile.store_name || '';
-  if (profile.whatsapp) document.getElementById('phone').value = profile.whatsapp;
-  if (session.user.email) document.getElementById('email').value = session.user.email;
+  const TRIAL_DAYS = 30;
+  const trialStart = new Date(profile.trial_start_date || profile.created_at);
+  const daysLeft = TRIAL_DAYS - Math.floor((Date.now() - trialStart) / (1000*60*60*24));
+  let roleHTML;
+  if (profile.plan === 'pro') roleHTML = '⭐ Pro plan';
+  else if (daysLeft > 0) roleHTML = `🎉 Pro trial · <span style="color:rgba(255,255,255,0.5);font-size:0.7rem;">${daysLeft} days left</span>`;
+  else roleHTML = `Free plan · <span style="color:#3D8B65;cursor:pointer">Upgrade to Pro</span>`;
+  document.getElementById('sidebarBottomRole').innerHTML = roleHTML;
 }
 
-function selectReason(el, reason) {
-  selectedReason = reason;
-  document.querySelectorAll('.reason-chip').forEach(c => c.classList.remove('selected'));
-  el.classList.add('selected');
-}
-
-async function submitForm() {
-  const firstName = document.getElementById('firstName').value.trim();
-  const lastName  = document.getElementById('lastName').value.trim();
-  const storeName = document.getElementById('storeName').value.trim();
-  const phone     = document.getElementById('phone').value.trim();
-  const email     = document.getElementById('email').value.trim();
-  const message   = document.getElementById('message').value.trim();
-
-  // Clear previous errors
-  ['firstName','email','message'].forEach(id => document.getElementById(id).classList.remove('error'));
-
-  if (!firstName || !email || !message) {
-    if (!firstName) document.getElementById('firstName').classList.add('error');
-    if (!email)     document.getElementById('email').classList.add('error');
-    if (!message)   document.getElementById('message').classList.add('error');
-    showToast('Please fill in your name, email, and message');
-    return;
-  }
-
-  const btn = document.getElementById('submitBtn');
-  btn.disabled = true;
-  document.getElementById('submitBtnText').style.display = 'none';
-  document.getElementById('spinner').style.display = 'block';
-
-  const subject = encodeURIComponent(`Orderly: ${selectedReason || 'Message'} from ${firstName} ${lastName}`);
-  const body = encodeURIComponent([
-    `From: ${firstName} ${lastName}`,
-    `Store: ${storeName || 'Not specified'}`,
-    `Phone: ${phone || 'Not provided'}`,
-    `Reply to: ${email}`,
-    `Reason: ${selectedReason || 'Not selected'}`,
-    ``,
-    `Message:`,
-    message
-  ].join('\n'));
-
-  // Open mailto — most reliable cross-origin method
-  window.location.href = `mailto:hello@orderlyapp.co.za?subject=${subject}&body=${body}`;
-
-  // Show success state after a short delay
-  setTimeout(() => {
-    btn.disabled = false;
-    document.getElementById('submitBtnText').style.display = 'inline';
-    document.getElementById('spinner').style.display = 'none';
-    document.getElementById('formState').style.display = 'none';
-    document.getElementById('successEmail').textContent = 'hello@orderlyapp.co.za';
-    document.getElementById('successState').classList.add('show');
-  }, 1000);
+function copyLink() {
+  const slug = document.getElementById('sidebarName').textContent;
+  showToast('Copy your link from the dashboard 🔗');
 }
 
 async function signOut() {
@@ -331,7 +184,7 @@ async function signOut() {
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 3500);
+  setTimeout(() => t.classList.remove('show'), 3000);
 }
 
 init();
