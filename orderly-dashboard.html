@@ -574,7 +574,15 @@ body {
 .send-progress-bar-bg { background: var(--border); height: 6px; border-radius: 3px; overflow: hidden; }
 .send-progress-bar-fill { background: var(--green-400); height: 100%; transition: width 0.3s; width: 0%; }
 
-/* EDIT ITEM MODAL */
+/* ORDER SUMMARY MODAL */
+.order-summary-section { margin-bottom: 1.1rem; }
+.order-summary-label { font-size: 0.68rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); margin-bottom: 0.5rem; }
+.order-summary-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.83rem; color: var(--text-mid); padding: 4px 0; border-bottom: 1px solid var(--border); }
+.order-summary-row:last-child { border-bottom: none; }
+.order-summary-row .val { font-weight: 500; color: var(--text); text-align: right; max-width: 60%; }
+.order-summary-total { display: flex; justify-content: space-between; background: var(--green-50); border: 1px solid var(--green-100); border-radius: var(--radius); padding: 0.75rem 1rem; margin-top: 0.75rem; }
+.order-summary-total .label { font-size: 0.85rem; font-weight: 600; color: var(--text); }
+.order-summary-total .amount { font-family: 'Instrument Serif', serif; font-size: 1.2rem; color: var(--green-700); }
 .emoji-picker-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
 .emoji-pick-btn { width: 38px; height: 38px; border-radius: 8px; border: 1.5px solid var(--border); background: var(--white); font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
 .emoji-pick-btn:hover { border-color: var(--green-400); background: var(--green-50); }
@@ -801,6 +809,44 @@ body {
     </div>
   </div>
 </main>
+
+<!-- ORDER SUMMARY MODAL -->
+<div class="modal-overlay" id="orderSummaryModal" onclick="if(event.target===this)closeOrderSummary()">
+  <div class="modal">
+    <div class="modal-title" id="osSummaryTitle">Order details</div>
+    <p class="modal-sub" id="osSummaryDate"></p>
+
+    <!-- CUSTOMER -->
+    <div class="order-summary-section">
+      <div class="order-summary-label">Customer</div>
+      <div class="order-summary-row"><span>Name</span><span class="val" id="osName">—</span></div>
+      <div class="order-summary-row"><span>WhatsApp</span><span class="val" id="osPhone">—</span></div>
+    </div>
+
+    <!-- ORDER -->
+    <div class="order-summary-section">
+      <div class="order-summary-label">Order</div>
+      <div id="osItems"></div>
+      <div class="order-summary-total">
+        <span class="label">Total</span>
+        <span class="amount" id="osTotal">R0</span>
+      </div>
+    </div>
+
+    <!-- DELIVERY & NOTES -->
+    <div class="order-summary-section">
+      <div class="order-summary-label">Details</div>
+      <div class="order-summary-row"><span>Type</span><span class="val" id="osDelivery">—</span></div>
+      <div class="order-summary-row" id="osStatusRow"><span>Status</span><span class="val" id="osStatus">—</span></div>
+      <div class="order-summary-row" id="osNotesRow" style="display:none;"><span>Notes</span><span class="val" id="osNotes">—</span></div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="modal-btn" onclick="closeOrderSummary()">Close</button>
+      <button class="modal-btn primary" id="osInvoiceBtn" onclick="closeOrderSummary(); setTimeout(() => openInvoiceFromSummary(), 100)">🧾 View invoice</button>
+    </div>
+  </div>
+</div>
 
 <!-- INVOICE MODAL -->
 <div class="modal-overlay" id="invoiceModal" onclick="handleModalClick(event)">
@@ -1440,12 +1486,63 @@ function exitSelectMode() {
   updateBulkBar();
 }
 
+let currentSummaryInvoiceArgs = null;
+
 function handleOrderRowClick(e, idx, ...invoiceArgs) {
   if (selectMode) {
     toggleOrderSelect(idx);
     return;
   }
-  openInvoice(...invoiceArgs);
+  // Open order summary instead of jumping straight to invoice
+  openOrderSummary(idx, invoiceArgs);
+}
+
+function openOrderSummary(idx, invoiceArgs) {
+  const order = allOrdersData[idx];
+  if (!order) return;
+
+  currentSummaryInvoiceArgs = invoiceArgs;
+
+  // Header
+  const date = new Date(order.created_at).toLocaleDateString('en-ZA', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+  document.getElementById('osSummaryTitle').textContent = `Order from ${order.customer_name.split(' ')[0]}`;
+  document.getElementById('osSummaryDate').textContent = date;
+
+  // Customer
+  document.getElementById('osName').textContent = order.customer_name;
+  document.getElementById('osPhone').textContent = order.customer_phone || '—';
+
+  // Items
+  const items = Array.isArray(order.items) ? order.items : [];
+  document.getElementById('osItems').innerHTML = items.map(i =>
+    `<div class="order-summary-row"><span>${i.qty}× ${i.name}</span><span class="val">R${i.price * i.qty}</span></div>`
+  ).join('') || '<div class="order-summary-row"><span>No items</span></div>';
+  document.getElementById('osTotal').textContent = 'R' + order.total;
+
+  // Delivery & status
+  document.getElementById('osDelivery').textContent = order.delivery_type === 'delivery' ? '🚗 Delivery' : '🏠 Collection';
+  const statusInfo = STATUS_INFO[order.status] || STATUS_INFO.new;
+  document.getElementById('osStatus').innerHTML = `<span class="order-badge ${statusInfo.badge}">${statusInfo.label}</span>`;
+
+  // Notes
+  if (order.notes) {
+    document.getElementById('osNotes').textContent = order.notes;
+    document.getElementById('osNotesRow').style.display = 'flex';
+  } else {
+    document.getElementById('osNotesRow').style.display = 'none';
+  }
+
+  document.getElementById('orderSummaryModal').classList.add('open');
+}
+
+function openInvoiceFromSummary() {
+  if (currentSummaryInvoiceArgs) {
+    openInvoice(...currentSummaryInvoiceArgs);
+  }
+}
+
+function closeOrderSummary() {
+  document.getElementById('orderSummaryModal').classList.remove('open');
 }
 
 function toggleOrderSelect(idx) {
