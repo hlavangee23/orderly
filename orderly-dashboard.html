@@ -834,6 +834,11 @@ body {
         <div class="invoice-total-label">Total due</div>
         <div class="invoice-total-val" id="invTotal">R0</div>
       </div>
+      <!-- BANKING DETAILS — shown if owner has them set up -->
+      <div id="invBankingSection" style="display:none;padding:0.85rem 1.25rem;border-top:1px solid var(--border);background:var(--off-white);">
+        <div style="font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:0.5rem;">Payment details (EFT)</div>
+        <div id="invBankingDetails" style="font-size:0.78rem;color:var(--text-mid);line-height:1.8;"></div>
+      </div>
     </div>
     <div class="modal-actions">
       <button class="modal-btn" onclick="closeModal()">Close</button>
@@ -857,6 +862,9 @@ body {
     <!-- Status options view -->
     <div id="statusOptionsView">
       <div class="status-option-list" id="statusOptionsList"></div>
+      <div id="statusBankingBtn" style="text-align:center;margin-top:0.5rem;display:none;">
+        <button onclick="sendBankingDetailsFromStatus()" style="background:none;border:1px solid var(--border);border-radius:8px;padding:0.5rem 1rem;font-family:'DM Sans',sans-serif;font-size:0.78rem;color:var(--text-mid);cursor:pointer;width:100%;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--green-400)'" onmouseout="this.style.borderColor='var(--border)'">🏦 Send banking details to customer</button>
+      </div>
       <div class="cancel-link" onclick="showCancelReasons()">❌ Cancel this order instead</div>
       <div class="modal-actions" style="margin-top:1rem;">
         <button class="modal-btn" onclick="closeStatusModal()">Close</button>
@@ -1710,6 +1718,13 @@ function openStatusModal(orderId, deliveryType, currentStatus, customerName, cus
   document.getElementById('statusOptionsList').innerHTML = optionsHtml;
   document.getElementById('statusOptionsView').style.display = 'block';
   document.getElementById('cancelReasonView').style.display = 'none';
+
+  // Show banking details button only if owner has banking set up
+  const bankingBtn = document.getElementById('statusBankingBtn');
+  if (bankingBtn) {
+    bankingBtn.style.display = (userProfile?.bank_name && userProfile?.bank_account_number) ? 'block' : 'none';
+  }
+
   document.getElementById('statusModal').classList.add('open');
 }
 
@@ -1737,6 +1752,36 @@ async function selectStatus(newStatus) {
     showToast('Status saved locally but database update failed — try refreshing');
   }
   await loadOrders(userProfile.id);
+}
+
+function sendBankingDetailsFromStatus() {
+  const order = currentStatusOrder;
+  if (!order) return;
+
+  const b = userProfile;
+  if (!b?.bank_name || !b?.bank_account_number) {
+    showToast('Add your banking details in Settings first');
+    return;
+  }
+
+  const firstName = order.customerName.split(' ')[0];
+  const storeName = b.store_name || 'Orderly';
+
+  const message =
+    `Hi ${firstName}! Here are the banking details for your order from ${storeName} 🙏\n\n` +
+    `🏦 Bank: ${b.bank_name}\n` +
+    `👤 Account holder: ${b.bank_account_holder || storeName}\n` +
+    `💳 Account number: ${b.bank_account_number}\n` +
+    (b.bank_branch_code ? `🔢 Branch code: ${b.bank_branch_code}\n` : '') +
+    `\nReference: Your name\n\n` +
+    `Please send proof of payment once done and we'll confirm your order! 🎉`;
+
+  const phone = order.customerPhone?.replace(/\D/g, '') || '';
+  const formatted = phone.startsWith('0') ? '27' + phone.slice(1) : phone;
+
+  if (formatted) window.open(`https://wa.me/${formatted}?text=${encodeURIComponent(message)}`, '_blank');
+  closeStatusModal();
+  showToast('Banking details sent on WhatsApp ✓');
 }
 
 // ── CANCEL FLOW ────────────────────────────────────────────────────
@@ -1821,14 +1866,28 @@ function openInvoice(customer, total, itemNames, itemPrices, deliveryType, phone
   const isPro = userProfile?.plan === 'pro';
   const brandName = isPro ? (userProfile?.store_name || 'Orderly') : 'Orderly';
   document.querySelector('.invoice-head-logo').textContent = brandName;
-
-  // Pro users also get a subtle "powered by" note removed, Free users see it
   const poweredBy = document.getElementById('invoicePoweredBy');
   if (poweredBy) poweredBy.style.display = isPro ? 'none' : 'block';
 
   document.getElementById('invLines').innerHTML = itemNames.map((name, i) =>
     `<div class="invoice-line"><span>${name}</span><span>R${itemPrices[i]}</span></div>`
   ).join('');
+
+  // Banking details — show if owner has them set up
+  const b = userProfile;
+  const bankingSection = document.getElementById('invBankingSection');
+  const bankingDetails = document.getElementById('invBankingDetails');
+  if (b?.bank_name && b?.bank_account_number) {
+    bankingDetails.innerHTML =
+      `<div>🏦 <strong>Bank:</strong> ${b.bank_name}</div>` +
+      `<div>👤 <strong>Account holder:</strong> ${b.bank_account_holder || b.store_name}</div>` +
+      `<div>💳 <strong>Account number:</strong> ${b.bank_account_number}</div>` +
+      (b.bank_branch_code ? `<div>🔢 <strong>Branch code:</strong> ${b.bank_branch_code}</div>` : '') +
+      `<div style="margin-top:4px;font-size:0.72rem;color:var(--text-muted);">Reference: Customer name</div>`;
+    bankingSection.style.display = 'block';
+  } else {
+    bankingSection.style.display = 'none';
+  }
 
   document.getElementById('invoiceModal').classList.add('open');
 }
@@ -1838,14 +1897,28 @@ function sendInvoiceWhatsApp() {
   const isPro = userProfile?.plan === 'pro';
   const brandName = isPro ? (userProfile?.store_name || 'Orderly') : 'Orderly';
   const lines = d.itemNames.map((n, i) => `${n} — R${d.itemPrices[i]}`).join('\n');
+
+  // Build banking details section for WhatsApp if available
+  const b = userProfile;
+  let bankingLine = '';
+  if (b?.bank_name && b?.bank_account_number) {
+    bankingLine = `\n\n💳 *Payment details (EFT)*\n` +
+      `🏦 Bank: ${b.bank_name}\n` +
+      `👤 Account holder: ${b.bank_account_holder || b.store_name}\n` +
+      `💳 Account number: ${b.bank_account_number}\n` +
+      (b.bank_branch_code ? `🔢 Branch code: ${b.bank_branch_code}\n` : '') +
+      `Reference: Your name`;
+  }
+
   const msg = encodeURIComponent(
     `🧾 *Invoice from ${brandName}*\n` +
     `INV-${d.invNum} · ${new Date().toLocaleDateString('en-ZA')}\n\n` +
     `*${d.customer}*\n\n` +
     lines + `\n\n` +
     `${d.deliveryType === 'delivery' ? '🚗 Delivery' : '🏠 Collection'}\n` +
-    `*Total: R${d.total}*\n\n` +
-    `Thank you for your order! 🙏`
+    `*Total: R${d.total}*` +
+    bankingLine +
+    `\n\nThank you for your order! 🙏`
   );
   const phone = d.phone?.replace(/\D/g,'') || '';
   const formatted = phone.startsWith('0') ? '27' + phone.slice(1) : phone;
