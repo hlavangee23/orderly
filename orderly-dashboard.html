@@ -583,6 +583,14 @@ body {
 .order-summary-total { display: flex; justify-content: space-between; background: var(--green-50); border: 1px solid var(--green-100); border-radius: var(--radius); padding: 0.75rem 1rem; margin-top: 0.75rem; }
 .order-summary-total .label { font-size: 0.85rem; font-weight: 600; color: var(--text); }
 .order-summary-total .amount { font-family: 'Instrument Serif', serif; font-size: 1.2rem; color: var(--green-700); }
+/* PRODUCT IMAGE */
+.catalog-item-img { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; border: 1px solid var(--border); flex-shrink: 0; }
+.catalog-item-img-placeholder { width: 44px; height: 44px; border-radius: 8px; background: var(--green-50); border: 1.5px dashed var(--border); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden; }
+.catalog-item-img-placeholder:hover { border-color: var(--green-400); background: var(--green-100); }
+.catalog-item-img-placeholder input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+.pro-lock-img { width: 44px; height: 44px; border-radius: 8px; background: var(--off-white); border: 1.5px dashed var(--border); display: flex; align-items: center; justify-content: center; font-size: 0.65rem; color: var(--text-muted); flex-shrink: 0; cursor: pointer; text-align: center; line-height: 1.3; font-weight: 500; padding: 2px; }
+
+/* EMOJI PICKER */
 .emoji-picker-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
 .emoji-pick-btn { width: 38px; height: 38px; border-radius: 8px; border: 1.5px solid var(--border); background: var(--white); font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
 .emoji-pick-btn:hover { border-color: var(--green-400); background: var(--green-50); }
@@ -1189,6 +1197,12 @@ function getTrialState(profile) {
   return { state: 'trial_expired', daysLeft: 0 };
 }
 
+function hasProAccess(profile) {
+  if (!profile) return false;
+  const { state } = getTrialState(profile);
+  return state === 'pro' || state === 'trial_active' || state === 'trial_ending';
+}
+
 function initTrialBanner(profile) {
   const { state, daysLeft } = getTrialState(profile);
   const banner = document.getElementById('trialBanner');
@@ -1603,15 +1617,36 @@ async function loadMenu(profileId) {
     return;
   }
 
-  list.innerHTML = items.map(item => `
-    <div class="catalog-item">
-      <div class="catalog-emoji">${item.emoji || '🍱'}</div>
+  const isPro = hasProAccess(userProfile);
+
+  list.innerHTML = items.map(item => {
+    // Image column — Pro gets upload, Free gets locked nudge
+    let imgCol;
+    if (isPro) {
+      if (item.image_url) {
+        imgCol = `<div class="catalog-item-img-placeholder" onclick="triggerImageUpload('${item.id}')">
+          <img class="catalog-item-img" src="${item.image_url}" alt="${escJs(item.name)}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;" />
+          <input type="file" accept="image/jpeg,image/png,image/webp" onchange="uploadItemImage(event, '${item.id}')" style="position:absolute;inset:0;opacity:0;cursor:pointer;" />
+        </div>`;
+      } else {
+        imgCol = `<div class="catalog-item-img-placeholder" title="Add photo">
+          📸
+          <input type="file" accept="image/jpeg,image/png,image/webp" onchange="uploadItemImage(event, '${item.id}')" style="position:absolute;inset:0;opacity:0;cursor:pointer;" />
+        </div>`;
+      }
+    } else {
+      imgCol = `<div class="pro-lock-img" onclick="showProFeatures()" title="Pro feature">📸<br>Pro</div>`;
+    }
+
+    return `
+    <div class="catalog-item" id="catalog-item-${item.id}">
+      ${imgCol}
       <div class="catalog-name">${item.name}</div>
       <div class="catalog-price">R${item.price}</div>
       <button class="catalog-edit" onclick="openEditItemModal('${item.id}', '${escJs(item.name)}', ${item.price}, '${escJs(item.emoji || '🍱')}')">Edit</button>
       <button class="catalog-edit" onclick="deleteItem('${item.id}', this)">Remove</button>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
 
   // Update top sellers based on real orders
   updateTopSellers(items);
@@ -1786,6 +1821,107 @@ function closeEditItemModal() {
 
 function handleEditItemModalClick(e) {
   if (e.target === document.getElementById('editItemModal')) closeEditItemModal();
+}
+
+// ── PRODUCT IMAGE UPLOAD ────────────────────────────────────────────
+async function uploadItemImage(event, itemId) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  // Validate file size — max 2MB
+  if (file.size > 2 * 1024 * 1024) {
+    showToast('Image too large — max 2MB please');
+    return;
+  }
+
+  // Show loading state on the item
+  const itemEl = document.getElementById('catalog-item-' + itemId);
+  const placeholder = itemEl?.querySelector('.catalog-item-img-placeholder');
+  if (placeholder) {
+    placeholder.style.opacity = '0.5';
+    placeholder.style.pointerEvents = 'none';
+  }
+  showToast('Uploading photo...');
+
+  try {
+    // Compress the image before uploading using canvas
+    const compressed = await compressImage(file, 800, 0.8);
+
+    // Upload to Supabase Storage
+    const fileName = `${userProfile.id}/${itemId}-${Date.now()}.jpg`;
+    const { data: uploadData, error: uploadError } = await db.storage
+      .from('menu-images')
+      .upload(fileName, compressed, { contentType: 'image/jpeg', upsert: true });
+
+    if (uploadError) throw uploadError;
+
+    // Get the public URL
+    const { data: { publicUrl } } = db.storage
+      .from('menu-images')
+      .getPublicUrl(fileName);
+
+    // Save URL to menu_items table
+    const { error: updateError } = await db
+      .from('menu_items')
+      .update({ image_url: publicUrl })
+      .eq('id', itemId);
+
+    if (updateError) throw updateError;
+
+    // Refresh menu to show the new image
+    await loadMenu(userProfile.id);
+    showToast('Photo added ✓');
+
+  } catch (err) {
+    if (placeholder) {
+      placeholder.style.opacity = '1';
+      placeholder.style.pointerEvents = 'auto';
+    }
+    showToast('Could not upload photo — try again');
+    console.error(err);
+  }
+}
+
+// Compress image using canvas before uploading
+function compressImage(file, maxSize, quality) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        // Scale down if needed
+        if (width > maxSize || height > maxSize) {
+          if (width > height) {
+            height = Math.round(height * maxSize / width);
+            width = maxSize;
+          } else {
+            width = Math.round(width * maxSize / height);
+            height = maxSize;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        canvas.toBlob(resolve, 'image/jpeg', quality);
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function removeItemImage(itemId) {
+  if (!confirm('Remove this photo?')) return;
+  await db.from('menu_items').update({ image_url: null }).eq('id', itemId);
+  await loadMenu(userProfile.id);
+  showToast('Photo removed ✓');
 }
 
 // ── STATUS MODAL ─────────────────────────────────────────────────────

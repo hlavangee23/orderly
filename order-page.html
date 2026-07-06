@@ -538,7 +538,7 @@ function populateStoreUI(p) {
 // ── LOAD MENU ──────────────────────────────────────────────
 async function loadMenu(profileId) {
   const { data: items } = await db
-    .from('menu_items').select('id, name, price, emoji, is_available')
+    .from('menu_items').select('id, name, price, emoji, is_available, image_url')
     .eq('profile_id', profileId).eq('is_available', true);
 
   if (items && items.length > 0) {
@@ -579,9 +579,13 @@ function renderMenu() {
     if (cats.length > 1) html += `<h2 class="section-heading">${cat.charAt(0).toUpperCase() + cat.slice(1)}</h2>`;
     items.forEach(item => {
       const qty = cart[item.id] || 0;
+      // Show real photo if available, fall back to emoji
+      const itemVisual = item.image_url
+        ? `<img src="${item.image_url}" alt="${item.name}" style="width:46px;height:46px;border-radius:10px;object-fit:cover;border:1px solid var(--border);flex-shrink:0;" />`
+        : `<div class="item-emoji">${item.emoji || '🍱'}</div>`;
       html += `
         <div class="item-card">
-          <div class="item-emoji">${item.emoji || '🍱'}</div>
+          ${itemVisual}
           <div class="item-info">
             <div class="item-name">${item.name}</div>
             ${item.description ? `<div class="item-desc">${item.description}</div>` : ''}
