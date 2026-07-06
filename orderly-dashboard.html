@@ -584,11 +584,21 @@ body {
 .order-summary-total .label { font-size: 0.85rem; font-weight: 600; color: var(--text); }
 .order-summary-total .amount { font-family: 'Instrument Serif', serif; font-size: 1.2rem; color: var(--green-700); }
 /* PRODUCT IMAGE */
-.catalog-item-img { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; border: 1px solid var(--border); flex-shrink: 0; }
-.catalog-item-img-placeholder { width: 44px; height: 44px; border-radius: 8px; background: var(--green-50); border: 1.5px dashed var(--border); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden; }
+.catalog-item-img { width: 64px; height: 64px; border-radius: 10px; object-fit: cover; border: 1px solid var(--border); flex-shrink: 0; cursor: pointer; transition: opacity 0.2s; }
+.catalog-item-img:hover { opacity: 0.85; }
+.catalog-item-img-placeholder { width: 64px; height: 64px; border-radius: 10px; background: var(--green-50); border: 1.5px dashed var(--border); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden; gap: 2px; }
 .catalog-item-img-placeholder:hover { border-color: var(--green-400); background: var(--green-100); }
+.catalog-item-img-placeholder span { font-size: 0.55rem; color: var(--text-muted); font-weight: 500; }
 .catalog-item-img-placeholder input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
-.pro-lock-img { width: 44px; height: 44px; border-radius: 8px; background: var(--off-white); border: 1.5px dashed var(--border); display: flex; align-items: center; justify-content: center; font-size: 0.65rem; color: var(--text-muted); flex-shrink: 0; cursor: pointer; text-align: center; line-height: 1.3; font-weight: 500; padding: 2px; }
+.pro-lock-img { width: 64px; height: 64px; border-radius: 10px; background: var(--off-white); border: 1.5px dashed var(--border); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.7rem; color: var(--text-muted); flex-shrink: 0; cursor: pointer; text-align: center; line-height: 1.4; font-weight: 500; padding: 4px; gap: 2px; }
+
+/* IMAGE LIGHTBOX */
+.img-lightbox { position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 500; display: flex; align-items: center; justify-content: center; padding: 1.5rem; opacity: 0; pointer-events: none; transition: opacity 0.25s; }
+.img-lightbox.open { opacity: 1; pointer-events: all; }
+.img-lightbox img { max-width: 100%; max-height: 85vh; border-radius: 12px; object-fit: contain; box-shadow: 0 24px 80px rgba(0,0,0,0.5); }
+.img-lightbox-close { position: absolute; top: 1.25rem; right: 1.25rem; background: rgba(255,255,255,0.15); border: none; color: white; width: 36px; height: 36px; border-radius: 50%; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+.img-lightbox-close:hover { background: rgba(255,255,255,0.25); }
+.img-lightbox-caption { position: absolute; bottom: 1.5rem; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,0.7); font-size: 0.82rem; text-align: center; }
 
 /* EMOJI PICKER */
 .emoji-picker-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
@@ -1127,6 +1137,13 @@ body {
   </div>
 </div>
 
+<!-- IMAGE LIGHTBOX -->
+<div class="img-lightbox" id="dashLightbox" onclick="closeDashboardLightbox()">
+  <button class="img-lightbox-close" onclick="closeDashboardLightbox()">✕</button>
+  <img id="dashLightboxImg" src="" alt="" />
+  <div class="img-lightbox-caption" id="dashLightboxCaption"></div>
+</div>
+
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
@@ -1624,18 +1641,19 @@ async function loadMenu(profileId) {
     let imgCol;
     if (isPro) {
       if (item.image_url) {
-        imgCol = `<div class="catalog-item-img-placeholder" onclick="triggerImageUpload('${item.id}')">
-          <img class="catalog-item-img" src="${item.image_url}" alt="${escJs(item.name)}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;" />
-          <input type="file" accept="image/jpeg,image/png,image/webp" onchange="uploadItemImage(event, '${item.id}')" style="position:absolute;inset:0;opacity:0;cursor:pointer;" />
+        imgCol = `<div class="catalog-item-img-placeholder" style="border:none;background:none;">
+          <img class="catalog-item-img" src="${item.image_url}" alt="${escJs(item.name)}" onclick="openDashboardLightbox('${escJs(item.image_url)}', '${escJs(item.name)}')" />
+          <input type="file" accept="image/jpeg,image/png,image/webp" onchange="uploadItemImage(event, '${item.id}')" style="position:absolute;inset:0;opacity:0;cursor:pointer;z-index:2;" />
         </div>`;
       } else {
-        imgCol = `<div class="catalog-item-img-placeholder" title="Add photo">
-          📸
+        imgCol = `<div class="catalog-item-img-placeholder" title="Add a square photo for best results (min 500×500px)">
+          <span>📸</span>
+          <span>Add photo</span>
           <input type="file" accept="image/jpeg,image/png,image/webp" onchange="uploadItemImage(event, '${item.id}')" style="position:absolute;inset:0;opacity:0;cursor:pointer;" />
         </div>`;
       }
     } else {
-      imgCol = `<div class="pro-lock-img" onclick="showProFeatures()" title="Pro feature">📸<br>Pro</div>`;
+      imgCol = `<div class="pro-lock-img" onclick="showProFeatures()" title="Pro feature — add photos to your menu items">📸<span>Pro only</span></div>`;
     }
 
     return `
@@ -1821,6 +1839,16 @@ function closeEditItemModal() {
 
 function handleEditItemModalClick(e) {
   if (e.target === document.getElementById('editItemModal')) closeEditItemModal();
+}
+
+function openDashboardLightbox(url, name) {
+  document.getElementById('dashLightboxImg').src = url;
+  document.getElementById('dashLightboxCaption').textContent = name + ' — click anywhere to close or hover image to replace photo';
+  document.getElementById('dashLightbox').classList.add('open');
+}
+
+function closeDashboardLightbox() {
+  document.getElementById('dashLightbox').classList.remove('open');
 }
 
 // ── PRODUCT IMAGE UPLOAD ────────────────────────────────────────────
