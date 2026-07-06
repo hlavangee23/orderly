@@ -445,8 +445,8 @@ async function init() {
   }
 
   const { data: profile } = await db
-    .from('profiles')
-    .select('id, store_name, store_slug, city, food_type, whatsapp, welcome_message, order_deadline, estimated_delivery, delivery_enabled, delivery_fee, collection_enabled, collection_address, rush_orders_enabled, rush_fee, standard_days, rush_days, auto_confirm, show_branding, allow_notes')
+    .from('public_store_profiles')
+    .select('*')
     .eq('store_slug', slug).maybeSingle();
 
   if (!profile) {
