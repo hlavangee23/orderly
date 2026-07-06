@@ -28,24 +28,19 @@
 }
 html, body { min-height: 100vh; font-family: 'DM Sans', sans-serif; background: var(--green-900); color: var(--text); -webkit-font-smoothing: antialiased; }
 
-/* ── WATERMARK BACKGROUND ────────────────────────────────── */
+/* ── ICON PATTERN BACKGROUND ─────────────────────────────── */
 body::before {
-  content: 'ORDERLY ORDERLY ORDERLY ORDERLY ORDERLY ORDERLY ORDERLY ORDERLY ORDERLY ORDERLY ORDERLY ORDERLY ORDERLY ORDERLY ORDERLY ORDERLY ORDERLY ORDERLY ORDERLY ORDERLY ORDERLY ORDERLY ORDERLY ORDERLY ORDERLY ORDERLY ORDERLY ORDERLY ORDERLY ORDERLY';
+  content: '';
   position: fixed;
   inset: 0;
-  font-family: 'Instrument Serif', serif;
-  font-size: 4rem;
-  font-weight: 400;
-  color: rgba(255,255,255,0.025);
-  word-break: break-all;
-  overflow: hidden;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Ctext x='8' y='38' font-size='15' fill='rgba(255,255,255,0.055)' font-family='Georgia,serif' font-style='italic' font-weight='400'%3EOrderly%3C/text%3E%3Ctext x='90' y='32' font-size='20' fill='rgba(255,255,255,0.04)'%3E%F0%9F%8D%BD%3C/text%3E%3Ctext x='18' y='88' font-size='20' fill='rgba(255,255,255,0.04)'%3E%F0%9F%A7%81%3C/text%3E%3Ctext x='105' y='90' font-size='18' fill='rgba(255,255,255,0.035)'%3E%F0%9F%A7%BE%3C/text%3E%3Ctext x='55' y='125' font-size='18' fill='rgba(255,255,255,0.04)'%3E%F0%9F%8D%B0%3C/text%3E%3Ctext x='8' y='145' font-size='16' fill='rgba(255,255,255,0.03)'%3E%F0%9F%93%A6%3C/text%3E%3Ctext x='125' y='148' font-size='16' fill='rgba(255,255,255,0.03)'%3E%F0%9F%A7%BE%3C/text%3E%3C/svg%3E");
+  background-size: 200px 200px;
+  background-repeat: repeat;
+  transform: rotate(-10deg) scale(1.2);
+  transform-origin: center;
   pointer-events: none;
   z-index: 0;
-  line-height: 1.2;
-  letter-spacing: 0.1em;
-  padding: 2rem;
-  transform: rotate(-15deg) scale(1.3);
-  transform-origin: center;
+  overflow: hidden;
 }
 
 /* ── LOADING ─────────────────────────────────────────────── */
@@ -69,17 +64,17 @@ body::before {
 .step-label { font-size: 0.74rem; color: rgba(255,255,255,0.5); margin-left: 12px; white-space: nowrap; }
 .step-label strong { color: rgba(255,255,255,0.9); }
 
-/* ── HERO HEADER ─────────────────────────────────────────── */
+/* ── HERO HEADER — centered ──────────────────────────────── */
 .hero { background: transparent; position: relative; overflow: hidden; }
-.hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 80% 40%, rgba(61,139,101,0.15) 0%, transparent 65%); pointer-events: none; }
-.hero-inner { max-width: 640px; margin: 0 auto; padding: 1.75rem 1.5rem 1.5rem; position: relative; }
-.hero-top { display: flex; align-items: center; gap: 1.1rem; margin-bottom: 1rem; }
-.store-avatar { width: 56px; height: 56px; border-radius: 14px; background: var(--green-500); display: flex; align-items: center; justify-content: center; font-family: 'Instrument Serif', serif; font-size: 20px; color: white; flex-shrink: 0; border: 2px solid rgba(255,255,255,0.2); box-shadow: 0 4px 16px rgba(0,0,0,0.3); }
-.store-name { font-family: 'Instrument Serif', serif; font-size: 1.5rem; color: white; letter-spacing: -0.02em; }
-.store-sub { font-size: 0.75rem; color: rgba(255,255,255,0.5); margin-top: 2px; font-weight: 300; }
-.hero-badges { display: flex; gap: 6px; flex-wrap: wrap; }
-.hero-badge { font-size: 0.68rem; padding: 3px 10px; border-radius: 20px; background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.6); border: 1px solid rgba(255,255,255,0.12); }
-.hero-badge.green { background: rgba(61,139,101,0.3); color: rgba(255,255,255,0.85); border-color: rgba(61,139,101,0.4); }
+.hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 0%, rgba(61,139,101,0.2) 0%, transparent 70%); pointer-events: none; }
+.hero-inner { max-width: 640px; margin: 0 auto; padding: 2.25rem 1.5rem 1.75rem; position: relative; text-align: center; }
+.hero-top { display: flex; flex-direction: column; align-items: center; gap: 0.9rem; margin-bottom: 1.1rem; }
+.store-avatar { width: 72px; height: 72px; border-radius: 20px; background: var(--green-500); display: flex; align-items: center; justify-content: center; font-family: 'Instrument Serif', serif; font-size: 26px; color: white; flex-shrink: 0; border: 2px solid rgba(255,255,255,0.2); box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.05); }
+.store-name { font-family: 'Instrument Serif', serif; font-size: 1.9rem; color: white; letter-spacing: -0.02em; line-height: 1.1; }
+.store-sub { font-size: 0.8rem; color: rgba(255,255,255,0.45); margin-top: 3px; font-weight: 300; }
+.hero-badges { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+.hero-badge { font-size: 0.68rem; padding: 4px 12px; border-radius: 20px; background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.55); border: 1px solid rgba(255,255,255,0.1); }
+.hero-badge.green { background: rgba(61,139,101,0.25); color: rgba(255,255,255,0.8); border-color: rgba(61,139,101,0.35); }
 
 /* ── STEP 1: WELCOME ─────────────────────────────────────── */
 .welcome-body { max-width: 600px; margin: 0 auto; padding: 1.5rem; }
@@ -105,7 +100,7 @@ body::before {
 .btn-back:hover { background: rgba(255,255,255,0.12); color: white; }
 
 /* WHATSAPP NOTICE */
-.whatsapp-notice { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.25); border-radius: var(--radius); padding: 0.75rem 0.9rem; font-size: 0.78rem; color: rgba(255,255,255,0.65); line-height: 1.6; margin-top: 8px; }
+.whatsapp-notice { background: rgba(61,139,101,0.15); border: 1px solid rgba(61,139,101,0.3); border-radius: var(--radius); padding: 0.75rem 0.9rem; font-size: 0.78rem; color: #86EFAC; line-height: 1.6; margin-top: 8px; }
 
 /* FIELD ERRORS */
 .field-error { font-size: 0.75rem; color: #FCA5A5; margin-top: 5px; display: none; }
