@@ -55,13 +55,17 @@ body::before {
 .step { display: none; min-height: 100vh; position: relative; z-index: 1; }
 .step.active { display: block; }
 
-/* ── STEP INDICATOR ──────────────────────────────────────── */
-.step-bar { background: rgba(255,255,255,0.06); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,0.08); padding: 0.75rem 1.5rem; display: flex; align-items: center; gap: 0; max-width: 640px; margin: 0 auto; }
+/* ── STEP INDICATOR — floating pill ─────────────────────── */
+.step-bar-wrap { position: sticky; top: 0; z-index: 10; padding: 0.75rem 1rem; display: flex; justify-content: center; background: transparent; }
+.step-bar { background: rgba(15,35,24,0.7); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 50px; padding: 0.5rem 1.25rem; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 24px rgba(0,0,0,0.3); }
+.step-back-btn { background: rgba(255,255,255,0.1); border: none; color: rgba(255,255,255,0.7); width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; flex-shrink: 0; }
+.step-back-btn:hover { background: rgba(255,255,255,0.2); color: white; }
+.step-back-btn:disabled { opacity: 0; pointer-events: none; }
 .step-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.2); transition: all 0.3s; flex-shrink: 0; }
-.step-dot.active { background: var(--green-400); transform: scale(1.3); }
-.step-dot.done { background: rgba(255,255,255,0.6); }
-.step-line { flex: 1; height: 1px; background: rgba(255,255,255,0.1); margin: 0 6px; max-width: 60px; }
-.step-label { font-size: 0.74rem; color: rgba(255,255,255,0.5); margin-left: 12px; white-space: nowrap; }
+.step-dot.active { background: var(--green-400); transform: scale(1.3); box-shadow: 0 0 0 3px rgba(61,139,101,0.3); }
+.step-dot.done { background: rgba(255,255,255,0.7); }
+.step-line { width: 20px; height: 1px; background: rgba(255,255,255,0.15); }
+.step-label { font-size: 0.72rem; color: rgba(255,255,255,0.6); margin-left: 6px; white-space: nowrap; }
 .step-label strong { color: rgba(255,255,255,0.9); }
 
 /* ── HERO HEADER — centered ──────────────────────────────── */
@@ -289,13 +293,16 @@ body::before {
     </div>
   </div>
 
-  <div class="step-bar">
-    <div class="step-dot done" id="dot1"></div>
-    <div class="step-line"></div>
-    <div class="step-dot active" id="dot2"></div>
-    <div class="step-line"></div>
-    <div class="step-dot" id="dot3"></div>
-    <span class="step-label">Step <strong>2 of 3</strong> — Browse & add items</span>
+  <div class="step-bar-wrap">
+    <div class="step-bar">
+      <button class="step-back-btn" onclick="goToStep(1)" title="Back to details">←</button>
+      <div class="step-dot done" id="dot1"></div>
+      <div class="step-line"></div>
+      <div class="step-dot active" id="dot2"></div>
+      <div class="step-line"></div>
+      <div class="step-dot" id="dot3"></div>
+      <span class="step-label">Step <strong>2 of 3</strong> — Browse & add items</span>
+    </div>
   </div>
 
   <nav class="cat-nav">
@@ -330,13 +337,16 @@ body::before {
     </div>
   </div>
 
-  <div class="step-bar">
-    <div class="step-dot done"></div>
-    <div class="step-line"></div>
-    <div class="step-dot done"></div>
-    <div class="step-line"></div>
-    <div class="step-dot active"></div>
-    <span class="step-label">Step <strong>3 of 3</strong> — Review & confirm</span>
+  <div class="step-bar-wrap">
+    <div class="step-bar">
+      <button class="step-back-btn" onclick="goToStep(2)" title="Back to menu">←</button>
+      <div class="step-dot done"></div>
+      <div class="step-line"></div>
+      <div class="step-dot done"></div>
+      <div class="step-line"></div>
+      <div class="step-dot active"></div>
+      <span class="step-label">Step <strong>3 of 3</strong> — Review & confirm</span>
+    </div>
   </div>
 
   <div class="review-body">
@@ -461,6 +471,7 @@ let storeProfile = null;
 let menuItems = [];
 let cart = {};
 let currentCat = 'all';
+let menuCategories = [];
 let deliveryChoice = 'collection';
 let rushChoice = 'standard';
 let customer = {};
@@ -568,28 +579,39 @@ function populateStoreUI(p) {
 
 // ── LOAD MENU ──────────────────────────────────────────────
 async function loadMenu(profileId) {
-  const { data: items } = await db
-    .from('menu_items').select('id, name, price, emoji, is_available, image_url')
-    .eq('profile_id', profileId).eq('is_available', true);
+  // Fetch menu items and categories in parallel
+  const [{ data: items }, { data: cats }] = await Promise.all([
+    db.from('menu_items').select('id, name, price, emoji, is_available, image_url, category_id')
+      .eq('profile_id', profileId).eq('is_available', true),
+    db.from('menu_categories').select('*').eq('profile_id', profileId).order('sort_order', { ascending: true })
+  ]);
 
   if (items && items.length > 0) {
     menuItems = items;
+    menuCategories = cats || [];
     buildCatNav();
     renderMenu();
   } else {
-    document.getElementById('menuContainer').innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;padding:1rem 0;">No items available yet — check back soon!</p>';
+    document.getElementById('menuContainer').innerHTML = '<p style="color:rgba(255,255,255,0.5);font-size:0.85rem;padding:1rem 0;">No items available yet — check back soon!</p>';
   }
 }
 
 // ── CAT NAV ────────────────────────────────────────────────
 function buildCatNav() {
-  const cats = [...new Set(menuItems.map(i => i.cat || 'Menu'))];
   const nav = document.getElementById('catNav');
   nav.innerHTML = `<button class="cat-btn active" onclick="filterCat('all', this)">All</button>`;
-  if (cats.length > 1) {
-    cats.forEach(cat => {
-      nav.innerHTML += `<button class="cat-btn" onclick="filterCat('${cat}', this)">${cat.charAt(0).toUpperCase() + cat.slice(1)}</button>`;
-    });
+  // Only show categories that actually have items
+  menuCategories.forEach(cat => {
+    const hasItems = menuItems.some(i => i.category_id === cat.id);
+    if (hasItems) {
+      nav.innerHTML += `<button class="cat-btn" onclick="filterCat('${cat.id}', this)">${cat.name}</button>`;
+    }
+  });
+  // If items exist with no category, show an "Other" tab only if there are also categorised items
+  const uncategorised = menuItems.filter(i => !i.category_id);
+  const categorised = menuItems.filter(i => i.category_id);
+  if (uncategorised.length > 0 && categorised.length > 0) {
+    nav.innerHTML += `<button class="cat-btn" onclick="filterCat('none', this)">Other</button>`;
   }
 }
 
@@ -602,37 +624,51 @@ function filterCat(cat, btn) {
 }
 
 function renderMenu() {
-  const cats = [...new Set(menuItems.map(i => i.cat || 'Menu'))];
   let html = '';
-  cats.forEach(cat => {
-    const items = menuItems.filter(i => (i.cat || 'Menu') === cat && (currentCat === 'all' || currentCat === cat));
-    if (!items.length) return;
-    if (cats.length > 1) html += `<h2 class="section-heading">${cat.charAt(0).toUpperCase() + cat.slice(1)}</h2>`;
-    items.forEach(item => {
-      const qty = cart[item.id] || 0;
-      // Show real photo if available, fall back to emoji
-      const itemVisual = item.image_url
-        ? `<img class="item-img" src="${item.image_url}" alt="${item.name}" onclick="openItemLightbox('${item.image_url}', '${item.name}', ${item.price})" />`
-        : `<div class="item-emoji">${item.emoji || '🍱'}</div>`;
-      html += `
-        <div class="item-card">
-          ${itemVisual}
-          <div class="item-info">
-            <div class="item-name">${item.name}</div>
-            ${item.description ? `<div class="item-desc">${item.description}</div>` : ''}
-          </div>
-          <div class="item-right">
-            <span class="item-price">R${item.price}</span>
-            <div class="qty-control">
-              <button class="qty-btn" onclick="changeQty('${item.id}', -1)">−</button>
-              <span class="qty-num" id="qty-${item.id}">${qty}</span>
-              <button class="qty-btn" onclick="changeQty('${item.id}', 1)">+</button>
-            </div>
-          </div>
-        </div>`;
+
+  if (currentCat === 'all') {
+    const withCat = menuItems.filter(i => i.category_id);
+    const withoutCat = menuItems.filter(i => !i.category_id);
+    menuCategories.forEach(cat => {
+      const items = withCat.filter(i => i.category_id === cat.id);
+      if (!items.length) return;
+      if (menuCategories.length > 0) html += `<h2 class="section-heading">${cat.name}</h2>`;
+      items.forEach(item => { html += renderItemCard(item); });
     });
-  });
-  document.getElementById('menuContainer').innerHTML = html || '<p style="color:var(--text-muted);font-size:0.85rem;padding:1rem 0;">No items available.</p>';
+    if (withoutCat.length > 0) {
+      if (withCat.length > 0) html += `<h2 class="section-heading">Other</h2>`;
+      withoutCat.forEach(item => { html += renderItemCard(item); });
+    }
+  } else if (currentCat === 'none') {
+    menuItems.filter(i => !i.category_id).forEach(item => { html += renderItemCard(item); });
+  } else {
+    menuItems.filter(i => i.category_id === currentCat).forEach(item => { html += renderItemCard(item); });
+  }
+
+  document.getElementById('menuContainer').innerHTML = html || '<p style="color:rgba(255,255,255,0.5);font-size:0.85rem;padding:1rem 0;">No items available.</p>';
+}
+
+function renderItemCard(item) {
+  const qty = cart[item.id] || 0;
+  const itemVisual = item.image_url
+    ? `<img class="item-img" src="${item.image_url}" alt="${item.name}" onclick="openItemLightbox('${item.image_url}', '${item.name}', ${item.price})" />`
+    : `<div class="item-emoji">${item.emoji || '🍱'}</div>`;
+  return `
+    <div class="item-card">
+      ${itemVisual}
+      <div class="item-info">
+        <div class="item-name">${item.name}</div>
+        ${item.description ? `<div class="item-desc">${item.description}</div>` : ''}
+      </div>
+      <div class="item-right">
+        <span class="item-price">R${item.price}</span>
+        <div class="qty-control">
+          <button class="qty-btn" onclick="changeQty('${item.id}', -1)">−</button>
+          <span class="qty-num" id="qty-${item.id}">${qty}</span>
+          <button class="qty-btn" onclick="changeQty('${item.id}', 1)">+</button>
+        </div>
+      </div>
+    </div>`;
 }
 
 // ── CART ───────────────────────────────────────────────────

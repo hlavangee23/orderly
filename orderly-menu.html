@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Orderly — My Menu</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --white: #FFFFFF; --off-white: #F8FAF7; --green-900: #0F2318; --green-700: #1A3D2B;
+  --green-500: #2D6A4F; --green-400: #3D8B65; --green-100: #E8F4ED; --green-50: #F2FAF5;
+  --text: #0F2318; --text-mid: #3D5A47; --text-muted: #7A9A85; --border: #D6EAD9;
+  --shadow-sm: 0 1px 4px rgba(15,35,24,0.06); --shadow-md: 0 4px 20px rgba(15,35,24,0.08);
+  --radius: 12px; --radius-lg: 16px; --sidebar-w: 220px;
+}
+body { font-family: 'DM Sans', sans-serif; background: var(--off-white); color: var(--text); -webkit-font-smoothing: antialiased; min-height: 100vh; display: flex; }
+
+/* SIDEBAR */
+.sidebar { width: var(--sidebar-w); background: var(--green-900); height: 100vh; position: fixed; left: 0; top: 0; display: flex; flex-direction: column; padding: 1.5rem 0; z-index: 50; }
+.sidebar-logo { font-family: 'Instrument Serif', serif; font-size: 1.3rem; color: white; padding: 0 1.5rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.08); }
+.sidebar-logo span { color: rgba(255,255,255,0.35); }
+.sidebar-store { padding: 1rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 0.5rem; }
+.sidebar-store-avatar { width: 36px; height: 36px; border-radius: 8px; background: var(--green-500); display: flex; align-items: center; justify-content: center; font-family: 'Instrument Serif', serif; font-size: 14px; color: white; margin-bottom: 0.5rem; }
+.sidebar-store-name { font-size: 0.85rem; font-weight: 500; color: white; }
+.sidebar-store-link { font-size: 0.72rem; color: rgba(255,255,255,0.4); cursor: pointer; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 0.6rem 1.5rem; font-size: 0.85rem; color: rgba(255,255,255,0.5); cursor: pointer; transition: all 0.15s; text-decoration: none; }
+.nav-item:hover { color: white; background: rgba(255,255,255,0.05); }
+.nav-item.active { color: white; background: rgba(255,255,255,0.1); }
+.nav-item .icon { font-size: 1rem; width: 20px; text-align: center; }
+.nav-section-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.25); padding: 1rem 1.5rem 0.4rem; }
+.sidebar-bottom { margin-top: auto; padding: 1rem 1.5rem; border-top: 1px solid rgba(255,255,255,0.08); }
+.sidebar-bottom-name { font-size: 0.82rem; color: rgba(255,255,255,0.6); }
+.sidebar-bottom-role { font-size: 0.72rem; color: rgba(255,255,255,0.3); }
+
+/* MAIN */
+.main { margin-left: var(--sidebar-w); flex: 1; padding: 2rem; max-width: calc(100% - var(--sidebar-w)); }
+.topbar { margin-bottom: 1.75rem; display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
+.topbar h1 { font-family: 'Instrument Serif', serif; font-size: 1.6rem; color: var(--green-900); letter-spacing: -0.02em; }
+.topbar p { font-size: 0.82rem; color: var(--text-muted); margin-top: 2px; }
+
+/* TWO COLUMN LAYOUT */
+.menu-grid { display: grid; grid-template-columns: 1fr 340px; gap: 1.5rem; align-items: start; }
+
+/* CARDS */
+.card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); overflow: hidden; margin-bottom: 1.25rem; }
+.card-header { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.4rem; border-bottom: 1px solid var(--border); background: var(--off-white); }
+.card-title { font-size: 0.85rem; font-weight: 600; color: var(--text); }
+.card-count { font-size: 0.72rem; color: var(--text-muted); background: var(--green-50); border: 1px solid var(--green-100); border-radius: 20px; padding: 2px 8px; }
+
+/* MENU ITEMS */
+.menu-item-row { display: flex; align-items: center; gap: 12px; padding: 0.85rem 1.4rem; border-bottom: 1px solid var(--border); transition: background 0.15s; }
+.menu-item-row:last-child { border-bottom: none; }
+.menu-item-row:hover { background: var(--off-white); }
+.item-thumb { width: 52px; height: 52px; border-radius: 10px; object-fit: cover; border: 1px solid var(--border); flex-shrink: 0; }
+.item-thumb-emoji { width: 52px; height: 52px; border-radius: 10px; background: var(--green-50); border: 1px solid var(--green-100); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; flex-shrink: 0; }
+.item-details { flex: 1; min-width: 0; }
+.item-name-text { font-size: 0.88rem; font-weight: 500; color: var(--text); }
+.item-price-text { font-size: 0.78rem; color: var(--text-muted); margin-top: 2px; }
+.item-cat-badge { font-size: 0.65rem; background: var(--green-50); border: 1px solid var(--green-100); color: var(--green-500); border-radius: 20px; padding: 2px 8px; margin-top: 3px; display: inline-block; }
+.item-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.item-btn { background: var(--off-white); border: 1px solid var(--border); border-radius: 8px; padding: 5px 10px; font-family: 'DM Sans', sans-serif; font-size: 0.75rem; color: var(--text-mid); cursor: pointer; transition: all 0.15s; }
+.item-btn:hover { border-color: var(--green-400); color: var(--green-700); background: var(--green-50); }
+.item-btn.danger:hover { border-color: #DC2626; color: #DC2626; background: #FEF2F2; }
+
+/* ADD ITEM FORM */
+.add-item-form { padding: 1rem 1.4rem; border-top: 1px solid var(--border); background: var(--off-white); }
+.add-form-row { display: grid; grid-template-columns: 1fr 120px; gap: 8px; margin-bottom: 8px; }
+.add-form-input { border: 1.5px solid var(--border); border-radius: var(--radius); padding: 0.65rem 0.85rem; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; color: var(--text); background: var(--white); outline: none; width: 100%; transition: border-color 0.2s; }
+.add-form-input:focus { border-color: var(--green-400); }
+.add-form-btn { background: var(--green-700); color: white; border: none; border-radius: var(--radius); padding: 0.65rem 1rem; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: background 0.2s; white-space: nowrap; }
+.add-form-btn:hover { background: var(--green-900); }
+.add-form-btn:disabled { background: var(--border); color: var(--text-muted); cursor: not-allowed; }
+
+/* CATEGORY SELECTOR IN ADD FORM */
+.add-form-select { border: 1.5px solid var(--border); border-radius: var(--radius); padding: 0.65rem 0.85rem; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; color: var(--text); background: var(--white); outline: none; width: 100%; transition: border-color 0.2s; appearance: none; }
+.add-form-select:focus { border-color: var(--green-400); }
+
+/* CATEGORIES */
+.category-row { display: flex; align-items: center; gap: 10px; padding: 0.85rem 1.4rem; border-bottom: 1px solid var(--border); }
+.category-row:last-child { border-bottom: none; }
+.category-color { width: 8px; height: 8px; border-radius: 50%; background: var(--green-400); flex-shrink: 0; }
+.category-name { flex: 1; font-size: 0.88rem; font-weight: 500; color: var(--text); }
+.category-count { font-size: 0.72rem; color: var(--text-muted); }
+.category-actions { display: flex; gap: 6px; }
+
+/* EMPTY STATES */
+.empty-state { padding: 2rem 1.4rem; text-align: center; }
+.empty-state-icon { font-size: 1.75rem; margin-bottom: 0.5rem; opacity: 0.5; }
+.empty-state-title { font-size: 0.88rem; font-weight: 500; color: var(--text-mid); margin-bottom: 0.3rem; }
+.empty-state-sub { font-size: 0.78rem; color: var(--text-muted); font-weight: 300; }
+
+/* EMOJI PICKER */
+.emoji-picker-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+.emoji-pick-btn { width: 36px; height: 36px; border-radius: 8px; border: 1.5px solid var(--border); background: var(--white); font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+.emoji-pick-btn:hover { border-color: var(--green-400); background: var(--green-50); }
+.emoji-pick-btn.selected { border-color: var(--green-400); background: var(--green-50); box-shadow: 0 0 0 2px rgba(61,139,101,0.15); }
+
+/* PRODUCT IMAGE UPLOAD */
+.img-upload-area { width: 64px; height: 64px; border-radius: 10px; border: 1.5px dashed var(--border); background: var(--green-50); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.65rem; color: var(--text-muted); cursor: pointer; position: relative; overflow: hidden; flex-shrink: 0; transition: all 0.2s; }
+.img-upload-area:hover { border-color: var(--green-400); background: var(--green-100); }
+.img-upload-area input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.img-upload-area img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; }
+
+/* MODAL */
+.modal-overlay { position: fixed; inset: 0; background: rgba(15,35,24,0.5); z-index: 200; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.25s; }
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal { background: var(--white); border-radius: var(--radius-lg); width: 100%; max-width: 480px; padding: 2rem; transform: scale(0.96); transition: transform 0.25s; box-shadow: 0 24px 80px rgba(15,35,24,0.2); max-height: 90vh; overflow-y: auto; margin: 0 1rem; }
+.modal-overlay.open .modal { transform: scale(1); }
+.modal-title { font-family: 'Instrument Serif', serif; font-size: 1.3rem; color: var(--green-900); margin-bottom: 0.25rem; }
+.modal-sub { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1.5rem; }
+.modal-actions { display: flex; gap: 8px; margin-top: 1.25rem; }
+.modal-btn { flex: 1; padding: 0.75rem; border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: all 0.2s; border: 1.5px solid var(--border); background: var(--white); color: var(--text-mid); }
+.modal-btn:hover { background: var(--off-white); }
+.modal-btn.primary { background: var(--green-700); color: white; border-color: var(--green-700); }
+.modal-btn.primary:hover { background: var(--green-900); }
+.form-group { margin-bottom: 1rem; }
+.form-label { display: block; font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 5px; }
+.form-input { width: 100%; border: 1.5px solid var(--border); border-radius: var(--radius); padding: 0.75rem 0.9rem; font-family: 'DM Sans', sans-serif; font-size: 0.88rem; color: var(--text); outline: none; transition: border-color 0.2s; }
+.form-input:focus { border-color: var(--green-400); box-shadow: 0 0 0 3px rgba(61,139,101,0.1); }
+
+/* IMAGE SECTION IN MODAL */
+.img-modal-section { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 1rem; }
+.img-modal-preview { width: 80px; height: 80px; border-radius: 10px; border: 1.5px dashed var(--border); background: var(--green-50); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.65rem; color: var(--text-muted); cursor: pointer; position: relative; overflow: hidden; flex-shrink: 0; text-align: center; gap: 2px; transition: all 0.2s; }
+.img-modal-preview:hover { border-color: var(--green-400); background: var(--green-100); }
+.img-modal-preview input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.img-modal-preview img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; }
+.img-modal-info { flex: 1; font-size: 0.78rem; color: var(--text-muted); line-height: 1.6; }
+.img-remove-btn { font-size: 0.72rem; color: #DC2626; background: none; border: none; cursor: pointer; padding: 0; margin-top: 4px; }
+
+/* TOAST */
+.toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--green-900); color: white; padding: 0.7rem 1.25rem; border-radius: 10px; font-size: 0.85rem; font-weight: 500; box-shadow: var(--shadow-md); z-index: 300; opacity: 0; transition: all 0.3s; white-space: nowrap; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* PRO LOCK */
+.pro-lock-notice { background: var(--green-50); border: 1px solid var(--green-100); border-radius: var(--radius); padding: 0.75rem 1rem; font-size: 0.78rem; color: var(--text-mid); margin: 1rem 1.4rem; display: flex; align-items: center; gap: 8px; }
+
+@media (max-width: 1100px) { .menu-grid { grid-template-columns: 1fr; } }
+@media (max-width: 900px) { .sidebar { display: none; } .main { margin-left: 0; max-width: 100%; padding: 1.25rem; } }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">Order<span>ly</span></div>
+  <div class="sidebar-store">
+    <div class="sidebar-store-avatar" id="sidebarAvatar">—</div>
+    <div class="sidebar-store-name" id="sidebarName">Your store</div>
+    <div class="sidebar-store-link" onclick="copyLink()">Copy my order link ↗</div>
+  </div>
+  <div class="nav-section-label">Menu</div>
+  <a class="nav-item" href="orderly-dashboard.html"><span class="icon">📋</span> Orders</a>
+  <a class="nav-item active"><span class="icon">🍽️</span> My Menu</a>
+  <a class="nav-item" href="orderly-invoices.html"><span class="icon">🧾</span> Invoices</a>
+  <div class="nav-section-label">Account</div>
+  <a class="nav-item" href="orderly-settings.html"><span class="icon">⚙️</span> Settings</a>
+  <div class="nav-section-label">Support</div>
+  <a class="nav-item" href="orderly-faq.html"><span class="icon">❓</span> FAQ</a>
+  <a class="nav-item" href="orderly-contact.html"><span class="icon">💬</span> Contact us</a>
+  <a class="nav-item" onclick="signOut()" style="cursor:pointer;"><span class="icon">🚪</span> Sign out</a>
+  <div class="sidebar-bottom">
+    <div class="sidebar-bottom-name" id="sidebarBottomName">—</div>
+    <div class="sidebar-bottom-role" id="sidebarBottomRole">Loading...</div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="topbar">
+    <div>
+      <h1>My Menu</h1>
+      <p>Manage your items, categories, and photos</p>
+    </div>
+    <button class="add-form-btn" onclick="openAddItemModal()" style="width:auto;padding:0.65rem 1.25rem;">+ Add item</button>
+  </div>
+
+  <div class="menu-grid">
+
+    <!-- LEFT: MENU ITEMS -->
+    <div>
+      <div class="card" id="itemsCard">
+        <div class="card-header">
+          <span class="card-title">Menu items</span>
+          <span class="card-count" id="itemCount">0 items</span>
+        </div>
+        <div id="itemsList">
+          <div class="empty-state">
+            <div class="empty-state-icon">🍽️</div>
+            <div class="empty-state-title">No items yet</div>
+            <div class="empty-state-sub">Click "+ Add item" to add your first menu item</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: CATEGORIES -->
+    <div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Categories</span>
+          <span class="card-count" id="catCount">0 categories</span>
+        </div>
+        <div id="categoriesList">
+          <div class="empty-state">
+            <div class="empty-state-icon">📂</div>
+            <div class="empty-state-title">No categories yet</div>
+            <div class="empty-state-sub">Group your items by type — e.g. Cakes, Biscuits, Drinks</div>
+          </div>
+        </div>
+        <div style="padding:1rem 1.4rem;border-top:1px solid var(--border);background:var(--off-white);">
+          <div style="display:flex;gap:8px;">
+            <input class="add-form-input" id="newCatName" placeholder="Category name (e.g. Cakes)" style="flex:1;" onkeydown="if(event.key==='Enter')addCategory()" />
+            <button class="add-form-btn" onclick="addCategory()" id="addCatBtn" style="white-space:nowrap;">+ Add</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- QUICK TIPS -->
+      <div class="card" style="margin-top:0;">
+        <div class="card-header"><span class="card-title">💡 Tips</span></div>
+        <div style="padding:1rem 1.4rem;font-size:0.8rem;color:var(--text-muted);line-height:1.7;">
+          <div style="margin-bottom:0.5rem;">• Add categories first, then assign items to them</div>
+          <div style="margin-bottom:0.5rem;">• Items without a category show under <strong>All</strong> on your order page</div>
+          <div style="margin-bottom:0.5rem;">• Photos are a Pro feature — they appear on your order page and help customers decide</div>
+          <div>• Best photo format: square, min 500×500px</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- ADD / EDIT ITEM MODAL -->
+<div class="modal-overlay" id="itemModal" onclick="if(event.target===this)closeItemModal()">
+  <div class="modal">
+    <div class="modal-title" id="itemModalTitle">Add menu item</div>
+    <p class="modal-sub" id="itemModalSub">Fill in the details for this item</p>
+
+    <!-- IMAGE UPLOAD (Pro only) -->
+    <div class="form-group">
+      <label class="form-label">Photo <span id="proPhotoLabel" style="color:var(--green-400);font-size:0.65rem;text-transform:none;font-weight:400;">(Pro feature)</span></label>
+      <div class="img-modal-section">
+        <div class="img-modal-preview" id="imgPreviewArea">
+          <span style="font-size:1.5rem;">📸</span>
+          <span>Add photo</span>
+          <input type="file" accept="image/jpeg,image/png,image/webp" id="itemImageInput" onchange="handleModalImageSelect(event)" />
+        </div>
+        <div class="img-modal-info">
+          Upload a square photo of this item (min 500×500px, max 2MB). If no photo is added, the emoji will show instead.
+          <br>
+          <button class="img-remove-btn" id="removeImgBtn" style="display:none;" onclick="removeModalImage()">✕ Remove photo</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Item name</label>
+      <input class="form-input" id="itemNameInput" placeholder="e.g. Chocolate Cake" />
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Price (R)</label>
+      <input class="form-input" id="itemPriceInput" type="number" placeholder="e.g. 150" />
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Category <span style="color:var(--text-muted);font-weight:300;font-size:0.72rem;text-transform:none;">(optional)</span></label>
+      <select class="form-input" id="itemCategoryInput" style="appearance:none;">
+        <option value="">No category</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Emoji <span style="color:var(--text-muted);font-weight:300;font-size:0.72rem;text-transform:none;">(shows if no photo)</span></label>
+      <div class="emoji-picker-row" id="modalEmojiPicker"></div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="modal-btn" onclick="closeItemModal()">Cancel</button>
+      <button class="modal-btn primary" id="saveItemBtn" onclick="saveItem()">Add item</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT CATEGORY MODAL -->
+<div class="modal-overlay" id="catModal" onclick="if(event.target===this)closeCatModal()">
+  <div class="modal">
+    <div class="modal-title">Rename category</div>
+    <p class="modal-sub">Update the name for this category</p>
+    <div class="form-group">
+      <label class="form-label">Category name</label>
+      <input class="form-input" id="editCatName" placeholder="e.g. Cakes" />
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn" onclick="closeCatModal()">Cancel</button>
+      <button class="modal-btn primary" onclick="saveCatEdit()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://qhcdlfnsjdspisjkfndq.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoY2RsZm5zamRzcGlzamtmbmRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwNDc3MTAsImV4cCI6MjA5NjYyMzcxMH0.1S4jvY38z-0XI22QwlB0Kkr4ttt-ptvDKRayEbk5Bgo';
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const EMOJI_OPTIONS = ['🍱','🥘','🍲','🧆','🥗','🍰','🧁','🍛','🥙','🥧','🍢','🍕','🍔','🌮','🥟','🍩','🎂','🍫','🍪','🥐'];
+const TRIAL_DAYS = 30;
+
+let userProfile = null;
+let allItems = [];
+let allCategories = [];
+let editingItemId = null;
+let editingCatId = null;
+let selectedEmoji = '🍱';
+let pendingImageFile = null;
+let existingImageUrl = null;
+
+// ── INIT ───────────────────────────────────────────────────────────
+async function init() {
+  const { data: { session } } = await db.auth.getSession();
+  if (!session) { window.location.href = 'orderly-signin.html'; return; }
+
+  const { data: profile } = await db.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
+  if (!profile) { window.location.href = 'orderly-signin.html'; return; }
+
+  userProfile = profile;
+  updateSidebar(profile);
+  await Promise.all([loadCategories(), loadItems()]);
+}
+
+function updateSidebar(p) {
+  const initials = p.store_name.split(' ').map(w => w[0]).join('').substring(0,2).toUpperCase();
+  document.getElementById('sidebarAvatar').textContent = initials;
+  document.getElementById('sidebarName').textContent = p.store_name;
+  document.getElementById('sidebarBottomName').textContent = p.store_name;
+  const trialStart = new Date(p.trial_start_date || p.created_at);
+  const daysLeft = TRIAL_DAYS - Math.floor((Date.now() - trialStart) / (1000*60*60*24));
+  let roleHTML;
+  if (p.plan === 'pro') roleHTML = '⭐ Pro plan';
+  else if (daysLeft > 0) roleHTML = `🎉 Pro trial · <span style="color:rgba(255,255,255,0.5);font-size:0.7rem;">${daysLeft} days left</span>`;
+  else roleHTML = `Free plan · <span style="color:#3D8B65;cursor:pointer">Upgrade to Pro</span>`;
+  document.getElementById('sidebarBottomRole').innerHTML = roleHTML;
+}
+
+function hasProAccess() {
+  if (!userProfile) return false;
+  if (userProfile.plan === 'pro') return true;
+  const trialStart = new Date(userProfile.trial_start_date || userProfile.created_at);
+  const daysLeft = TRIAL_DAYS - Math.floor((Date.now() - trialStart) / (1000*60*60*24));
+  return daysLeft > 0;
+}
+
+// ── LOAD DATA ──────────────────────────────────────────────────────
+async function loadCategories() {
+  const { data } = await db.from('menu_categories').select('*')
+    .eq('profile_id', userProfile.id).order('sort_order', { ascending: true });
+  allCategories = data || [];
+  renderCategories();
+}
+
+async function loadItems() {
+  const { data } = await db.from('menu_items').select('*')
+    .eq('profile_id', userProfile.id).order('created_at', { ascending: true });
+  allItems = data || [];
+  renderItems();
+}
+
+// ── RENDER CATEGORIES ──────────────────────────────────────────────
+function renderCategories() {
+  const list = document.getElementById('categoriesList');
+  document.getElementById('catCount').textContent = `${allCategories.length} categor${allCategories.length === 1 ? 'y' : 'ies'}`;
+
+  if (!allCategories.length) {
+    list.innerHTML = `<div class="empty-state">
+      <div class="empty-state-icon">📂</div>
+      <div class="empty-state-title">No categories yet</div>
+      <div class="empty-state-sub">Group your items by type — e.g. Cakes, Biscuits, Drinks</div>
+    </div>`;
+    return;
+  }
+
+  list.innerHTML = allCategories.map(cat => {
+    const count = allItems.filter(i => i.category_id === cat.id).length;
+    return `<div class="category-row">
+      <div class="category-color"></div>
+      <div class="category-name">${cat.name}</div>
+      <div class="category-count">${count} item${count !== 1 ? 's' : ''}</div>
+      <div class="category-actions">
+        <button class="item-btn" onclick="openEditCat('${cat.id}', '${escJs(cat.name)}')">Rename</button>
+        <button class="item-btn danger" onclick="deleteCategory('${cat.id}')">Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── RENDER ITEMS ───────────────────────────────────────────────────
+function renderItems() {
+  const list = document.getElementById('itemsList');
+  document.getElementById('itemCount').textContent = `${allItems.length} item${allItems.length !== 1 ? 's' : ''}`;
+
+  if (!allItems.length) {
+    list.innerHTML = `<div class="empty-state">
+      <div class="empty-state-icon">🍽️</div>
+      <div class="empty-state-title">No items yet</div>
+      <div class="empty-state-sub">Click "+ Add item" above to add your first menu item</div>
+    </div>`;
+    return;
+  }
+
+  list.innerHTML = allItems.map(item => {
+    const cat = allCategories.find(c => c.id === item.category_id);
+    const thumb = item.image_url
+      ? `<img class="item-thumb" src="${item.image_url}" alt="${escJs(item.name)}" />`
+      : `<div class="item-thumb-emoji">${item.emoji || '🍱'}</div>`;
+    return `<div class="menu-item-row">
+      ${thumb}
+      <div class="item-details">
+        <div class="item-name-text">${item.name}</div>
+        <div class="item-price-text">R${item.price}</div>
+        ${cat ? `<span class="item-cat-badge">📂 ${cat.name}</span>` : ''}
+      </div>
+      <div class="item-actions">
+        <button class="item-btn" onclick="openEditItemModal('${item.id}')">Edit</button>
+        <button class="item-btn danger" onclick="deleteItem('${item.id}')">Remove</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── ADD / EDIT ITEM MODAL ──────────────────────────────────────────
+function openAddItemModal() {
+  editingItemId = null;
+  selectedEmoji = '🍱';
+  pendingImageFile = null;
+  existingImageUrl = null;
+
+  document.getElementById('itemModalTitle').textContent = 'Add menu item';
+  document.getElementById('itemModalSub').textContent = 'Fill in the details for this item';
+  document.getElementById('saveItemBtn').textContent = 'Add item';
+  document.getElementById('itemNameInput').value = '';
+  document.getElementById('itemPriceInput').value = '';
+  document.getElementById('removeImgBtn').style.display = 'none';
+
+  resetImgPreview();
+  renderModalEmojis();
+  populateCategoryDropdown();
+
+  // Show/hide pro photo label
+  document.getElementById('proPhotoLabel').style.display = hasProAccess() ? 'none' : 'inline';
+  document.getElementById('itemImageInput').disabled = !hasProAccess();
+
+  document.getElementById('itemModal').classList.add('open');
+}
+
+function openEditItemModal(itemId) {
+  const item = allItems.find(i => i.id === itemId);
+  if (!item) return;
+
+  editingItemId = itemId;
+  selectedEmoji = item.emoji || '🍱';
+  pendingImageFile = null;
+  existingImageUrl = item.image_url || null;
+
+  document.getElementById('itemModalTitle').textContent = 'Edit item';
+  document.getElementById('itemModalSub').textContent = 'Update this menu item';
+  document.getElementById('saveItemBtn').textContent = 'Save changes';
+  document.getElementById('itemNameInput').value = item.name;
+  document.getElementById('itemPriceInput').value = item.price;
+  document.getElementById('itemCategoryInput').value = item.category_id || '';
+
+  // Show existing image if any
+  if (item.image_url) {
+    const area = document.getElementById('imgPreviewArea');
+    area.innerHTML = `<img src="${item.image_url}" alt="Item photo" /><input type="file" accept="image/jpeg,image/png,image/webp" id="itemImageInput" onchange="handleModalImageSelect(event)" />`;
+    document.getElementById('removeImgBtn').style.display = 'inline';
+  } else {
+    resetImgPreview();
+    document.getElementById('removeImgBtn').style.display = 'none';
+  }
+
+  document.getElementById('proPhotoLabel').style.display = hasProAccess() ? 'none' : 'inline';
+  document.getElementById('itemImageInput')?.setAttribute('disabled', !hasProAccess() ? 'true' : '');
+
+  renderModalEmojis();
+  populateCategoryDropdown(item.category_id);
+
+  document.getElementById('itemModal').classList.add('open');
+}
+
+function resetImgPreview() {
+  const area = document.getElementById('imgPreviewArea');
+  area.innerHTML = `<span style="font-size:1.5rem;">📸</span><span>${hasProAccess() ? 'Add photo' : '🔒 Pro'}</span><input type="file" accept="image/jpeg,image/png,image/webp" id="itemImageInput" onchange="handleModalImageSelect(event)" ${hasProAccess() ? '' : 'disabled'} />`;
+}
+
+function handleModalImageSelect(e) {
+  if (!hasProAccess()) { showToast('Photo upload is a Pro feature'); return; }
+  const file = e.target.files[0];
+  if (!file) return;
+  if (file.size > 2 * 1024 * 1024) { showToast('Image too large — max 2MB'); return; }
+  pendingImageFile = file;
+
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    const area = document.getElementById('imgPreviewArea');
+    area.innerHTML = `<img src="${ev.target.result}" alt="Preview" /><input type="file" accept="image/jpeg,image/png,image/webp" id="itemImageInput" onchange="handleModalImageSelect(event)" />`;
+    document.getElementById('removeImgBtn').style.display = 'inline';
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeModalImage() {
+  pendingImageFile = null;
+  existingImageUrl = null;
+  resetImgPreview();
+  document.getElementById('removeImgBtn').style.display = 'none';
+}
+
+function renderModalEmojis() {
+  document.getElementById('modalEmojiPicker').innerHTML = EMOJI_OPTIONS.map(e =>
+    `<button class="emoji-pick-btn ${e === selectedEmoji ? 'selected' : ''}" onclick="selectEmoji(this,'${e}')" type="button">${e}</button>`
+  ).join('');
+}
+
+function selectEmoji(btn, emoji) {
+  selectedEmoji = emoji;
+  document.querySelectorAll('#modalEmojiPicker .emoji-pick-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+function populateCategoryDropdown(selectedId = '') {
+  const sel = document.getElementById('itemCategoryInput');
+  sel.innerHTML = `<option value="">No category</option>` +
+    allCategories.map(c => `<option value="${c.id}" ${c.id === selectedId ? 'selected' : ''}>${c.name}</option>`).join('');
+}
+
+async function saveItem() {
+  const name = document.getElementById('itemNameInput').value.trim();
+  const price = document.getElementById('itemPriceInput').value.trim();
+  const categoryId = document.getElementById('itemCategoryInput').value || null;
+
+  if (!name || !price) { showToast('Please fill in name and price'); return; }
+
+  const btn = document.getElementById('saveItemBtn');
+  if (btn.disabled) return;
+  btn.disabled = true;
+  btn.textContent = editingItemId ? 'Saving...' : 'Adding...';
+
+  let imageUrl = existingImageUrl;
+
+  // Upload new image if selected
+  if (pendingImageFile && hasProAccess()) {
+    try {
+      const compressed = await compressImage(pendingImageFile, 800, 0.8);
+      const itemId = editingItemId || crypto.randomUUID();
+      const fileName = `${userProfile.id}/${itemId}-${Date.now()}.jpg`;
+      const { error: uploadError } = await db.storage.from('menu-images').upload(fileName, compressed, { contentType: 'image/jpeg', upsert: true });
+      if (!uploadError) {
+        const { data: { publicUrl } } = db.storage.from('menu-images').getPublicUrl(fileName);
+        imageUrl = publicUrl;
+      }
+    } catch (e) { console.error(e); }
+  }
+
+  const payload = { name, price: parseFloat(price), emoji: selectedEmoji, category_id: categoryId, image_url: imageUrl };
+
+  let error;
+  if (editingItemId) {
+    ({ error } = await db.from('menu_items').update(payload).eq('id', editingItemId));
+  } else {
+    ({ error } = await db.from('menu_items').insert({ ...payload, profile_id: userProfile.id }));
+  }
+
+  btn.disabled = false;
+  btn.textContent = editingItemId ? 'Save changes' : 'Add item';
+
+  if (error) { showToast('Could not save item — try again'); return; }
+
+  showToast(editingItemId ? `"${name}" updated ✓` : `"${name}" added to your menu ✓`);
+  closeItemModal();
+  await loadItems();
+}
+
+function closeItemModal() {
+  document.getElementById('itemModal').classList.remove('open');
+  editingItemId = null;
+  pendingImageFile = null;
+  existingImageUrl = null;
+}
+
+async function deleteItem(id) {
+  const item = allItems.find(i => i.id === id);
+  if (!confirm(`Remove "${item?.name}" from your menu?`)) return;
+  await db.from('menu_items').delete().eq('id', id);
+  showToast(`"${item?.name}" removed ✓`);
+  await loadItems();
+  renderCategories(); // update counts
+}
+
+// ── CATEGORIES ─────────────────────────────────────────────────────
+async function addCategory() {
+  const name = document.getElementById('newCatName').value.trim();
+  if (!name) return;
+  const btn = document.getElementById('addCatBtn');
+  btn.disabled = true;
+  btn.textContent = 'Adding...';
+
+  const sortOrder = allCategories.length;
+  const { error } = await db.from('menu_categories').insert({ profile_id: userProfile.id, name, sort_order: sortOrder });
+
+  btn.disabled = false;
+  btn.textContent = '+ Add';
+
+  if (error) { showToast('Could not add category — try again'); return; }
+  document.getElementById('newCatName').value = '';
+  showToast(`"${name}" category added ✓`);
+  await loadCategories();
+}
+
+function openEditCat(id, name) {
+  editingCatId = id;
+  document.getElementById('editCatName').value = name;
+  document.getElementById('catModal').classList.add('open');
+}
+
+async function saveCatEdit() {
+  const name = document.getElementById('editCatName').value.trim();
+  if (!name || !editingCatId) return;
+  await db.from('menu_categories').update({ name }).eq('id', editingCatId);
+  showToast(`Category renamed to "${name}" ✓`);
+  closeCatModal();
+  await loadCategories();
+  renderItems(); // badges update
+}
+
+async function deleteCategory(id) {
+  const cat = allCategories.find(c => c.id === id);
+  const count = allItems.filter(i => i.category_id === id).length;
+  const msg = count > 0
+    ? `Delete "${cat?.name}"? The ${count} item${count > 1 ? 's' : ''} in this category will move to "No category".`
+    : `Delete "${cat?.name}"?`;
+  if (!confirm(msg)) return;
+
+  // Move items to no category first
+  await db.from('menu_items').update({ category_id: null }).eq('category_id', id);
+  await db.from('menu_categories').delete().eq('id', id);
+
+  showToast(`"${cat?.name}" deleted ✓`);
+  await loadCategories();
+  await loadItems();
+}
+
+function closeCatModal() {
+  document.getElementById('catModal').classList.remove('open');
+  editingCatId = null;
+}
+
+// ── IMAGE COMPRESSION ──────────────────────────────────────────────
+function compressImage(file, maxSize, quality) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let w = img.width, h = img.height;
+        if (w > maxSize || h > maxSize) {
+          if (w > h) { h = Math.round(h * maxSize / w); w = maxSize; }
+          else { w = Math.round(w * maxSize / h); h = maxSize; }
+        }
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        canvas.toBlob(resolve, 'image/jpeg', quality);
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+// ── HELPERS ────────────────────────────────────────────────────────
+function escJs(str) { return String(str).replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
+
+function copyLink() {
+  const slug = userProfile?.store_slug || '';
+  navigator.clipboard.writeText(`https://orderlyapp.co.za/order-page.html?store=${slug}`).catch(() => {});
+  showToast('Order link copied! 🔗');
+}
+
+async function signOut() {
+  await db.auth.signOut();
+  localStorage.clear();
+  window.location.href = 'orderly-signin.html';
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+init();
+</script>
+</body>
+</html>
