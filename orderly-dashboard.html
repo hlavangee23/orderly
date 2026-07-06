@@ -1863,15 +1863,7 @@ function sendBankingDetailsFromStatus() {
 
   const firstName = order.customerName.split(' ')[0];
   const storeName = b.store_name || 'Orderly';
-
-  const message =
-    `Hi ${firstName}! Here are the banking details for your order from ${storeName} 🙏\n\n` +
-    `🏦 Bank: ${b.bank_name}\n` +
-    `👤 Account holder: ${b.bank_account_holder || storeName}\n` +
-    `💳 Account number: ${b.bank_account_number}\n` +
-    (b.bank_branch_code ? `🔢 Branch code: ${b.bank_branch_code}\n` : '') +
-    `\nReference: Your name\n\n` +
-    `Please send proof of payment once done and we'll confirm your order! 🎉`;
+  const message = buildBankingMessage(firstName, storeName, b);
 
   const phone = order.customerPhone?.replace(/\D/g, '') || '';
   const formatted = phone.startsWith('0') ? '27' + phone.slice(1) : phone;
@@ -2000,11 +1992,11 @@ function sendInvoiceWhatsApp() {
   let bankingLine = '';
   if (b?.bank_name && b?.bank_account_number) {
     bankingLine = `\n\n💳 *Payment details (EFT)*\n` +
-      `🏦 Bank: ${b.bank_name}\n` +
-      `👤 Account holder: ${b.bank_account_holder || b.store_name}\n` +
-      `💳 Account number: ${b.bank_account_number}\n` +
-      (b.bank_branch_code ? `🔢 Branch code: ${b.bank_branch_code}\n` : '') +
-      `Reference: Your name`;
+      `*BANK:* ${b.bank_name}\n` +
+      `*ACCOUNT HOLDER:* ${b.bank_account_holder || b.store_name}\n` +
+      `*ACCOUNT NUMBER:* ${b.bank_account_number}\n` +
+      (b.bank_branch_code ? `*BRANCH CODE:* ${b.bank_branch_code}\n` : '') +
+      `*REFERENCE:* Your name`;
   }
 
   const msg = encodeURIComponent(
@@ -2121,6 +2113,20 @@ function dismissTour() {
 
 function showProFeatures() {
   document.getElementById('proFeaturesModal').classList.add('open');
+}
+
+// ── BANKING MESSAGE HELPER ─────────────────────────────────────────
+// Single source of truth for the banking details WhatsApp message.
+// No inline emoji on every line — clean, professional, trustworthy.
+function buildBankingMessage(firstName, storeName, b) {
+  return `Hi ${firstName}!\n\n` +
+    `Please find the banking details for your order from *${storeName}* below.\n\n` +
+    `*BANK:* ${b.bank_name}\n` +
+    `*ACCOUNT HOLDER:* ${b.bank_account_holder || storeName}\n` +
+    `*ACCOUNT NUMBER:* ${b.bank_account_number}\n` +
+    (b.bank_branch_code ? `*BRANCH CODE:* ${b.bank_branch_code}\n` : '') +
+    `*REFERENCE:* Your name\n\n` +
+    `Kindly send proof of payment once done and we will confirm your order. Thank you! 🙏`;
 }
 
 // ── SCROLL TO MENU ─────────────────────────────────────────────────
@@ -2262,13 +2268,7 @@ function startBulkSend() {
       window.location.href = 'orderly-settings.html';
       return;
     }
-    messageText = `Hi {name}! Here are the banking details for your order from {store} 🙏\n\n` +
-      `🏦 Bank: ${b.bank_name}\n` +
-      `👤 Account holder: ${b.bank_account_holder || b.store_name}\n` +
-      `💳 Account number: ${b.bank_account_number}\n` +
-      (b.bank_branch_code ? `🔢 Branch code: ${b.bank_branch_code}\n` : '') +
-      `\nReference: Your name\n\n` +
-      `Please send proof of payment once done and we'll confirm your order! 🎉`;
+    messageText = buildBankingMessage('{name}', '{store}', b);
   }
 
   const storeName = userProfile?.store_name || 'your store';
