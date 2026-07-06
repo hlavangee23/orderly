@@ -111,16 +111,19 @@ body::before {
 .field-error.show { display: block; }
 
 /* ── STEP 2: MENU ────────────────────────────────────────── */
-.cat-nav { background: rgba(0,0,0,0.2); backdrop-filter: blur(10px); border-top: 1px solid rgba(255,255,255,0.06); border-bottom: 1px solid rgba(255,255,255,0.06); overflow-x: auto; scrollbar-width: none; }
+.cat-nav { overflow-x: auto; scrollbar-width: none; padding: 0.75rem 1rem; display: flex; justify-content: center; }
 .cat-nav::-webkit-scrollbar { display: none; }
-.cat-nav-inner { max-width: 640px; margin: 0 auto; padding: 0 1.5rem; display: flex; }
-.cat-btn { background: none; border: none; color: rgba(255,255,255,0.4); font-family: 'DM Sans', sans-serif; font-size: 0.8rem; font-weight: 500; padding: 0.75rem 1rem; cursor: pointer; white-space: nowrap; border-bottom: 2px solid transparent; transition: all 0.2s; }
-.cat-btn.active { color: white; border-bottom-color: var(--green-400); }
-.cat-btn:hover { color: rgba(255,255,255,0.8); }
+.cat-nav-inner { display: inline-flex; gap: 6px; background: rgba(0,0,0,0.2); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.08); border-radius: 50px; padding: 4px; }
+.cat-btn { background: none; border: none; color: rgba(255,255,255,0.5); font-family: 'DM Sans', sans-serif; font-size: 0.8rem; font-weight: 500; padding: 0.45rem 1rem; cursor: pointer; white-space: nowrap; border-radius: 50px; transition: all 0.2s; }
+.cat-btn.active { background: var(--green-700); color: white; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+.cat-btn:hover:not(.active) { color: rgba(255,255,255,0.85); background: rgba(255,255,255,0.06); }
 
-/* MENU CONTAINER — centered card feel */
-.menu-main { max-width: 600px; margin: 0 auto; padding: 1.25rem 1.25rem 9rem; }
-.section-heading { font-family: 'Instrument Serif', serif; font-size: 1rem; font-weight: 600; color: rgba(255,255,255,0.5); margin: 1.25rem 0 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.08); letter-spacing: 0.02em; }
+/* MENU CONTAINER — centered */
+.menu-main { max-width: 600px; margin: 0 auto; padding: 0.75rem 1.25rem 9rem; }
+
+/* CATEGORY HEADING — floating pill centered */
+.section-heading { display: flex; justify-content: center; margin: 1.25rem 0 0.85rem; }
+.section-heading-pill { background: rgba(255,255,255,0.08); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.12); border-radius: 50px; padding: 0.4rem 1.25rem; font-family: 'Instrument Serif', serif; font-size: 0.95rem; color: rgba(255,255,255,0.8); letter-spacing: 0.01em; }
 
 /* ITEM CARDS — white cards floating on dark background */
 .item-card { background: var(--white); border-radius: var(--radius-lg); border: none; padding: 0.9rem 1rem; display: flex; align-items: center; gap: 0.9rem; margin-bottom: 0.75rem; box-shadow: 0 4px 24px rgba(0,0,0,0.25), 0 1px 4px rgba(0,0,0,0.15); transition: box-shadow 0.2s, transform 0.15s; }
@@ -632,11 +635,11 @@ function renderMenu() {
     menuCategories.forEach(cat => {
       const items = withCat.filter(i => i.category_id === cat.id);
       if (!items.length) return;
-      if (menuCategories.length > 0) html += `<h2 class="section-heading">${cat.name}</h2>`;
+      if (menuCategories.length > 0) html += `<div class="section-heading"><div class="section-heading-pill">${cat.name}</div></div>`;
       items.forEach(item => { html += renderItemCard(item); });
     });
     if (withoutCat.length > 0) {
-      if (withCat.length > 0) html += `<h2 class="section-heading">Other</h2>`;
+      if (withCat.length > 0) html += `<div class="section-heading"><div class="section-heading-pill">Other</div></div>`;
       withoutCat.forEach(item => { html += renderItemCard(item); });
     }
   } else if (currentCat === 'none') {

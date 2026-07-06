@@ -84,7 +84,14 @@ body { font-family: 'DM Sans', sans-serif; background: var(--off-white); color: 
 .category-count { font-size: 0.72rem; color: var(--text-muted); }
 .category-actions { display: flex; gap: 6px; }
 
-/* EMPTY STATES */
+/* SCROLLABLE ITEMS LIST */
+.items-list-scroll { max-height: 420px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--border) transparent; transition: max-height 0.3s ease; }
+.items-list-scroll.expanded { max-height: 9999px; }
+.items-list-scroll::-webkit-scrollbar { width: 4px; }
+.items-list-scroll::-webkit-scrollbar-track { background: transparent; }
+.items-list-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+.expand-btn { background: var(--off-white); border: 1px solid var(--border); border-radius: 8px; padding: 0.5rem 1rem; font-family: 'DM Sans', sans-serif; font-size: 0.78rem; color: var(--text-muted); cursor: pointer; transition: all 0.2s; width: 100%; text-align: center; }
+.expand-btn:hover { border-color: var(--green-400); color: var(--green-700); background: var(--green-50); }
 .empty-state { padding: 2rem 1.4rem; text-align: center; }
 .empty-state-icon { font-size: 1.75rem; margin-bottom: 0.5rem; opacity: 0.5; }
 .empty-state-title { font-size: 0.88rem; font-weight: 500; color: var(--text-mid); margin-bottom: 0.3rem; }
@@ -184,7 +191,10 @@ body { font-family: 'DM Sans', sans-serif; background: var(--off-white); color: 
           <span class="card-title">Menu items</span>
           <span class="card-count" id="itemCount">0 items</span>
         </div>
-        <div id="itemsList">
+        <div id="itemsList" class="items-list-scroll"></div>
+        <div id="expandBtnWrap" style="padding:0.75rem 1.4rem;border-top:1px solid var(--border);display:none;">
+          <button class="expand-btn" id="expandBtn" onclick="toggleExpand()">Show all items ↓</button>
+        </div>
           <div class="empty-state">
             <div class="empty-state-icon">🍽️</div>
             <div class="empty-state-title">No items yet</div>
@@ -370,6 +380,16 @@ async function loadItems() {
   renderItems();
 }
 
+// ── EXPAND TOGGLE ──────────────────────────────────────────
+let isExpanded = false;
+function toggleExpand() {
+  isExpanded = !isExpanded;
+  const list = document.getElementById('itemsList');
+  const btn = document.getElementById('expandBtn');
+  list.classList.toggle('expanded', isExpanded);
+  btn.textContent = isExpanded ? 'Show less ↑' : 'Show all items ↓';
+}
+
 // ── RENDER CATEGORIES ──────────────────────────────────────────────
 function renderCategories() {
   const list = document.getElementById('categoriesList');
@@ -402,6 +422,10 @@ function renderCategories() {
 function renderItems() {
   const list = document.getElementById('itemsList');
   document.getElementById('itemCount').textContent = `${allItems.length} item${allItems.length !== 1 ? 's' : ''}`;
+
+  // Show expand button if more than 5 items
+  const expandWrap = document.getElementById('expandBtnWrap');
+  expandWrap.style.display = allItems.length > 5 ? 'block' : 'none';
 
   if (!allItems.length) {
     list.innerHTML = `<div class="empty-state">
