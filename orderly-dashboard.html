@@ -1254,11 +1254,32 @@ function showOrderCapWarning(ordersThisMonth) {
   const warningEl = document.getElementById('orderCapWarning');
   if (!warningEl) return;
 
-  if (remaining <= 10 && remaining > 0) {
-    warningEl.textContent = `⚠️ You've used ${ordersThisMonth} of your ${FREE_ORDER_CAP} free orders this month — ${remaining} remaining. Upgrade to Pro for unlimited orders.`;
+  // Get the first day of next month for the reset date
+  const now = new Date();
+  const resetDate = new Date(now.getFullYear(), now.getMonth() + 1, 1)
+    .toLocaleDateString('en-ZA', { day: 'numeric', month: 'long' });
+
+  if (remaining <= 0) {
+    // AT CAP — celebrate success, present upgrade as unlocking waiting business
+    warningEl.innerHTML = `
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+        <div style="flex:1;">
+          <div style="font-weight:600;color:#92400E;margin-bottom:4px;">🎉 You've had ${ordersThisMonth} orders this month — great month!</div>
+          <div style="font-size:0.78rem;color:#92400E;line-height:1.6;">New customers can't place orders until <strong>${resetDate}</strong> on the Free plan. Don't miss out on business that's already coming your way — upgrade to Pro for unlimited orders.</div>
+        </div>
+        <button onclick="showToast('Payments coming soon! 🚀')" style="background:#D97706;color:white;border:none;border-radius:8px;padding:0.55rem 1rem;font-family:'DM Sans',sans-serif;font-size:0.78rem;font-weight:500;cursor:pointer;white-space:nowrap;flex-shrink:0;">Upgrade to Pro →</button>
+      </div>`;
     warningEl.classList.add('show');
-  } else if (remaining <= 0) {
-    warningEl.textContent = `🚫 You've reached your ${FREE_ORDER_CAP} order limit for this month. Customers can't place new orders until next month or you upgrade to Pro.`;
+  } else if (remaining <= 10) {
+    // APPROACHING CAP — heads up with urgency
+    warningEl.innerHTML = `
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+        <div style="flex:1;">
+          <div style="font-weight:600;color:#92400E;margin-bottom:4px;">⚡ You have <strong>${remaining} orders left</strong> this month</div>
+          <div style="font-size:0.78rem;color:#92400E;line-height:1.6;">You've used ${ordersThisMonth} of your ${FREE_ORDER_CAP} free orders. Upgrade to Pro before you hit the limit — don't turn away customers.</div>
+        </div>
+        <button onclick="showProFeatures()" style="background:#D97706;color:white;border:none;border-radius:8px;padding:0.55rem 1rem;font-family:'DM Sans',sans-serif;font-size:0.78rem;font-weight:500;cursor:pointer;white-space:nowrap;flex-shrink:0;">See Pro →</button>
+      </div>`;
     warningEl.classList.add('show');
   } else {
     warningEl.classList.remove('show');
