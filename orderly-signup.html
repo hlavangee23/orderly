@@ -621,7 +621,7 @@ select.form-input { cursor: pointer; }
           <div class="error-msg" id="name-err">Please enter your business name.</div>
           <div class="slug-preview" id="slugPreview" style="display:none;">
             <span class="slug-preview-icon">🔗</span>
-            <span class="slug-preview-text">Your link: <strong id="slugText">orderlyapp.co.za/order-page.html?store=yourstore</strong></span>
+            <span class="slug-preview-text">Your link: <strong id="slugText">yourstore.orderly.co.za</strong></span>
           </div>
         </div>
 
@@ -697,7 +697,7 @@ select.form-input { cursor: pointer; }
 
           <div class="your-link-box">
             <div class="your-link-label">Your order page</div>
-            <div class="your-link-url" id="finalLink">orderlyapp.co.za/order-page.html?store=yourstore</div>
+            <div class="your-link-url" id="finalLink">yourstore.orderly.co.za</div>
             <button class="your-link-copy" onclick="copyLink()">📋 Copy link</button>
           </div>
 
@@ -860,13 +860,13 @@ async function goStep3() {
 
     // 3. Save profile/store to database
     const { error: profileError } = await db.from('profiles').insert({
-      id:               userId,
-      store_name:       nameEl.value.trim(),
-      store_slug:       slug,
-      food_type:        selectedType,
-      city:             cityEl.value,
-      whatsapp:         waEl.value.trim(),
-      plan:             'free',
+      id:         userId,
+      store_name: nameEl.value.trim(),
+      store_slug: slug,
+      food_type:  selectedType,
+      city:       cityEl.value,
+      whatsapp:   waEl.value.trim(),
+      plan:       'pro',
       trial_start_date: new Date().toISOString(),
     });
 
@@ -880,7 +880,7 @@ async function goStep3() {
     localStorage.setItem('orderly_wa', waEl.value.trim());
 
     // 5. Show success
-    document.getElementById('finalLink').textContent = 'orderlyapp.co.za/order-page.html?store=' + slug;
+    document.getElementById('finalLink').textContent = slug + '.orderly.co.za';
     setStep(3);
 
   } catch (err) {
@@ -911,7 +911,7 @@ function updateSlug(val) {
   const preview  = document.getElementById('slugPreview');
   const slugText = document.getElementById('slugText');
   if (val.trim()) {
-    slugText.textContent = 'orderlyapp.co.za/order-page.html?store=' + toSlug(val);
+    slugText.textContent = toSlug(val) + '.orderly.co.za';
     preview.style.display = 'flex';
   } else {
     preview.style.display = 'none';
