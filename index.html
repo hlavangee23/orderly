@@ -126,6 +126,7 @@ nav {
   gap: 8px;
   max-width: 420px;
   margin: 0 auto;
+  justify-content: center;
 }
 .hero-input {
   flex: 1;
@@ -155,6 +156,25 @@ nav {
   transition: background 0.2s, transform 0.15s;
 }
 .btn-primary:hover { background: var(--green-900); transform: translateY(-1px); }
+a.btn-primary { text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
+.btn-hero-secondary {
+  background: transparent;
+  color: var(--green-700);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 0.75rem 1.25rem;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+.btn-hero-secondary:hover { background: var(--off-white); border-color: var(--green-400); }
 .hero-note {
   font-size: 0.75rem;
   color: var(--text-muted);
@@ -486,6 +506,42 @@ nav {
   text-align: center;
   margin-top: 0.6rem;
 }
+.price-toggle {
+  display: flex;
+  gap: 6px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 10px;
+  padding: 4px;
+  margin-bottom: 1.25rem;
+}
+.price-toggle-btn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 0.5rem;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.76rem;
+  font-weight: 500;
+  color: rgba(255,255,255,0.6);
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+.price-toggle-btn .price-toggle-amt { font-size: 0.82rem; font-weight: 600; }
+.price-toggle-btn.active { background: white; color: var(--green-900); }
+.price-toggle-btn:not(.active):hover { color: white; }
+.price-save {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--green-400);
+  margin-top: -1rem;
+  margin-bottom: 1.25rem;
+}
 
 /* FOOTER */
 footer {
@@ -509,6 +565,9 @@ footer {
 }
 .footer-tagline { font-size: 0.8rem; color: rgba(255,255,255,0.4); margin-top: 2px; }
 .footer-right { font-size: 0.78rem; text-align: right; }
+.footer-links { display: flex; gap: 1.5rem; font-size: 0.82rem; }
+.footer-links a { color: rgba(255,255,255,0.6); text-decoration: none; transition: color 0.2s; }
+.footer-links a:hover { color: white; }
 
 /* DIVIDER */
 .divider { border: none; border-top: 1px solid var(--border); }
@@ -835,7 +894,8 @@ footer {
     <a href="#how">How it works</a>
     <a href="#features">Features</a>
     <a href="#pricing">Pricing</a>
-    <a href="#waitlist" class="nav-cta">Get early access</a>
+    <a href="orderly-signin.html">Sign in</a>
+    <a href="orderly-signup.html" class="nav-cta">Get started free</a>
   </div>
 </nav>
 
@@ -847,11 +907,10 @@ footer {
       <h1>What do you use<br>for your <em>orders?</em></h1>
       <p class="hero-sub">Orderly gives home food businesses a simple order page, a clean dashboard, and one-click invoices. No more WhatsApp chaos.</p>
       <div class="hero-form" id="waitlist">
-        <input class="hero-input" type="email" id="emailInput" placeholder="Your email address" />
-        <button class="btn-primary" onclick="joinWaitlist()">Get early access</button>
+        <a class="btn-primary" href="orderly-signup.html">Get started free →</a>
+        <a class="btn-hero-secondary" href="orderly-signin.html">Sign in</a>
       </div>
-      <p class="hero-note"><strong>Free 30-day trial.</strong> No credit card needed. Cancel anytime.</p>
-      <div class="success-msg" id="successMsg">✓ You're on the list! We'll be in touch soon.</div>
+      <p class="hero-note"><strong>Free 30-day Pro trial.</strong> No credit card needed. Cancel anytime.</p>
     </div>
   </div>
 </section>
@@ -862,7 +921,7 @@ footer {
 <section style="background: var(--off-white); padding: 80px 0; border-bottom: 1px solid var(--border);">
   <div class="section" style="padding-top:0; padding-bottom:0;">
     <div class="section-label">Sound familiar?</div>
-    <h2 class="section-title">Still juggling 4 different<br>tools to run your business?</h2>
+    <h2 class="section-title">Still juggling 4 different tools to run your business?</h2>
     <p class="section-sub">Most home businesses are held together by a group of apps that were never built for them. It works — until it doesn't.</p>
 
     <div class="chaos-grid">
@@ -917,7 +976,7 @@ footer {
         <div class="chaos-solution-title">There's a better way.</div>
         <div class="chaos-solution-sub">Orderly replaces all four — one tool, built specifically for home businesses like yours.</div>
       </div>
-      <button class="btn-primary" onclick="document.getElementById('waitlist').scrollIntoView({behavior:'smooth'})">Try Orderly free →</button>
+      <a class="btn-primary" href="orderly-signup.html">Try Orderly free →</a>
     </div>
 
   </div>
@@ -929,7 +988,7 @@ footer {
 <section id="how">
   <div class="section">
     <div class="section-label">How it works</div>
-    <h2 class="section-title">Set up in 10 minutes.<br>Start taking orders today.</h2>
+    <h2 class="section-title">Set up in 10 minutes. Start taking orders today.</h2>
     <p class="section-sub">No technical knowledge needed. If you can use WhatsApp, you can use Orderly.</p>
     <div class="steps">
       <div class="step-card">
@@ -960,7 +1019,7 @@ footer {
 <section id="features">
   <div class="section">
     <div class="section-label">Everything you need</div>
-    <h2 class="section-title">Built for home businesses.<br>Not corporate software.</h2>
+    <h2 class="section-title">Built for home businesses. Not corporate software.</h2>
     <p class="section-sub">Every feature in Orderly was designed around one person — someone running a real business from home, on their phone, without a tech team.</p>
     <div class="features-grid">
 
@@ -1010,6 +1069,18 @@ footer {
         <div class="feat-icon">📊</div>
         <div class="feat-title">Basic stats</div>
         <p class="feat-desc">See how many orders you've had this month, your total revenue, and your top selling items. Simple numbers that actually help.</p>
+      </div>
+
+      <div class="feat-card">
+        <div class="feat-icon">🎨</div>
+        <div class="feat-title">Custom invoice look</div>
+        <p class="feat-desc">Pick a theme, accent colour, and font for your invoices, and add a footer message. All point-and-click — no HTML needed.</p>
+      </div>
+
+      <div class="feat-card">
+        <div class="feat-icon">📸</div>
+        <div class="feat-title">Photos on your menu</div>
+        <p class="feat-desc">Add a photo to each item so customers know exactly what they're ordering before they buy. Compressed automatically for fast loading.</p>
       </div>
 
       <div class="feat-card feat-coming">
@@ -1115,34 +1186,40 @@ footer {
         <div class="price-amount">R0</div>
         <div class="price-period">forever · perfect to get started</div>
         <ul class="price-features">
-          <li>Up to <strong>20 orders</strong> per month</li>
-          <li>Up to <strong>10 menu items</strong></li>
-          <li>Up to <strong>10 invoices</strong> per month</li>
+          <li>Up to <strong>50 orders</strong> per month</li>
+          <li>Up to <strong>20 menu items</strong></li>
+          <li>Last <strong>3 invoices</strong> visible</li>
           <li>Your own Orderly link</li>
           <li>Order dashboard & tracking</li>
           <li>WhatsApp notifications</li>
           <li>Basic stats</li>
           <li class="off">Online payments <span class="coming-tag">Soon</span></li>
           <li class="off">Full analytics <span class="coming-tag">Soon</span></li>
-          <li class="off">Remove Orderly branding</li>
 
         </ul>
-        <button class="btn-outline" onclick="joinWaitlist()">Get started free</button>
+        <a class="btn-outline" style="text-decoration:none; display:flex; align-items:center; justify-content:center;" href="orderly-signup.html">Get started free</a>
       </div>
       <div class="price-card featured">
         <div class="price-tier">Pro</div>
-        <div class="price-amount">R199</div>
-        <div class="price-period">per month · for growing businesses</div>
+        <div class="price-toggle">
+          <button type="button" class="price-toggle-btn active" id="toggleMonthly" onclick="setBilling('monthly')">Monthly <span class="price-toggle-amt">R199</span></button>
+          <button type="button" class="price-toggle-btn" id="toggleYearly" onclick="setBilling('yearly')">Yearly <span class="price-toggle-amt">R2,000</span></button>
+        </div>
+        <div class="price-amount" id="proAmount">R199</div>
+        <div class="price-period" id="proPeriod">per month · for growing businesses</div>
+        <div class="price-save" id="proSave" style="display:none;">Save R388 vs. paying monthly</div>
         <ul class="price-features">
           <li><strong>Unlimited</strong> orders</li>
           <li><strong>Unlimited</strong> menu items</li>
           <li><strong>Unlimited</strong> invoices</li>
+          <li>Custom invoice themes & branding</li>
+          <li>Images on your menu</li>
           <li>Everything in Free</li>
           <li>Online payments <span class="coming-tag-light">Soon</span></li>
           <li>Full analytics & insights <span class="coming-tag-light">Soon</span></li>
           <li>Remove Orderly branding</li>
         </ul>
-        <button class="btn-white" onclick="joinWaitlist()">Start 30-day free trial</button>
+        <a class="btn-white" style="text-decoration:none; display:flex; align-items:center; justify-content:center;" href="orderly-signup.html">Start 30-day free trial</a>
         <p class="price-trial">No credit card required</p>
       </div>
     </div>
@@ -1157,25 +1234,37 @@ footer {
       <div class="footer-logo">Orderly</div>
       <div class="footer-tagline">What do you use for your orders?</div>
     </div>
+    <div class="footer-links">
+      <a href="orderly-signin.html">Sign in</a>
+      <a href="orderly-faq.html">FAQ</a>
+      <a href="orderly-contact.html">Contact</a>
+    </div>
     <div class="footer-right">
       <div>Built for South African home businesses</div>
       <div style="margin-top:4px;">© 2026 Orderly</div>
     </div>
   </div>
 </footer>
-
 <script>
-function joinWaitlist() {
-  const email = document.getElementById('emailInput').value.trim();
-  if (!email || !email.includes('@')) {
-    document.getElementById('emailInput').focus();
-    document.getElementById('emailInput').style.borderColor = '#EF4444';
-    setTimeout(() => document.getElementById('emailInput').style.borderColor = '', 2000);
-    return;
+function setBilling(period) {
+  const amount = document.getElementById('proAmount');
+  const periodEl = document.getElementById('proPeriod');
+  const save = document.getElementById('proSave');
+  const mBtn = document.getElementById('toggleMonthly');
+  const yBtn = document.getElementById('toggleYearly');
+  if (period === 'yearly') {
+    amount.textContent = 'R2,000';
+    periodEl.textContent = 'per year · for growing businesses';
+    save.style.display = 'block';
+    yBtn.classList.add('active');
+    mBtn.classList.remove('active');
+  } else {
+    amount.textContent = 'R199';
+    periodEl.textContent = 'per month · for growing businesses';
+    save.style.display = 'none';
+    mBtn.classList.add('active');
+    yBtn.classList.remove('active');
   }
-  document.getElementById('successMsg').style.display = 'block';
-  document.getElementById('emailInput').value = '';
-  document.getElementById('emailInput').style.borderColor = '#2D6A4F';
 }
 </script>
 </body>
