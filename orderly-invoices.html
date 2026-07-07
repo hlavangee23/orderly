@@ -377,10 +377,11 @@ textarea.form-input { resize: vertical; min-height: 60px; }
   </div>
 </div>
 
-<!-- PDF RENDER TARGET — off-screen, fixed width, used only for PDF/share capture.
-     Never shown to the user. Capturing this instead of the resizable on-screen
-     preview is what keeps the PDF layout consistent regardless of screen size. -->
-<div id="pdfRenderTarget" style="position:absolute;left:-9999px;top:0;width:800px;background:white;"></div>
+<!-- PDF RENDER TARGET — sits at real on-screen coordinates (not pushed off
+     with negative positioning, which this html2canvas version fails to
+     capture and produces a blank page) but stays invisible via z-index,
+     tucked behind all normal content. Used only for PDF/share capture. -->
+<div id="pdfRenderTarget" style="position:fixed;top:0;left:0;width:800px;background:white;z-index:-1;"></div>
 
 <div class="toast" id="toast"></div>
 
@@ -1040,6 +1041,7 @@ async function sendInvoiceWhatsApp() {
     try {
       const target = document.getElementById('pdfRenderTarget');
       target.innerHTML = currentInvoiceHTML;
+      await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
       const blob = await html2pdf().set({
         margin: 0.3, image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { scale: 2, useCORS: true, width: 800, windowWidth: 800 }, jsPDF: { unit: 'in', format: 'a4' },
@@ -1060,7 +1062,7 @@ async function sendInvoiceWhatsApp() {
   closeModal();
 }
 
-function printInvoice() {
+async function printInvoice() {
   const filename = `Invoice-INV-${currentInvoiceData.invNum || '0000'}.pdf`;
 
   // If html2pdf failed to load (e.g. blocked network), fall back to the browser's print dialog
@@ -1073,6 +1075,11 @@ function printInvoice() {
 
   const target = document.getElementById('pdfRenderTarget');
   target.innerHTML = currentInvoiceHTML;
+
+  // Wait for the browser to actually paint the new content before capturing —
+  // capturing in the same tick it was injected can race ahead of the render
+  // and produce a blank page.
+  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 
   showToast('Preparing your PDF...');
   html2pdf().set({
