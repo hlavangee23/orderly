@@ -377,6 +377,11 @@ textarea.form-input { resize: vertical; min-height: 60px; }
   </div>
 </div>
 
+<!-- PDF RENDER TARGET — off-screen, fixed width, used only for PDF/share capture.
+     Never shown to the user. Capturing this instead of the resizable on-screen
+     preview is what keeps the PDF layout consistent regardless of screen size. -->
+<div id="pdfRenderTarget" style="position:absolute;left:-9999px;top:0;width:800px;background:white;"></div>
+
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -390,6 +395,7 @@ const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 let userProfile = null;
 let allInvoices = [];
 let currentInvoiceData = {};
+let currentInvoiceHTML = '';
 let manualLines = [];
 const FREE_PLAN_LIMIT = 3;
 const TRIAL_DAYS = 30;
@@ -993,6 +999,7 @@ function openInvoiceFromOrder(orderId) {
   };
 
   const html = renderInvoiceHTML(settings, data);
+  currentInvoiceHTML = html;
   document.getElementById('invoiceFrame').srcdoc = `<html><body style="margin:0;">${html}</body></html>`;
   document.getElementById('invoiceModal').classList.add('open');
 }
@@ -1031,11 +1038,13 @@ async function sendInvoiceWhatsApp() {
   // through the native share sheet instead, which lets WhatsApp attach it directly.
   if (typeof html2pdf !== 'undefined' && navigator.canShare) {
     try {
-      const target = document.getElementById('invoiceFrame').contentDocument.body;
+      const target = document.getElementById('pdfRenderTarget');
+      target.innerHTML = currentInvoiceHTML;
       const blob = await html2pdf().set({
         margin: 0.3, image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, windowWidth: 900 }, jsPDF: { unit: 'in', format: 'a4' },
+        html2canvas: { scale: 2, useCORS: true, width: 800, windowWidth: 800 }, jsPDF: { unit: 'in', format: 'a4' },
       }).from(target).outputPdf('blob');
+      target.innerHTML = '';
       const file = new File([blob], `Invoice-INV-${d.invNum}.pdf`, { type: 'application/pdf' });
       if (navigator.canShare({ files: [file] })) {
         await navigator.share({ files: [file], text: msgText });
@@ -1062,18 +1071,21 @@ function printInvoice() {
     return;
   }
 
-  const target = document.getElementById('invoiceFrame').contentDocument.body;
+  const target = document.getElementById('pdfRenderTarget');
+  target.innerHTML = currentInvoiceHTML;
 
   showToast('Preparing your PDF...');
   html2pdf().set({
     margin: 0.3,
     filename,
     image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true, windowWidth: 900 },
+    html2canvas: { scale: 2, useCORS: true, width: 800, windowWidth: 800 },
     jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
   }).from(target).save().then(() => {
+    target.innerHTML = '';
     showToast('Invoice downloaded ✓');
   }).catch(() => {
+    target.innerHTML = '';
     showToast('Could not generate PDF — try again');
   });
 }
