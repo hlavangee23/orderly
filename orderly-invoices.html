@@ -421,8 +421,32 @@ const FONT_STACKS = {
 function invoiceItemRowsHTML(items) {
   return items.map(i => {
     const amount = i.price * i.qty;
-    return `<tr><td style="padding:10px 0;border-bottom:1px solid #eee;">${i.name}</td><td style="padding:10px 0;border-bottom:1px solid #eee;text-align:right;">R${i.price}</td><td style="padding:10px 0;border-bottom:1px solid #eee;text-align:right;">${i.qty}</td><td style="padding:10px 0;border-bottom:1px solid #eee;text-align:right;font-weight:600;">R${amount}</td></tr>`;
+    return `<tr><td style="padding:0.65rem 0;border-bottom:1px solid #eee;">${i.name}</td><td style="padding:0.65rem 0;border-bottom:1px solid #eee;text-align:right;">R${i.price}</td><td style="padding:0.65rem 0;border-bottom:1px solid #eee;text-align:right;">${i.qty}</td><td style="padding:0.65rem 0;border-bottom:1px solid #eee;text-align:right;font-weight:600;">R${amount}</td></tr>`;
   }).join('');
+}
+
+// Orders placed before delivery_address/rush columns existed stored the
+// address and rush flag as plain text stuffed into notes, e.g.
+// "Address: 59 8th Avenue mayfair, house. ⚡ RUSH ORDER. <real notes if any>"
+// For those historical orders only, pull that structured info back out so
+// it renders in the address line / delivery badge like a normal order,
+// instead of as a raw text blob under "Notes".
+function extractLegacyNotesInfo(rawNotes) {
+  if (!rawNotes) return { cleanNotes: '', legacyAddress: '', legacyRush: false };
+  let notes = rawNotes;
+  let legacyAddress = '';
+  let legacyRush = false;
+
+  const addressMatch = notes.match(/Address:\s*(.+?)(?=\s*⚡\s*RUSH ORDER\.?|$)/i);
+  if (addressMatch) {
+    legacyAddress = addressMatch[1].trim().replace(/\.$/, '');
+    notes = notes.replace(addressMatch[0], '').trim();
+  }
+  if (/⚡?\s*RUSH ORDER\.?/i.test(notes)) {
+    legacyRush = true;
+    notes = notes.replace(/⚡?\s*RUSH ORDER\.?/i, '').trim();
+  }
+  return { cleanNotes: notes, legacyAddress, legacyRush };
 }
 
 // Builds the fee breakdown lines. Uses real separate delivery/rush figures
@@ -430,7 +454,7 @@ function invoiceItemRowsHTML(items) {
 // combined line for older orders that only ever stored a single total.
 function invoiceFeeLinesHTML(data, color) {
   let html = '';
-  const row = (label, amount) => `<div style="display:flex;justify-content:space-between;padding:3px 0;"><span>${label}</span><span>R${amount}</span></div>`;
+  const row = (label, amount) => `<div style="display:flex;justify-content:space-between;padding:0.25rem 0;"><span>${label}</span><span>R${amount}</span></div>`;
   const hasSeparateFees = (data.deliveryFeeCharged > 0) || (data.rushFeeCharged > 0);
   if (hasSeparateFees) {
     if (data.deliveryFeeCharged > 0) html += row('Delivery fee', data.deliveryFeeCharged);
@@ -460,7 +484,7 @@ function renderInvoiceHTML(settings, data) {
 
   const themes = {
     classic: () => page(`
-      <div style="background:${accent};padding:2.25rem 3rem;display:flex;justify-content:space-between;align-items:center;">
+      <div style="background:${accent};padding:2.5rem 3rem;display:flex;justify-content:space-between;align-items:center;">
         <div style="display:flex;align-items:center;gap:12px;">
           ${logoBlock}
           <div style="font-size:1.4rem;color:white;">${brandName}</div>
@@ -495,9 +519,9 @@ function renderInvoiceHTML(settings, data) {
           <tbody style="font-size:0.92rem;">${rows.replace(/<td/g, '<td style="padding-left:1rem;padding-right:1rem;"')}</tbody>
         </table>
         <div style="max-width:320px;margin-left:auto;padding:1rem 0 0;">
-          <div style="display:flex;justify-content:space-between;font-size:0.9rem;padding:3px 0;"><span>Subtotal</span><span>R${data.subtotal}</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:0.9rem;padding:0.25rem 0;"><span>Subtotal</span><span>R${data.subtotal}</span></div>
           ${feeLines}
-          <div style="display:flex;justify-content:space-between;font-size:1.15rem;font-weight:700;border-top:2px solid #222;margin-top:8px;padding-top:10px;"><span>Total due</span><span>R${data.total}</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:1.15rem;font-weight:700;border-top:2px solid #222;margin-top:0.5rem;padding-top:0.75rem;"><span>Total due</span><span>R${data.total}</span></div>
         </div>
         ${(showNotes && data.notes) ? `<div style="margin-top:2rem;"><div style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.06em;color:#7A9A85;margin-bottom:4px;">Notes</div><div style="font-size:0.88rem;background:#F8FAF7;border-radius:8px;padding:0.85rem 1rem;">${data.notes}</div></div>` : ''}
       </div>
@@ -946,6 +970,8 @@ function openInvoiceFromOrder(orderId) {
     ? userProfile.invoice_settings
     : { theme: 'classic', accent_color: '#2D6A4F', font: 'modern', footer_message: 'Thank you for your business!', show_notes: true };
 
+  const { cleanNotes, legacyAddress, legacyRush } = extractLegacyNotesInfo(order.notes || '');
+
   const data = {
     storeName: userProfile.store_name,
     logoUrl: userProfile.logo_url || '',
@@ -954,15 +980,15 @@ function openInvoiceFromOrder(orderId) {
     date: new Date(order.created_at).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' }),
     customerName: order.customer_name,
     customerPhone: order.customer_phone || '',
-    deliveryAddress: order.delivery_address || '',
+    deliveryAddress: order.delivery_address || legacyAddress,
     items,
     subtotal,
     extra: order.total - subtotal,
     deliveryFeeCharged: order.delivery_fee_charged || 0,
     rushFeeCharged: order.rush_fee_charged || 0,
     total: order.total,
-    notes: order.notes || '',
-    deliveryLabel,
+    notes: cleanNotes,
+    deliveryLabel: legacyRush ? `${deliveryLabel} · ⚡ Rush` : deliveryLabel,
     contactLine: contactParts.join(' · '),
   };
 
