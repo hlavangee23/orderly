@@ -119,6 +119,28 @@ body { font-family: 'DM Sans', sans-serif; background: var(--off-white); color: 
 .modal-btn.primary { background: var(--green-700); color: white; border-color: var(--green-700); }
 .modal-btn.primary:hover { background: var(--green-900); }
 
+/* CREATE INVOICE BUTTON */
+.create-invoice-btn { background: var(--green-700); color: white; border: none; border-radius: var(--radius); padding: 0.65rem 1.25rem; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: background 0.2s; white-space: nowrap; }
+.create-invoice-btn:hover { background: var(--green-900); }
+
+/* FORM ELEMENTS (manual invoice modal) */
+.form-group { margin-bottom: 1rem; }
+.form-group:last-child { margin-bottom: 0; }
+.form-label { display: block; font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 5px; }
+.form-input { width: 100%; border: 1.5px solid var(--border); border-radius: var(--radius); padding: 0.65rem 0.85rem; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; color: var(--text); background: var(--white); outline: none; transition: border-color 0.2s; }
+.form-input:focus { border-color: var(--green-400); }
+textarea.form-input { resize: vertical; min-height: 60px; }
+
+/* MANUAL INVOICE LINE ITEMS */
+.manual-line-row { display: grid; grid-template-columns: 1fr 70px 90px 28px; gap: 6px; margin-bottom: 6px; align-items: center; }
+.manual-line-row input { border: 1.5px solid var(--border); border-radius: 8px; padding: 0.5rem 0.6rem; font-family: 'DM Sans', sans-serif; font-size: 0.82rem; color: var(--text); outline: none; width: 100%; }
+.manual-line-row input:focus { border-color: var(--green-400); }
+.manual-line-remove { background: none; border: none; color: var(--text-muted); font-size: 1rem; cursor: pointer; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 6px; transition: all 0.15s; }
+.manual-line-remove:hover { background: #FEF2F2; color: #DC2626; }
+.manual-add-line-btn { background: var(--green-50); color: var(--green-700); border: 1.5px solid var(--green-100); border-radius: 8px; padding: 0.45rem 0.85rem; font-family: 'DM Sans', sans-serif; font-size: 0.78rem; font-weight: 500; cursor: pointer; margin-top: 4px; }
+.manual-add-line-btn:hover { background: var(--green-100); border-color: var(--green-400); }
+.manual-total-row { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0; margin-top: 0.75rem; border-top: 1px solid var(--border); font-size: 0.9rem; font-weight: 600; color: var(--green-900); }
+
 /* TOAST */
 .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--green-900); color: white; padding: 0.7rem 1.25rem; border-radius: 10px; font-size: 0.85rem; font-weight: 500; box-shadow: var(--shadow-md); z-index: 300; opacity: 0; transition: all 0.3s; white-space: nowrap; }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
@@ -167,6 +189,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--off-white); color: 
       <h1>Invoices</h1>
       <p>Every invoice generated from your orders, in one place</p>
     </div>
+    <button class="create-invoice-btn" onclick="openManualInvoiceModal()">+ Create invoice</button>
   </div>
 
   <div class="search-row">
@@ -234,6 +257,44 @@ body { font-family: 'DM Sans', sans-serif; background: var(--off-white); color: 
   </div>
 </div>
 
+<!-- CREATE MANUAL INVOICE MODAL -->
+<div class="modal-overlay" id="manualInvoiceModal" onclick="handleManualModalClick(event)">
+  <div class="modal">
+    <div class="modal-title">Create invoice</div>
+    <p class="modal-sub">For cash or offline sales that didn't come through your order page</p>
+
+    <div class="form-group">
+      <label class="form-label">Customer name</label>
+      <input class="form-input" type="text" id="manualCustomerName" placeholder="e.g. Walk-in customer" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Customer phone <span style="text-transform:none;font-weight:300;color:var(--text-muted);">(optional)</span></label>
+      <input class="form-input" type="tel" id="manualCustomerPhone" placeholder="+27 82 000 0000" />
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Items</label>
+      <div id="manualLinesContainer"></div>
+      <button type="button" class="manual-add-line-btn" onclick="addManualLine()">+ Add another item</button>
+    </div>
+
+    <div class="manual-total-row">
+      <span>Total</span>
+      <span id="manualInvoiceTotal">R0</span>
+    </div>
+
+    <div class="form-group" style="margin-top:1rem;">
+      <label class="form-label">Notes <span style="text-transform:none;font-weight:300;color:var(--text-muted);">(optional)</span></label>
+      <textarea class="form-input" id="manualNotes" placeholder="e.g. Paid in cash at pickup"></textarea>
+    </div>
+
+    <div class="modal-actions" style="margin-top:1.25rem;">
+      <button class="modal-btn" onclick="closeManualInvoiceModal()">Cancel</button>
+      <button class="modal-btn primary" id="createManualInvoiceBtn" onclick="createManualInvoice()">Create invoice</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -246,6 +307,7 @@ const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 let userProfile = null;
 let allInvoices = [];
 let currentInvoiceData = {};
+let manualLines = [];
 const FREE_PLAN_LIMIT = 3;
 const TRIAL_DAYS = 30;
 
@@ -287,7 +349,12 @@ async function init() {
 
 function updateSidebar(p) {
   const initials = p.store_name.split(' ').map(w => w[0]).join('').substring(0,2).toUpperCase();
-  document.getElementById('sidebarAvatar').textContent = initials;
+  const avatar = document.getElementById('sidebarAvatar');
+  if (p.logo_url) {
+    avatar.innerHTML = `<img src="${p.logo_url}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;" />`;
+  } else {
+    avatar.textContent = initials;
+  }
   document.getElementById('sidebarName').textContent = p.store_name;
   document.getElementById('sidebarLink').textContent = p.store_slug + '.orderly.co.za ↗';
   document.getElementById('sidebarBottomName').textContent = p.store_name;
@@ -350,6 +417,7 @@ function renderRow(order, locked) {
     new: ['#DCFCE7', '#15803D'], confirmed: ['#DBEAFE', '#1D4ED8'], preparing: ['#FEF3C7', '#B45309'],
     packing: ['#EDE9FE', '#6D28D9'], ready: ['#CCFBF1', '#0F766E'], out_for_delivery: ['#CCFBF1', '#0F766E'],
     delivered: ['#F3F4F6', '#6B7280'], collected: ['#F3F4F6', '#6B7280'], cancelled: ['#FEE2E2', '#B91C1C'],
+    manual: ['#E0F2FE', '#0369A1'],
   };
   const status = order.status || 'new';
   const [bg, fg] = statusColors[status] || statusColors.new;
@@ -411,9 +479,15 @@ function openInvoiceFromOrder(orderId) {
   if (poweredBy) poweredBy.style.display = isPro ? 'none' : 'block';
 
   const badge = document.getElementById('invDeliveryBadge');
-  badge.textContent = order.delivery_type === 'delivery' ? '🚗 Delivery' : '🏠 Collection';
-  badge.style.background = order.delivery_type === 'delivery' ? '#F0FDF4' : '#E0F2FE';
-  badge.style.color = order.delivery_type === 'delivery' ? '#15803D' : '#0369A1';
+  if (order.delivery_type === 'manual') {
+    badge.textContent = '💵 Manual sale';
+    badge.style.background = '#E0F2FE';
+    badge.style.color = '#0369A1';
+  } else {
+    badge.textContent = order.delivery_type === 'delivery' ? '🚗 Delivery' : '🏠 Collection';
+    badge.style.background = order.delivery_type === 'delivery' ? '#F0FDF4' : '#E0F2FE';
+    badge.style.color = order.delivery_type === 'delivery' ? '#15803D' : '#0369A1';
+  }
 
   document.getElementById('invLines').innerHTML = itemNames.map((name, i) =>
     `<div class="invoice-line"><span>${name}</span><span>R${itemPrices[i]}</span></div>`
@@ -454,6 +528,111 @@ function closeModal() {
 
 function handleModalClick(e) {
   if (e.target === document.getElementById('invoiceModal')) closeModal();
+}
+
+// ── MANUAL INVOICE CREATION (Pro only) ──────────────────────────────
+function openManualInvoiceModal() {
+  if (!hasProAccess(userProfile)) {
+    showToast('Manual invoice creation is a Pro feature — upgrade to unlock it');
+    return;
+  }
+  document.getElementById('manualCustomerName').value = '';
+  document.getElementById('manualCustomerPhone').value = '';
+  document.getElementById('manualNotes').value = '';
+  manualLines = [{ name: '', price: '', qty: 1 }];
+  renderManualLines();
+  document.getElementById('manualInvoiceModal').classList.add('open');
+}
+
+function closeManualInvoiceModal() {
+  document.getElementById('manualInvoiceModal').classList.remove('open');
+}
+
+function handleManualModalClick(e) {
+  if (e.target === document.getElementById('manualInvoiceModal')) closeManualInvoiceModal();
+}
+
+function renderManualLines() {
+  const container = document.getElementById('manualLinesContainer');
+  container.innerHTML = manualLines.map((line, i) => `
+    <div class="manual-line-row">
+      <input type="text" placeholder="Item name" value="${escJs(line.name)}" oninput="updateManualLine(${i}, 'name', this.value)" />
+      <input type="number" placeholder="Price" min="0" value="${line.price}" oninput="updateManualLine(${i}, 'price', this.value)" />
+      <input type="number" placeholder="Qty" min="1" value="${line.qty}" oninput="updateManualLine(${i}, 'qty', this.value)" />
+      <button type="button" class="manual-line-remove" onclick="removeManualLine(${i})" title="Remove">✕</button>
+    </div>`).join('');
+  updateManualTotalDisplay();
+}
+
+function addManualLine() {
+  manualLines.push({ name: '', price: '', qty: 1 });
+  renderManualLines();
+}
+
+function removeManualLine(i) {
+  if (manualLines.length === 1) { manualLines[0] = { name: '', price: '', qty: 1 }; }
+  else { manualLines.splice(i, 1); }
+  renderManualLines();
+}
+
+function updateManualLine(i, field, value) {
+  manualLines[i][field] = (field === 'price' || field === 'qty') ? value : value;
+  updateManualTotalDisplay();
+}
+
+function computeManualTotal() {
+  return manualLines.reduce((sum, l) => {
+    const price = parseFloat(l.price) || 0;
+    const qty = parseInt(l.qty) || 0;
+    return sum + (price * qty);
+  }, 0);
+}
+
+function updateManualTotalDisplay() {
+  document.getElementById('manualInvoiceTotal').textContent = 'R' + computeManualTotal();
+}
+
+async function createManualInvoice() {
+  const validLines = manualLines.filter(l => l.name.trim() && parseFloat(l.price) > 0);
+  if (!validLines.length) { showToast('Add at least one item with a name and price'); return; }
+
+  const btn = document.getElementById('createManualInvoiceBtn');
+  if (btn.disabled) return;
+  btn.disabled = true;
+  btn.textContent = 'Creating...';
+
+  const items = validLines.map(l => ({ name: l.name.trim(), price: parseFloat(l.price), qty: parseInt(l.qty) || 1 }));
+  const total = computeManualTotal();
+  const customerName = document.getElementById('manualCustomerName').value.trim() || 'Walk-in customer';
+  const customerPhone = document.getElementById('manualCustomerPhone').value.trim() || null;
+  const notes = document.getElementById('manualNotes').value.trim();
+
+  // Assign the next invoice number the same way order-page.html does
+  const { count } = await db
+    .from('orders')
+    .select('id', { count: 'exact', head: true })
+    .eq('profile_id', userProfile.id);
+
+  const { error } = await db.from('orders').insert({
+    profile_id: userProfile.id,
+    customer_name: customerName,
+    customer_phone: customerPhone,
+    items,
+    total,
+    delivery_type: 'manual',
+    status: 'manual',
+    notes,
+    invoice_number: (count || 0) + 1,
+  });
+
+  btn.disabled = false;
+  btn.textContent = 'Create invoice';
+
+  if (error) { showToast('Could not create invoice — try again'); return; }
+
+  showToast(`Invoice for "${customerName}" created ✓`);
+  closeManualInvoiceModal();
+  await loadInvoices(userProfile.id);
 }
 
 // ── SHARE LINK ─────────────────────────────────────────────────────
