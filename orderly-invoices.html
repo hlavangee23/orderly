@@ -477,8 +477,43 @@ function invoiceFeeLinesHTML(data, color) {
   return html;
 }
 
+// ── COLOR SAFETY ─────────────────────────────────────────────────────
+// Stores can pick any accent color. Without a safeguard, a light pick
+// (yellow, pale pink, mint) makes white text on that color unreadable,
+// or makes that same color unreadable as text on a near-white surface.
+// These two helpers keep every theme legible no matter what's picked.
+function hexToRgb(hex) {
+  hex = (hex || '').replace('#', '');
+  if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+  const num = parseInt(hex, 16);
+  if (isNaN(num)) return { r: 45, g: 106, b: 79 };
+  return { r: (num >> 16) & 255, g: (num >> 8) & 255, b: num & 255 };
+}
+function relativeLuminance({ r, g, b }) {
+  const [R, G, B] = [r, g, b].map(v => {
+    v /= 255;
+    return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+  });
+  return 0.2126 * R + 0.7152 * G + 0.0722 * B;
+}
+// White or dark text — whichever reads better on a background of this color
+function readableTextOn(hex) {
+  return relativeLuminance(hexToRgb(hex)) > 0.45 ? '#1A2E22' : '#FFFFFF';
+}
+// Darkens a color if it's too light to use as text on a light/white surface
+function safeAccentForText(hex) {
+  const rgb = hexToRgb(hex);
+  if (relativeLuminance(rgb) <= 0.5) return hex;
+  const dark = { r: Math.round(rgb.r * 0.55), g: Math.round(rgb.g * 0.55), b: Math.round(rgb.b * 0.55) };
+  return '#' + [dark.r, dark.g, dark.b].map(v => v.toString(16).padStart(2, '0')).join('');
+}
+
 function renderInvoiceHTML(settings, data) {
   const accent = settings.accent_color || '#2D6A4F';
+  const accentText = safeAccentForText(accent); // for accent used as text on a light background
+  const onAccent = readableTextOn(accent);       // for text sitting on top of an accent background
+  const onAccentSoft = onAccent === '#FFFFFF' ? 'rgba(255,255,255,0.7)' : 'rgba(26,46,34,0.65)';
+  const onAccentSofter = onAccent === '#FFFFFF' ? 'rgba(255,255,255,0.45)' : 'rgba(26,46,34,0.45)';
   const theme = settings.theme || 'classic';
   const font = FONT_STACKS[settings.font] || FONT_STACKS.modern;
   const footerMsg = settings.footer_message || 'Thank you for your business!';
@@ -489,8 +524,10 @@ function renderInvoiceHTML(settings, data) {
   const logoBlock = (!data.poweredByOrderly && data.logoUrl)
     ? `<img src="${data.logoUrl}" style="width:42px;height:42px;border-radius:8px;object-fit:cover;" />`
     : '';
-  const addressBlock = (data.deliveryAddress)
-    ? `<div style="margin-top:3px;font-size:0.78rem;color:#7A9A85;">Deliver to: ${data.deliveryAddress}</div>` : '';
+  // Each theme has its own muted-text tone — the address line now matches
+  // whichever theme it's rendered in instead of one hardcoded green.
+  const addressBlockFn = (mutedColor) => (data.deliveryAddress)
+    ? `<div style="margin-top:3px;font-size:0.78rem;color:${mutedColor};">Deliver to: ${data.deliveryAddress}</div>` : '';
 
   const page = (inner) => `<div style="font-family:${font};width:100%;box-sizing:border-box;color:#222;background:white;">${inner}</div>`;
 
@@ -499,34 +536,34 @@ function renderInvoiceHTML(settings, data) {
       <div style="background:${accent};padding:2.5rem 3rem;display:flex;justify-content:space-between;align-items:center;">
         <div style="display:flex;align-items:center;gap:12px;">
           ${logoBlock}
-          <div style="font-size:1.4rem;color:white;">${brandName}</div>
+          <div style="font-size:1.4rem;color:${onAccent};">${brandName}</div>
         </div>
         <div style="text-align:right;">
-          <div style="font-size:1.6rem;letter-spacing:0.1em;color:rgba(255,255,255,0.9);">INVOICE</div>
-          <div style="font-size:0.8rem;color:rgba(255,255,255,0.5);">INV-${data.invoiceNumber}</div>
+          <div style="font-size:1.6rem;letter-spacing:0.1em;color:${onAccentSoft};">INVOICE</div>
+          <div style="font-size:0.8rem;color:${onAccentSofter};">INV-${data.invoiceNumber}</div>
         </div>
       </div>
-      ${data.poweredByOrderly ? `<div style="font-size:0.68rem;color:rgba(255,255,255,0.4);padding:0 3rem;background:${accent};">Powered by Orderly</div>` : ''}
+      ${data.poweredByOrderly ? `<div style="font-size:0.68rem;color:${onAccentSofter};padding:0.4rem 3rem;background:${accent};">Powered by Orderly</div>` : ''}
       <div style="padding:2.5rem 3rem 1rem;">
         <div style="display:flex;justify-content:space-between;margin-bottom:2rem;">
           <div>
             <div style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.06em;color:#7A9A85;">Invoice to</div>
             <div style="font-size:1.15rem;font-weight:600;">${data.customerName}</div>
             <div style="font-size:0.85rem;color:#7A9A85;margin-top:2px;">${data.customerPhone || ''}</div>
-            ${addressBlock}
+            ${addressBlockFn('#7A9A85')}
           </div>
           <div style="text-align:right;">
             <div style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.06em;color:#7A9A85;">Date</div>
             <div style="font-size:0.95rem;font-weight:500;">${data.date}</div>
-            <div style="font-size:0.75rem;margin-top:8px;padding:4px 12px;border-radius:20px;display:inline-block;background:#E8F4ED;color:${accent};">${data.deliveryLabel}</div>
+            <div style="font-size:0.75rem;margin-top:8px;padding:4px 12px;border-radius:20px;display:inline-block;background:#E8F4ED;color:${accentText};">${data.deliveryLabel}</div>
           </div>
         </div>
         <table style="width:100%;border-collapse:collapse;">
           <thead><tr>
-            <th style="background:#F2FAF5;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.04em;color:${accent};text-align:left;padding:0.75rem 1rem;">Description</th>
-            <th style="background:#F2FAF5;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.04em;color:${accent};text-align:right;padding:0.75rem 1rem;">Price</th>
-            <th style="background:#F2FAF5;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.04em;color:${accent};text-align:right;padding:0.75rem 1rem;">Qty</th>
-            <th style="background:#F2FAF5;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.04em;color:${accent};text-align:right;padding:0.75rem 1rem;">Amount</th>
+            <th style="background:#F2FAF5;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.04em;color:${accentText};text-align:left;padding:0.75rem 1rem;">Description</th>
+            <th style="background:#F2FAF5;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.04em;color:${accentText};text-align:right;padding:0.75rem 1rem;">Price</th>
+            <th style="background:#F2FAF5;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.04em;color:${accentText};text-align:right;padding:0.75rem 1rem;">Qty</th>
+            <th style="background:#F2FAF5;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.04em;color:${accentText};text-align:right;padding:0.75rem 1rem;">Amount</th>
           </tr></thead>
           <tbody style="font-size:0.92rem;">${rows.replace(/<td/g, '<td style="padding-left:1rem;padding-right:1rem;"')}</tbody>
         </table>
@@ -550,17 +587,18 @@ function renderInvoiceHTML(settings, data) {
         </div>
         <div style="font-size:2.2rem;font-weight:800;letter-spacing:0.04em;color:white;">INVOICE</div>
       </div>
+      <div style="background:${accent};height:5px;"></div>
       <div style="padding:2rem 3rem 0;display:flex;justify-content:space-between;">
         <div>
           <div style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;color:#999;">Invoice to</div>
           <div style="font-size:1.1rem;font-weight:700;">${data.customerName}</div>
           <div style="font-size:0.85rem;color:#999;">${data.customerPhone || ''}</div>
-          ${addressBlock}
+          ${addressBlockFn('#999')}
         </div>
         <div style="text-align:right;">
           <div style="font-size:0.78rem;color:#999;">Invoice No: <b>${data.invoiceNumber}</b></div>
           <div style="font-size:0.78rem;color:#999;">Invoice Date: <b>${data.date}</b></div>
-          <div style="font-size:0.78rem;color:#999;">${data.deliveryLabel}</div>
+          <div style="font-size:0.78rem;color:${accentText};font-weight:600;margin-top:2px;">${data.deliveryLabel}</div>
         </div>
       </div>
       <div style="padding:1.5rem 3rem;">
@@ -574,13 +612,13 @@ function renderInvoiceHTML(settings, data) {
           <tbody style="font-size:0.92rem;">${rows.replace(/<td/g, '<td style="padding-left:1rem;padding-right:1rem;"')}</tbody>
         </table>
         <div style="max-width:320px;margin-left:auto;padding-top:0.75rem;">
-          <div style="display:flex;justify-content:space-between;font-size:0.88rem;color:#555;padding:3px 0;"><span>Subtotal</span><span>R${data.subtotal}</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:0.88rem;color:#999;padding:0.25rem 0;"><span>Subtotal</span><span>R${data.subtotal}</span></div>
           ${feeLines}
         </div>
       </div>
       <div style="background:${accent};margin:0 3rem;padding:1rem 1.5rem;display:flex;justify-content:space-between;align-items:center;">
-        <span style="color:white;font-weight:600;font-size:1rem;">TOTAL</span>
-        <span style="color:white;font-weight:800;font-size:1.3rem;">R${data.total}</span>
+        <span style="color:${onAccent};font-weight:600;font-size:1rem;">TOTAL</span>
+        <span style="color:${onAccent};font-weight:800;font-size:1.3rem;">R${data.total}</span>
       </div>
       ${(showNotes && data.notes) ? `<div style="padding:1.5rem 3rem 0;"><div style="font-size:0.75rem;font-weight:700;">TERMS & NOTES</div><div style="font-size:0.85rem;color:#666;margin-top:4px;">${data.notes}</div></div>` : ''}
       <div style="padding:2rem 3rem 2.5rem;text-align:center;">
@@ -596,7 +634,7 @@ function renderInvoiceHTML(settings, data) {
             <div style="font-size:1.3rem;">${brandName}</div>
           </div>
           <div style="text-align:right;">
-            <div style="font-size:1.05rem;letter-spacing:0.15em;color:${accent};">INVOICE</div>
+            <div style="font-size:1.05rem;letter-spacing:0.15em;color:${accentText};">INVOICE</div>
             <div style="font-size:0.78rem;color:#999;margin-top:2px;">No. ${data.invoiceNumber}</div>
           </div>
         </div>
@@ -605,12 +643,12 @@ function renderInvoiceHTML(settings, data) {
             <div style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;color:#aaa;">Billed to</div>
             <div style="font-size:1rem;margin-top:3px;">${data.customerName}</div>
             <div style="font-size:0.8rem;color:#aaa;">${data.customerPhone || ''}</div>
-            ${addressBlock}
+            ${addressBlockFn('#aaa')}
           </div>
           <div style="text-align:right;">
             <div style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;color:#aaa;">Date</div>
             <div style="font-size:0.9rem;margin-top:3px;">${data.date}</div>
-            <div style="font-size:0.78rem;color:${accent};margin-top:5px;">${data.deliveryLabel}</div>
+            <div style="font-size:0.78rem;color:${accentText};margin-top:5px;">${data.deliveryLabel}</div>
           </div>
         </div>
         <table style="width:100%;border-collapse:collapse;border-top:1.5px solid #222;">
@@ -625,7 +663,7 @@ function renderInvoiceHTML(settings, data) {
         <div style="max-width:320px;margin-left:auto;margin-top:0.5rem;">
           <div style="display:flex;justify-content:space-between;font-size:0.88rem;color:#666;padding:4px 0;"><span>Subtotal</span><span>R${data.subtotal}</span></div>
           ${feeLines}
-          <div style="display:flex;justify-content:space-between;font-size:1.15rem;color:${accent};padding:10px 0;margin-top:4px;border-top:1px solid #eee;"><span>Total due</span><span>R${data.total}</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:1.15rem;color:${accentText};padding:10px 0;margin-top:4px;border-top:1px solid #eee;"><span>Total due</span><span>R${data.total}</span></div>
         </div>
         ${(showNotes && data.notes) ? `<div style="margin-top:1.5rem;"><div style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.06em;color:#aaa;">Notes</div><div style="font-size:0.85rem;color:#666;margin-top:3px;">${data.notes}</div></div>` : ''}
         <div style="text-align:center;margin-top:3rem;padding-top:1.5rem;border-top:1px solid #eee;">
@@ -641,20 +679,20 @@ function renderInvoiceHTML(settings, data) {
             ${logoBlock}
             <div style="font-size:1.3rem;color:#5C4033;">${brandName}</div>
           </div>
-          <div style="background:${accent};color:white;padding:8px 18px;border-radius:20px;font-size:0.85rem;font-weight:600;">Invoice #${data.invoiceNumber}</div>
+          <div style="background:${accent};color:${onAccent};padding:8px 18px;border-radius:20px;font-size:0.85rem;font-weight:600;">Invoice #${data.invoiceNumber}</div>
         </div>
         <div style="background:white;border-radius:16px;padding:2rem 2.25rem;">
           <div style="display:flex;justify-content:space-between;margin-bottom:1.5rem;">
             <div>
-              <div style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.05em;color:${accent};">For</div>
+              <div style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.05em;color:${accentText};">For</div>
               <div style="font-size:1.05rem;font-weight:600;color:#5C4033;">${data.customerName}</div>
               <div style="font-size:0.8rem;color:#A08670;">${data.customerPhone || ''}</div>
-              ${addressBlock}
+              ${addressBlockFn('#A08670')}
             </div>
             <div style="text-align:right;">
-              <div style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.05em;color:${accent};">Date</div>
+              <div style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.05em;color:${accentText};">Date</div>
               <div style="font-size:0.88rem;color:#5C4033;">${data.date}</div>
-              <div style="font-size:0.78rem;color:${accent};margin-top:4px;">${data.deliveryLabel}</div>
+              <div style="font-size:0.78rem;color:${accentText};margin-top:4px;">${data.deliveryLabel}</div>
             </div>
           </div>
           <table style="width:100%;border-collapse:collapse;">
@@ -669,7 +707,7 @@ function renderInvoiceHTML(settings, data) {
           <div style="max-width:300px;margin-left:auto;padding:1rem 0 0;">
             <div style="display:flex;justify-content:space-between;font-size:0.88rem;color:#6B5344;padding:3px 0;"><span>Subtotal</span><span>R${data.subtotal}</span></div>
             ${feeLines}
-            <div style="display:flex;justify-content:space-between;font-size:1.1rem;font-weight:700;color:${accent};border-top:1.5px solid ${accent};margin-top:8px;padding-top:10px;"><span>Total due</span><span>R${data.total}</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:1.1rem;font-weight:700;color:${accentText};border-top:1.5px solid ${accent};margin-top:8px;padding-top:10px;"><span>Total due</span><span>R${data.total}</span></div>
           </div>
           ${(showNotes && data.notes) ? `<div style="margin-top:1.25rem;"><div style="font-size:0.72rem;text-transform:uppercase;color:#A08670;">Notes</div><div style="font-size:0.85rem;color:#6B5344;background:#FBF6F0;border-radius:8px;padding:0.75rem 1rem;margin-top:4px;">${data.notes}</div></div>` : ''}
         </div>
