@@ -1196,6 +1196,21 @@ textarea.form-input { resize: vertical; line-height: 1.5; }
   </div>
 </div>
 
+<!-- TRIAL EXPIRED MODAL — shown once, the first dashboard visit after the trial ends -->
+<div class="modal-overlay" id="trialExpiredModal" onclick="if(event.target===this)closeTrialExpiredModal()">
+  <div class="modal">
+    <div class="modal-title">Your Pro trial has ended</div>
+    <p class="modal-sub">You're now on the Free plan — 50 orders/month, 20 menu items, and Orderly branding on your invoices. Everything you've already added stays exactly as it is; you just can't add more past those limits until you upgrade.</p>
+    <div style="background:var(--green-50);border:1px solid var(--green-100);border-radius:var(--radius);padding:0.85rem 1rem;margin-bottom:1.25rem;font-size:0.8rem;color:var(--text-mid);line-height:1.6;">
+      <strong style="color:var(--green-700);">R199/month</strong> or <strong style="color:var(--green-700);">R2,000/year</strong> to remove all limits and go unlimited.
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn" onclick="closeTrialExpiredModal()">Maybe later</button>
+      <button class="modal-btn primary" onclick="showToast('Payments coming soon! 🚀');closeTrialExpiredModal()">Upgrade to Pro →</button>
+    </div>
+  </div>
+</div>
+
 <!-- IMAGE LIGHTBOX -->
 <div class="img-lightbox" id="dashLightbox" onclick="closeDashboardLightbox()">
   <button class="img-lightbox-close" onclick="closeDashboardLightbox()">✕</button>
@@ -1245,6 +1260,7 @@ async function init() {
 
   // Show trial/plan banner
   initTrialBanner(profile);
+  checkTrialExpiredModal(profile);
 
   // Load real orders and menu (runs in background, hidden behind the wizard if it's shown)
   const [ordersResult, menuResult] = await Promise.all([loadOrders(profile.id), loadMenu(profile.id)]);
@@ -1311,6 +1327,22 @@ function initTrialBanner(profile) {
     <button class="trial-banner-btn" onclick="${state === 'trial_active' ? 'showProFeatures()' : 'showToast(\'Payments coming soon! 🚀\')'}">${btnText}</button>
   `;
   banner.style.display = 'flex';
+}
+
+function checkTrialExpiredModal(profile) {
+  const { state } = getTrialState(profile);
+  if (state !== 'trial_expired' || profile.plan === 'pro') return;
+  if (profile.trial_expired_modal_shown) return;
+
+  document.getElementById('trialExpiredModal').classList.add('open');
+
+  // Mark as shown server-side so it doesn't pop up again on their next visit
+  db.from('profiles').update({ trial_expired_modal_shown: true }).eq('id', profile.id)
+    .then(() => { userProfile.trial_expired_modal_shown = true; });
+}
+
+function closeTrialExpiredModal() {
+  document.getElementById('trialExpiredModal').classList.remove('open');
 }
 
 // ── FREE PLAN CAPS ─────────────────────────────────────────────────
