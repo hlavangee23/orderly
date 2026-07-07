@@ -223,7 +223,7 @@ textarea.form-input { resize: vertical; min-height: 60px; }
   <div class="modal">
     <div class="modal-title">Invoice</div>
     <p class="modal-sub">View, send, or download this invoice</p>
-    <div class="invoice-preview">
+    <div class="invoice-preview" id="defaultInvoicePreview">
       <div class="invoice-head">
         <div>
           <div class="invoice-head-brand" id="invoiceHeadBrand">
@@ -252,6 +252,9 @@ textarea.form-input { resize: vertical; min-height: 60px; }
         <div class="invoice-total-label">Total due</div>
         <div class="invoice-total-val" id="invTotal">R0</div>
       </div>
+    </div>
+    <div id="customInvoiceContainer" style="display:none;border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;">
+      <iframe id="customInvoiceFrame" style="width:100%;border:none;display:block;" height="400"></iframe>
     </div>
     <div class="modal-actions">
       <button class="modal-btn" onclick="closeModal()">Close</button>
@@ -327,6 +330,26 @@ function getTrialState(profile) {
 function hasProAccess(profile) {
   const { state } = getTrialState(profile);
   return state === 'pro' || state === 'trial_active';
+}
+
+// Swaps {{tag}} placeholders for real values. Same logic as the preview in
+// orderly-settings.html — keeping this identical so preview = real invoice.
+function renderCustomInvoiceHTML(template, data) {
+  const rows = (data.items || []).map(i =>
+    `<div style="display:flex;justify-content:space-between;font-size:0.8rem;padding:4px 0;border-bottom:1px solid #f0f0f0;"><span>${i.qty}× ${i.name}</span><span>R${i.price * i.qty}</span></div>`
+  ).join('');
+
+  return template
+    .split('{{store_name}}').join(data.store_name || '')
+    .split('{{logo_url}}').join(data.logo_url || '')
+    .split('{{invoice_number}}').join(data.invoice_number || '')
+    .split('{{date}}').join(data.date || '')
+    .split('{{customer_name}}').join(data.customer_name || '')
+    .split('{{customer_phone}}').join(data.customer_phone || '')
+    .split('{{items_rows}}').join(rows)
+    .split('{{total}}').join(data.total || 'R0')
+    .split('{{notes}}').join(data.notes || '')
+    .split('{{delivery_label}}').join(data.delivery_label || '');
 }
 
 // ── ESCAPE / HELPERS reused from dashboard pattern ──────────────────
@@ -464,11 +487,40 @@ function openInvoiceFromOrder(orderId) {
   const itemNames = items.map(i => `${i.qty}× ${i.name}`);
   const itemPrices = items.map(i => i.price * i.qty);
   const invNum = String(order.invoice_number || 0).padStart(4, '0');
+  const isPro = hasProAccess(userProfile);
 
   currentInvoiceData = {
     customer: order.customer_name, total: order.total, itemNames, itemPrices,
     deliveryType: order.delivery_type, phone: order.customer_phone, invNum,
   };
+
+  const deliveryLabels = { delivery: 'Delivery', collection: 'Collection', manual: 'Manual sale' };
+  const deliveryLabel = deliveryLabels[order.delivery_type] || 'Collection';
+
+  // Custom template takes over the whole preview if the store has one saved (Pro only)
+  if (isPro && userProfile.custom_invoice_template) {
+    const data = {
+      store_name: userProfile.store_name,
+      logo_url: userProfile.logo_url || '',
+      invoice_number: invNum,
+      date: new Date(order.created_at).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' }),
+      customer_name: order.customer_name,
+      customer_phone: order.customer_phone || '',
+      items,
+      total: 'R' + order.total,
+      notes: order.notes || '',
+      delivery_label: deliveryLabel,
+    };
+    const html = renderCustomInvoiceHTML(userProfile.custom_invoice_template, data);
+    document.getElementById('customInvoiceFrame').srcdoc = `<html><body style="margin:0;">${html}</body></html>`;
+    document.getElementById('defaultInvoicePreview').style.display = 'none';
+    document.getElementById('customInvoiceContainer').style.display = 'block';
+    document.getElementById('invoiceModal').classList.add('open');
+    return;
+  }
+
+  document.getElementById('defaultInvoicePreview').style.display = 'block';
+  document.getElementById('customInvoiceContainer').style.display = 'none';
 
   document.getElementById('invCustomer').textContent = order.customer_name;
   document.getElementById('invPhone').textContent = order.customer_phone || '';
@@ -476,7 +528,6 @@ function openInvoiceFromOrder(orderId) {
   document.getElementById('invNum').textContent = 'INV-' + invNum;
   document.getElementById('invDate').textContent = new Date(order.created_at).toLocaleDateString('en-ZA', { day:'numeric', month:'short', year:'numeric' });
   // Branding swap — Free shows "Orderly", Pro shows their own logo + store name
-  const isPro = hasProAccess(userProfile);
   const brandName = isPro ? (userProfile?.store_name || 'Orderly') : 'Orderly';
   const brandEl = document.getElementById('invoiceHeadBrand');
   if (isPro && userProfile?.logo_url) {
@@ -527,7 +578,14 @@ function sendInvoiceWhatsApp() {
 }
 
 function printInvoice() {
-  window.print();
+  const customVisible = document.getElementById('customInvoiceContainer').style.display === 'block';
+  if (customVisible) {
+    const frame = document.getElementById('customInvoiceFrame');
+    frame.contentWindow.focus();
+    frame.contentWindow.print();
+  } else {
+    window.print();
+  }
   showToast('Saving as PDF... ✓');
 }
 

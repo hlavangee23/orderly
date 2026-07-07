@@ -121,6 +121,32 @@ select.form-input { cursor: pointer; }
 .danger-section { border-color: #FECACA; }
 .danger-section .section-header { background: #FEF2F2; border-bottom-color: #FECACA; }
 .danger-section .section-icon { background: #FEE2E2; }
+
+/* INVOICE TEMPLATE SECTION */
+.pro-badge { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; background: var(--green-700); color: white; padding: 2px 8px; border-radius: 20px; margin-left: 8px; vertical-align: middle; }
+.template-locked { padding: 1.5rem 1.4rem; text-align: center; }
+.template-locked-icon { font-size: 1.8rem; margin-bottom: 0.5rem; }
+.template-locked-title { font-size: 0.9rem; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+.template-locked-sub { font-size: 0.8rem; color: var(--text-muted); font-weight: 300; max-width: 380px; margin: 0 auto 1rem; line-height: 1.6; }
+.tag-reference { display: flex; flex-wrap: wrap; gap: 6px; margin: 0.75rem 0 1.1rem; }
+.tag-pill { font-family: monospace; font-size: 0.72rem; background: var(--green-50); color: var(--green-700); border: 1px solid var(--green-100); border-radius: 6px; padding: 3px 8px; cursor: pointer; transition: all 0.15s; }
+.tag-pill:hover { background: var(--green-100); border-color: var(--green-400); }
+textarea.template-editor { font-family: 'SF Mono', 'Consolas', monospace; font-size: 0.78rem; min-height: 220px; line-height: 1.6; }
+.template-actions { display: flex; gap: 8px; margin-top: 0.85rem; flex-wrap: wrap; }
+.template-action-btn { background: var(--off-white); border: 1.5px solid var(--border); color: var(--text-mid); border-radius: 8px; padding: 0.55rem 1rem; font-family: 'DM Sans', sans-serif; font-size: 0.8rem; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+.template-action-btn:hover { border-color: var(--green-400); color: var(--green-700); background: var(--green-50); }
+.template-action-btn.danger:hover { border-color: #FCA5A5; color: #DC2626; background: #FEF2F2; }
+
+/* PREVIEW MODAL */
+.preview-modal-overlay { position: fixed; inset: 0; background: rgba(15,35,24,0.6); z-index: 500; display: none; align-items: center; justify-content: center; padding: 2rem; }
+.preview-modal-overlay.open { display: flex; }
+.preview-modal { background: var(--white); border-radius: var(--radius-lg); width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto; padding: 1.5rem; box-shadow: var(--shadow-md); }
+.preview-modal-title { font-family: 'Instrument Serif', serif; font-size: 1.2rem; color: var(--green-900); margin-bottom: 0.25rem; }
+.preview-modal-sub { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 1rem; }
+.preview-frame-wrap { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: var(--off-white); }
+.preview-frame-wrap iframe { width: 100%; border: none; display: block; }
+.preview-modal-close { width: 100%; margin-top: 1rem; background: var(--green-700); color: white; border: none; border-radius: 8px; padding: 0.7rem; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 500; cursor: pointer; }
+.preview-modal-close:hover { background: var(--green-900); }
 .danger-btn { background: transparent; color: #DC2626; border: 1.5px solid #FECACA; border-radius: var(--radius); padding: 0.65rem 1rem; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: all 0.2s; width: 100%; }
 .danger-btn:hover { background: #FEF2F2; border-color: #DC2626; }
 
@@ -458,6 +484,51 @@ select.form-input { cursor: pointer; }
     </div>
   </div>
 
+  <!-- INVOICE TEMPLATE (Pro feature) -->
+  <div class="settings-grid full" style="margin-bottom:1.25rem;">
+    <div class="section-card">
+      <div class="section-header">
+        <div class="section-icon">🎨</div>
+        <div>
+          <div class="section-title">Invoice template<span class="pro-badge">Pro</span></div>
+          <div class="section-sub">Design your own invoice instead of using Orderly's default look</div>
+        </div>
+      </div>
+
+      <!-- Locked state — shown to Free plan users -->
+      <div class="template-locked" id="templateLocked" style="display:none;">
+        <div class="template-locked-icon">🔒</div>
+        <div class="template-locked-title">Custom invoice templates are a Pro feature</div>
+        <div class="template-locked-sub">Design your own invoice layout with your own fonts, colours, and branding — upgrade to Pro to unlock it.</div>
+        <button class="template-action-btn" onclick="showToast('Upgrade coming soon! 🚀')">Upgrade to Pro</button>
+      </div>
+
+      <!-- Editor — shown to Pro/trial users -->
+      <div class="section-body" id="templateEditor" style="display:none;">
+        <p class="form-hint" style="margin-bottom:0.6rem;">Write your own HTML invoice design and use these tags anywhere — we'll swap them for real data when an invoice is generated. Click a tag to copy it.</p>
+        <div class="tag-reference">
+          <span class="tag-pill" onclick="copyTag('{{store_name}}')">{{store_name}}</span>
+          <span class="tag-pill" onclick="copyTag('{{logo_url}}')">{{logo_url}}</span>
+          <span class="tag-pill" onclick="copyTag('{{invoice_number}}')">{{invoice_number}}</span>
+          <span class="tag-pill" onclick="copyTag('{{date}}')">{{date}}</span>
+          <span class="tag-pill" onclick="copyTag('{{customer_name}}')">{{customer_name}}</span>
+          <span class="tag-pill" onclick="copyTag('{{customer_phone}}')">{{customer_phone}}</span>
+          <span class="tag-pill" onclick="copyTag('{{items_rows}}')">{{items_rows}}</span>
+          <span class="tag-pill" onclick="copyTag('{{total}}')">{{total}}</span>
+          <span class="tag-pill" onclick="copyTag('{{notes}}')">{{notes}}</span>
+          <span class="tag-pill" onclick="copyTag('{{delivery_label}}')">{{delivery_label}}</span>
+        </div>
+        <textarea class="form-input template-editor" id="invoiceTemplate" placeholder="Leave blank to use Orderly's default invoice design, or click 'Start from a template' below to get a working example you can customise."></textarea>
+        <p class="form-hint">{{items_rows}} automatically inserts one line per item — you don't need to write a loop, just place that tag where you want the item list to appear.</p>
+        <div class="template-actions">
+          <button class="template-action-btn" onclick="useStarterTemplate()">Start from a template</button>
+          <button class="template-action-btn" onclick="previewInvoiceTemplate()">Preview with sample data</button>
+          <button class="template-action-btn danger" onclick="resetInvoiceTemplate()">Reset to default</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- DANGER ZONE -->
   <div class="settings-grid full">
     <div class="section-card danger-section">
@@ -485,6 +556,18 @@ select.form-input { cursor: pointer; }
 
 <div class="toast" id="toast"></div>
 
+<!-- INVOICE TEMPLATE PREVIEW MODAL -->
+<div class="preview-modal-overlay" id="previewModalOverlay" onclick="if(event.target===this)closePreviewModal()">
+  <div class="preview-modal">
+    <div class="preview-modal-title">Template preview</div>
+    <p class="preview-modal-sub">Rendered with sample data — this is what a real invoice will look like</p>
+    <div class="preview-frame-wrap">
+      <iframe id="previewFrame" height="500"></iframe>
+    </div>
+    <button class="preview-modal-close" onclick="closePreviewModal()">Close preview</button>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL = 'https://qhcdlfnsjdspisjkfndq.supabase.co';
@@ -496,6 +579,15 @@ let userProfile = null;
 let pendingLogoFile = null;
 let existingLogoUrl = null;
 let logoRemoved = false;
+
+const TRIAL_DAYS = 30;
+function hasProAccess(profile) {
+  if (!profile) return false;
+  if (profile.plan === 'pro') return true;
+  const trialStart = new Date(profile.trial_start_date || profile.created_at);
+  const daysLeft = TRIAL_DAYS - Math.floor((Date.now() - trialStart) / (1000*60*60*24));
+  return daysLeft > 0;
+}
 
 // ── INIT ───────────────────────────────────────────────────────────
 async function init() {
@@ -511,6 +603,11 @@ async function init() {
   userProfile = profile;
   populateForm(profile);
   updateSidebar(profile);
+
+  const isPro = hasProAccess(profile);
+  document.getElementById('templateLocked').style.display = isPro ? 'none' : 'block';
+  document.getElementById('templateEditor').style.display = isPro ? 'block' : 'none';
+
   document.getElementById('loadingOverlay').style.display = 'none';
 }
 
@@ -541,6 +638,7 @@ function populateForm(p) {
   setValue('bankAccountHolder', p.bank_account_holder || '');
   setValue('bankAccountNumber', p.bank_account_number || '');
   setValue('bankBranchCode', p.bank_branch_code || '');
+  setValue('invoiceTemplate', p.custom_invoice_template || '');
 
   // Order link
   const link = `orderlyapp.co.za/order-page.html?store=${p.store_slug}`;
@@ -663,6 +761,7 @@ async function saveAll() {
     bank_account_holder: getValue('bankAccountHolder'),
     bank_account_number: getValue('bankAccountNumber'),
     bank_branch_code:   getValue('bankBranchCode'),
+    custom_invoice_template: getValue('invoiceTemplate').trim() || null,
   };
 
   const { error } = await db.from('profiles')
@@ -741,6 +840,104 @@ function showToast(msg) {
   t.textContent = msg;
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ── INVOICE TEMPLATE ─────────────────────────────────────────────────
+function copyTag(tag) {
+  navigator.clipboard.writeText(tag).then(() => {
+    showToast(`Copied ${tag} — paste it into your template`);
+  }).catch(() => {
+    showToast(`Tag: ${tag}`);
+  });
+}
+
+// Swaps {{tag}} placeholders for real values. Shared logic — orderly-invoices.html
+// has the same function so real invoices render identically to this preview.
+function renderCustomInvoiceHTML(template, data) {
+  const rows = (data.items || []).map(i =>
+    `<div style="display:flex;justify-content:space-between;font-size:0.8rem;padding:4px 0;border-bottom:1px solid #f0f0f0;"><span>${i.qty}× ${i.name}</span><span>R${i.price * i.qty}</span></div>`
+  ).join('');
+
+  return template
+    .split('{{store_name}}').join(data.store_name || '')
+    .split('{{logo_url}}').join(data.logo_url || '')
+    .split('{{invoice_number}}').join(data.invoice_number || '')
+    .split('{{date}}').join(data.date || '')
+    .split('{{customer_name}}').join(data.customer_name || '')
+    .split('{{customer_phone}}').join(data.customer_phone || '')
+    .split('{{items_rows}}').join(rows)
+    .split('{{total}}').join(data.total || 'R0')
+    .split('{{notes}}').join(data.notes || '')
+    .split('{{delivery_label}}').join(data.delivery_label || '');
+}
+
+const STARTER_TEMPLATE = `<div style="font-family:'DM Sans',sans-serif;max-width:400px;margin:0 auto;border-radius:16px;overflow:hidden;border:1px solid #e5e5e5;">
+  <div style="background:#0F2318;padding:1rem 1.25rem;display:flex;justify-content:space-between;align-items:center;">
+    <div style="display:flex;align-items:center;gap:9px;">
+      <img src="{{logo_url}}" style="width:34px;height:34px;border-radius:8px;object-fit:cover;" />
+      <div style="font-family:Georgia,serif;font-size:1.1rem;color:white;">{{store_name}}</div>
+    </div>
+    <div style="font-size:0.75rem;color:rgba(255,255,255,0.6);font-weight:600;">INV-{{invoice_number}}</div>
+  </div>
+  <div style="padding:1.25rem;background:white;">
+    <div style="display:flex;justify-content:space-between;margin-bottom:1rem;">
+      <div>
+        <div style="font-size:0.7rem;color:#7A9A85;text-transform:uppercase;">Invoice for</div>
+        <div style="font-size:0.9rem;font-weight:500;color:#0F2318;">{{customer_name}}</div>
+        <div style="font-size:0.72rem;color:#7A9A85;">{{customer_phone}}</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:0.7rem;color:#7A9A85;text-transform:uppercase;">Date</div>
+        <div style="font-size:0.8rem;font-weight:500;color:#0F2318;">{{date}}</div>
+      </div>
+    </div>
+    {{items_rows}}
+    <div style="display:flex;justify-content:space-between;padding-top:0.75rem;margin-top:0.75rem;border-top:1px solid #eee;font-weight:600;color:#1A3D2B;">
+      <span>Total due</span><span>{{total}}</span>
+    </div>
+  </div>
+</div>`;
+
+function useStarterTemplate() {
+  const current = document.getElementById('invoiceTemplate').value.trim();
+  if (current && !confirm('This will replace what you\'ve written so far. Continue?')) return;
+  document.getElementById('invoiceTemplate').value = STARTER_TEMPLATE;
+}
+
+function previewInvoiceTemplate() {
+  const template = document.getElementById('invoiceTemplate').value.trim();
+  if (!template) { showToast('Write or start a template first'); return; }
+
+  const sampleData = {
+    store_name: userProfile?.store_name || 'Your Store',
+    logo_url: userProfile?.logo_url || 'https://placehold.co/68x68/2D6A4F/white?text=🏪',
+    invoice_number: '0042',
+    date: new Date().toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' }),
+    customer_name: 'Jane Doe',
+    customer_phone: '+27 82 123 4567',
+    items: [
+      { name: 'Chocolate cupcakes (6 pack)', price: 120, qty: 1 },
+      { name: 'Vanilla cake slice', price: 45, qty: 2 },
+    ],
+    total: 'R210',
+    notes: 'Paid in cash at pickup',
+    delivery_label: 'Collection',
+  };
+
+  const html = renderCustomInvoiceHTML(template, sampleData);
+  document.getElementById('previewFrame').srcdoc =
+    `<html><body style="margin:0;padding:16px;background:#F8FAF7;">${html}</body></html>`;
+  document.getElementById('previewModalOverlay').classList.add('open');
+}
+
+function closePreviewModal() {
+  document.getElementById('previewModalOverlay').classList.remove('open');
+}
+
+function resetInvoiceTemplate() {
+  if (!confirm('Reset to Orderly\'s default invoice design? This clears your custom template (click "Save changes" to make it permanent).')) return;
+  document.getElementById('invoiceTemplate').value = '';
+  showToast('Template cleared — click "Save changes" to confirm');
 }
 
 init();
