@@ -381,7 +381,12 @@ textarea.form-input { resize: vertical; min-height: 60px; }
      with negative positioning, which this html2canvas version fails to
      capture and produces a blank page) but stays invisible via z-index,
      tucked behind all normal content. Used only for PDF/share capture. -->
-<div id="pdfRenderTarget" style="position:fixed;top:0;left:0;width:800px;background:white;z-index:-1;"></div>
+<!-- PDF RENDER FRAME — a separate, dedicated iframe used only for PDF/share
+     capture (never shown to the user). Capturing an iframe's own document is
+     the pattern that's proven to actually render content in this app; a
+     hidden plain div did not. Kept at real coordinates with z-index:-1
+     (tucked behind everything) rather than a negative offset. -->
+<iframe id="pdfFrame" style="position:fixed;top:0;left:0;width:800px;height:600px;border:0;z-index:-1;" src="about:blank"></iframe>
 
 <div class="toast" id="toast"></div>
 
@@ -1039,14 +1044,11 @@ async function sendInvoiceWhatsApp() {
   // through the native share sheet instead, which lets WhatsApp attach it directly.
   if (typeof html2pdf !== 'undefined' && navigator.canShare) {
     try {
-      const target = document.getElementById('pdfRenderTarget');
-      target.innerHTML = currentInvoiceHTML;
-      await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+      const target = await renderPdfFrame(currentInvoiceHTML);
       const blob = await html2pdf().set({
         margin: 0.3, image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { scale: 2, useCORS: true, width: 800, windowWidth: 800 }, jsPDF: { unit: 'in', format: 'a4' },
       }).from(target).outputPdf('blob');
-      target.innerHTML = '';
       const file = new File([blob], `Invoice-INV-${d.invNum}.pdf`, { type: 'application/pdf' });
       if (navigator.canShare({ files: [file] })) {
         await navigator.share({ files: [file], text: msgText });
@@ -1062,6 +1064,21 @@ async function sendInvoiceWhatsApp() {
   closeModal();
 }
 
+// Loads invoice HTML into the dedicated hidden PDF iframe and waits for it
+// to actually fire 'load' (srcdoc rendering is async) plus one extra paint
+// frame, before handing back its body for html2canvas to capture.
+function renderPdfFrame(html) {
+  return new Promise((resolve) => {
+    const frame = document.getElementById('pdfFrame');
+    frame.onload = () => {
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        resolve(frame.contentDocument.body);
+      }));
+    };
+    frame.srcdoc = `<html><body style="margin:0;">${html}</body></html>`;
+  });
+}
+
 async function printInvoice() {
   const filename = `Invoice-INV-${currentInvoiceData.invNum || '0000'}.pdf`;
 
@@ -1073,13 +1090,7 @@ async function printInvoice() {
     return;
   }
 
-  const target = document.getElementById('pdfRenderTarget');
-  target.innerHTML = currentInvoiceHTML;
-
-  // Wait for the browser to actually paint the new content before capturing —
-  // capturing in the same tick it was injected can race ahead of the render
-  // and produce a blank page.
-  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+  const target = await renderPdfFrame(currentInvoiceHTML);
 
   showToast('Preparing your PDF...');
   html2pdf().set({
@@ -1089,10 +1100,8 @@ async function printInvoice() {
     html2canvas: { scale: 2, useCORS: true, width: 800, windowWidth: 800 },
     jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
   }).from(target).save().then(() => {
-    target.innerHTML = '';
     showToast('Invoice downloaded ✓');
   }).catch(() => {
-    target.innerHTML = '';
     showToast('Could not generate PDF — try again');
   });
 }
