@@ -76,8 +76,15 @@ body { font-family: 'DM Sans', sans-serif; background: var(--off-white); color: 
 .add-form-select { border: 1.5px solid var(--border); border-radius: var(--radius); padding: 0.65rem 0.85rem; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; color: var(--text); background: var(--white); outline: none; width: 100%; transition: border-color 0.2s; appearance: none; }
 .add-form-select:focus { border-color: var(--green-400); }
 .quick-add-row { display: grid; grid-template-columns: 1fr 100px 160px auto; gap: 8px; }
+.quick-add-wrapper { display: flex; gap: 1.25rem; align-items: flex-start; flex-wrap: wrap; }
+.quick-add-block { flex: 1; min-width: 0; }
+.quick-add-cat-block { flex: 0 0 220px; border-left: 1px solid var(--border); padding-left: 1.25rem; }
+.quick-add-label { font-size: 0.7rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+.quick-add-cat-row { display: flex; gap: 6px; }
+.quick-add-cat-row .add-form-input { flex: 1; }
 @media (max-width: 700px) {
   .quick-add-row { grid-template-columns: 1fr; }
+  .quick-add-cat-block { border-left: none; padding-left: 0; border-top: 1px solid var(--border); padding-top: 1rem; flex-basis: 100%; }
 }
 
 /* CATEGORIES */
@@ -197,13 +204,25 @@ body { font-family: 'DM Sans', sans-serif; background: var(--off-white); color: 
           <span class="card-count" id="itemCount">0 items</span>
         </div>
         <div style="padding:1rem 1.4rem;border-bottom:1px solid var(--border);background:var(--off-white);">
-          <div class="quick-add-row">
-            <input class="add-form-input" id="quickItemName" placeholder="Item name" onkeydown="if(event.key==='Enter')quickAddItem()" />
-            <input class="add-form-input" id="quickItemPrice" type="number" placeholder="Price (R)" onkeydown="if(event.key==='Enter')quickAddItem()" />
-            <select class="add-form-select" id="quickItemCategory">
-              <option value="">No category</option>
-            </select>
-            <button class="add-form-btn" onclick="quickAddItem()" id="quickAddBtn">+ Add</button>
+          <div class="quick-add-wrapper">
+            <div class="quick-add-block">
+              <div class="quick-add-label">Add menu item</div>
+              <div class="quick-add-row">
+                <input class="add-form-input" id="quickItemName" placeholder="Item name" onkeydown="if(event.key==='Enter')quickAddItem()" />
+                <input class="add-form-input" id="quickItemPrice" type="number" placeholder="Price (R)" onkeydown="if(event.key==='Enter')quickAddItem()" />
+                <select class="add-form-select" id="quickItemCategory">
+                  <option value="">No category</option>
+                </select>
+                <button class="add-form-btn" onclick="quickAddItem()" id="quickAddBtn">+ Add</button>
+              </div>
+            </div>
+            <div class="quick-add-block quick-add-cat-block">
+              <div class="quick-add-label">Add category</div>
+              <div class="quick-add-cat-row">
+                <input class="add-form-input" id="quickCatName" placeholder="e.g. Cakes" onkeydown="if(event.key==='Enter')addCategory('quickCatName','quickCatBtn')" />
+                <button class="add-form-btn" onclick="addCategory('quickCatName','quickCatBtn')" id="quickCatBtn">+ Add</button>
+              </div>
+            </div>
           </div>
         </div>
         <div id="itemsList" class="items-list-scroll"></div>
@@ -709,21 +728,23 @@ async function deleteItem(id) {
 }
 
 // ── CATEGORIES ─────────────────────────────────────────────────────
-async function addCategory() {
-  const name = document.getElementById('newCatName').value.trim();
+async function addCategory(inputId = 'newCatName', btnId = 'addCatBtn') {
+  const nameEl = document.getElementById(inputId);
+  const name = nameEl.value.trim();
   if (!name) return;
-  const btn = document.getElementById('addCatBtn');
+  const btn = document.getElementById(btnId);
   btn.disabled = true;
+  const originalLabel = btn.textContent;
   btn.textContent = 'Adding...';
 
   const sortOrder = allCategories.length;
   const { error } = await db.from('menu_categories').insert({ profile_id: userProfile.id, name, sort_order: sortOrder });
 
   btn.disabled = false;
-  btn.textContent = '+ Add';
+  btn.textContent = originalLabel;
 
   if (error) { showToast('Could not add category — try again'); return; }
-  document.getElementById('newCatName').value = '';
+  nameEl.value = '';
   showToast(`"${name}" category added ✓`);
   await loadCategories();
 }
