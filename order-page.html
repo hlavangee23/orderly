@@ -925,7 +925,10 @@ async function submitOrder() {
       items:           cartItems,
       total,
       delivery_type:   deliveryChoice,
-      notes:           (addr ? `Address: ${addr}. ` : '') + (rushChoice === 'rush' ? '⚡ RUSH ORDER. ' : '') + notes,
+      delivery_address: deliveryChoice === 'delivery' ? addr : null,
+      delivery_fee_charged: deliveryFee,
+      rush_fee_charged: rushFee,
+      notes,
       status:          storeProfile.auto_confirm ? 'confirmed' : 'new',
       invoice_number:  (count || 0) + 1,
     });
