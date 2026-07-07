@@ -123,6 +123,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--off-white); color: 
 .modal-btn.primary:hover { background: var(--green-900); }
 .form-group { margin-bottom: 1rem; }
 .form-label { display: block; font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 5px; }
+.form-hint { font-size: 0.7rem; color: var(--text-muted); font-weight: 400; text-transform: none; letter-spacing: normal; }
 .form-input { width: 100%; border: 1.5px solid var(--border); border-radius: var(--radius); padding: 0.75rem 0.9rem; font-family: 'DM Sans', sans-serif; font-size: 0.88rem; color: var(--text); outline: none; transition: border-color 0.2s; }
 .form-input:focus { border-color: var(--green-400); box-shadow: 0 0 0 3px rgba(61,139,101,0.1); }
 
@@ -272,6 +273,12 @@ body { font-family: 'DM Sans', sans-serif; background: var(--off-white); color: 
     <div class="form-group">
       <label class="form-label">Price (R)</label>
       <input class="form-input" id="itemPriceInput" type="number" placeholder="e.g. 150" />
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Description <span style="color:var(--text-muted);font-weight:300;font-size:0.72rem;text-transform:none;">(optional)</span></label>
+      <input class="form-input" id="itemDescriptionInput" maxlength="100" placeholder="e.g. 1 square, rich chocolate ganache" oninput="updateDescCount()" />
+      <p class="form-hint" id="itemDescCount" style="text-align:right;margin-top:4px;">0/100</p>
     </div>
 
     <div class="form-group">
@@ -468,6 +475,8 @@ function openAddItemModal() {
   document.getElementById('saveItemBtn').textContent = 'Add item';
   document.getElementById('itemNameInput').value = '';
   document.getElementById('itemPriceInput').value = '';
+  document.getElementById('itemDescriptionInput').value = '';
+  updateDescCount();
   document.getElementById('removeImgBtn').style.display = 'none';
 
   resetImgPreview();
@@ -495,6 +504,8 @@ function openEditItemModal(itemId) {
   document.getElementById('saveItemBtn').textContent = 'Save changes';
   document.getElementById('itemNameInput').value = item.name;
   document.getElementById('itemPriceInput').value = item.price;
+  document.getElementById('itemDescriptionInput').value = item.description || '';
+  updateDescCount();
   document.getElementById('itemCategoryInput').value = item.category_id || '';
 
   // Show existing image if any
@@ -565,6 +576,7 @@ function populateCategoryDropdown(selectedId = '') {
 async function saveItem() {
   const name = document.getElementById('itemNameInput').value.trim();
   const price = document.getElementById('itemPriceInput').value.trim();
+  const description = document.getElementById('itemDescriptionInput').value.trim();
   const categoryId = document.getElementById('itemCategoryInput').value || null;
 
   if (!name || !price) { showToast('Please fill in name and price'); return; }
@@ -590,7 +602,7 @@ async function saveItem() {
     } catch (e) { console.error(e); }
   }
 
-  const payload = { name, price: parseFloat(price), emoji: selectedEmoji, category_id: categoryId, image_url: imageUrl };
+  const payload = { name, price: parseFloat(price), description: description || null, emoji: selectedEmoji, category_id: categoryId, image_url: imageUrl };
 
   let error;
   if (editingItemId) {
@@ -707,6 +719,12 @@ function compressImage(file, maxSize, quality) {
 }
 
 // ── HELPERS ────────────────────────────────────────────────────────
+function updateDescCount() {
+  const el = document.getElementById('itemDescriptionInput');
+  const counter = document.getElementById('itemDescCount');
+  if (el && counter) counter.textContent = `${el.value.length}/100`;
+}
+
 function escJs(str) { return String(str).replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
 
 function copyLink() {
