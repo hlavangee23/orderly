@@ -625,38 +625,142 @@ body {
 /* CAP WARNING */
 .cap-warning { background: #FFFBEB; border: 1px solid #FCD34D; border-radius: var(--radius); padding: 0.75rem 1rem; font-size: 0.8rem; color: #92400E; margin-bottom: 0.75rem; display: none; }
 .cap-warning.show { display: block; }
-.tour-card { background: linear-gradient(135deg, var(--green-900), #1A3D2B); border-radius: var(--radius-lg); padding: 1.5rem 1.75rem; margin-bottom: 1.75rem; position: relative; overflow: hidden; }
-.tour-card::before { content: ''; position: absolute; top: -40px; right: -40px; width: 180px; height: 180px; border-radius: 50%; background: rgba(61,139,101,0.15); pointer-events: none; }
-.tour-card-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1.25rem; }
-.tour-card-title { font-family: 'Instrument Serif', serif; font-size: 1.25rem; color: white; letter-spacing: -0.02em; }
-.tour-card-sub { font-size: 0.78rem; color: rgba(255,255,255,0.55); margin-top: 3px; font-weight: 300; }
-.tour-dismiss { background: none; border: none; color: rgba(255,255,255,0.4); font-size: 1.1rem; cursor: pointer; padding: 2px 6px; line-height: 1; transition: color 0.2s; }
-.tour-dismiss:hover { color: rgba(255,255,255,0.8); }
-.tour-steps { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.tour-step { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius); padding: 0.85rem 1rem; display: flex; align-items: flex-start; gap: 10px; cursor: pointer; transition: all 0.2s; }
-.tour-step:hover { background: rgba(255,255,255,0.12); }
-.tour-step.done { background: rgba(61,139,101,0.2); border-color: rgba(61,139,101,0.35); }
-.tour-step-check { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 0.7rem; color: transparent; transition: all 0.2s; margin-top: 1px; }
-.tour-step.done .tour-step-check { background: var(--green-400); border-color: var(--green-400); color: white; }
-.tour-step-text { flex: 1; }
-.tour-step-title { font-size: 0.82rem; font-weight: 500; color: white; }
-.tour-step.done .tour-step-title { color: rgba(255,255,255,0.6); text-decoration: line-through; }
-.tour-step-desc { font-size: 0.72rem; color: rgba(255,255,255,0.45); margin-top: 2px; font-weight: 300; line-height: 1.4; }
-.tour-progress { margin-top: 1rem; display: flex; align-items: center; gap: 10px; }
-.tour-progress-bar { flex: 1; height: 4px; background: rgba(255,255,255,0.15); border-radius: 2px; overflow: hidden; }
-.tour-progress-fill { height: 100%; background: var(--green-400); border-radius: 2px; transition: width 0.4s ease; }
-.tour-progress-text { font-size: 0.72rem; color: rgba(255,255,255,0.5); white-space: nowrap; }
+
+/* FORM ELEMENTS (used by onboarding wizard) */
+.form-group { margin-bottom: 1.1rem; }
+.form-group:last-child { margin-bottom: 0; }
+.form-label { display: block; font-size: 0.78rem; font-weight: 500; color: var(--text-mid); margin-bottom: 5px; }
+.form-input { width: 100%; border: 1.5px solid var(--border); border-radius: var(--radius); padding: 0.72rem 0.9rem; font-family: 'DM Sans', sans-serif; font-size: 0.88rem; color: var(--text); background: var(--white); outline: none; transition: border-color 0.2s, box-shadow 0.2s; -webkit-appearance: none; }
+.form-input:focus { border-color: var(--green-400); box-shadow: 0 0 0 3px rgba(61,139,101,0.1); }
+.form-input::placeholder { color: var(--text-muted); font-weight: 300; }
+textarea.form-input { resize: vertical; line-height: 1.5; }
+
+/* LINK PREVIEW (used by onboarding wizard) */
+.link-preview { background: var(--green-50); border: 1px solid var(--green-100); border-radius: var(--radius); padding: 0.85rem 1rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.link-preview-url { font-family: monospace; font-size: 0.82rem; color: var(--green-700); font-weight: 600; }
+.link-copy-btn { background: var(--green-700); color: white; border: none; border-radius: 6px; padding: 0.35rem 0.8rem; font-size: 0.75rem; font-weight: 500; cursor: pointer; font-family: 'DM Sans', sans-serif; white-space: nowrap; transition: background 0.2s; }
+.link-copy-btn:hover { background: var(--green-900); }
+
+/* ONBOARDING WIZARD */
+.wizard-overlay { position: fixed; inset: 0; background: var(--off-white); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 1.5rem; }
+.wizard-card { background: var(--white); border-radius: var(--radius-lg); width: 100%; max-width: 560px; padding: 2.25rem 2.5rem; box-shadow: var(--shadow-md); max-height: 92vh; overflow-y: auto; }
+.wizard-progress { display: flex; align-items: center; gap: 6px; margin-bottom: 1.25rem; }
+.wizard-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); transition: background 0.2s; }
+.wizard-dot.active { background: var(--green-700); width: 20px; border-radius: 4px; }
+.wizard-dot.done { background: var(--green-400); }
+.wizard-step-label { font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; margin-bottom: 0.5rem; }
+.wizard-title { font-family: 'Instrument Serif', serif; font-size: 1.5rem; color: var(--green-900); letter-spacing: -0.02em; margin-bottom: 0.4rem; }
+.wizard-sub { font-size: 0.85rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 1.5rem; font-weight: 300; }
+.wizard-nav { display: flex; align-items: center; justify-content: space-between; margin-top: 1.75rem; }
+.wizard-skip { font-size: 0.78rem; color: var(--text-muted); text-decoration: underline; cursor: pointer; background: none; border: none; font-family: 'DM Sans', sans-serif; }
+.wizard-skip:hover { color: var(--text-mid); }
+.wizard-added-chip { display: inline-flex; align-items: center; gap: 6px; background: var(--green-50); border: 1px solid var(--green-100); border-radius: 999px; padding: 0.35rem 0.75rem; font-size: 0.78rem; color: var(--green-700); margin: 4px 6px 0 0; }
+.wizard-added-list { margin-top: 0.75rem; }
+.wizard-added-empty { font-size: 0.78rem; color: var(--text-muted); font-style: italic; margin-top: 0.75rem; }
+
+/* LOGO UPLOAD (shared with settings page) */
+.logo-upload-row { display: flex; align-items: center; gap: 1.1rem; margin-bottom: 1.25rem; }
+.logo-preview { width: 68px; height: 68px; border-radius: 14px; background: var(--green-50); border: 1.5px dashed var(--border); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: var(--text-muted); flex-shrink: 0; overflow: hidden; }
+.logo-preview img { width: 100%; height: 100%; object-fit: cover; }
+.logo-upload-actions { display: flex; flex-direction: column; gap: 4px; }
+.logo-upload-btn { background: var(--green-50); color: var(--green-700); border: 1.5px solid var(--green-100); border-radius: 8px; padding: 0.5rem 0.9rem; font-family: 'DM Sans', sans-serif; font-size: 0.8rem; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+.logo-upload-btn:hover { background: var(--green-100); border-color: var(--green-400); }
+.logo-remove-btn { background: none; border: none; color: var(--text-muted); font-size: 0.72rem; cursor: pointer; text-decoration: underline; text-align: left; padding: 0; width: fit-content; }
+.logo-remove-btn:hover { color: #DC2626; }
+.logo-upload-hint { font-size: 0.72rem; color: var(--text-muted); font-weight: 300; }
 
 @media (max-width: 900px) {
   .sidebar { display: none; }
   .main { margin-left: 0; max-width: 100%; padding: 1.25rem; }
   .stats-row { grid-template-columns: repeat(2, 1fr); }
   .grid-2 { grid-template-columns: 1fr; }
-  .tour-steps { grid-template-columns: 1fr; }
+  .wizard-card { padding: 1.5rem; }
 }
 </style>
 </head>
 <body>
+
+<!-- ONBOARDING WIZARD — shown full-screen to new users before the dashboard -->
+<div class="wizard-overlay" id="onboardingWizard">
+  <div class="wizard-card">
+    <div class="wizard-progress">
+      <div class="wizard-dot" id="wizDot1"></div>
+      <div class="wizard-dot" id="wizDot2"></div>
+      <div class="wizard-dot" id="wizDot3"></div>
+      <div class="wizard-dot" id="wizDot4"></div>
+    </div>
+    <div class="wizard-step-label" id="wizStepLabel">Step 1 of 4</div>
+
+    <!-- STEP 1: Branding -->
+    <div class="wizard-step" id="wizStep1">
+      <div class="wizard-title">Welcome to Orderly! 👋</div>
+      <div class="wizard-sub">Let's get your store looking great — this only takes a couple of minutes.</div>
+      <div class="logo-upload-row">
+        <div class="logo-preview" id="wizLogoPreview">🏪</div>
+        <div class="logo-upload-actions">
+          <button type="button" class="logo-upload-btn" onclick="document.getElementById('wizLogoFileInput').click()">Upload logo</button>
+          <input type="file" id="wizLogoFileInput" accept="image/*" style="display:none;" onchange="handleWizardLogoSelect(event)" />
+          <button type="button" class="logo-remove-btn" id="wizLogoRemoveBtn" style="display:none;" onclick="removeWizardLogo()">Remove logo</button>
+          <div class="logo-upload-hint">Square image works best. JPG or PNG.</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Store description</label>
+        <textarea class="form-input" id="wizStoreDescription" placeholder="e.g. Home-baked goods made fresh every week, using only real butter and free-range eggs." style="min-height:80px;"></textarea>
+      </div>
+    </div>
+
+    <!-- STEP 2: Add first item -->
+    <div class="wizard-step" id="wizStep2" style="display:none;">
+      <div class="wizard-title">Add your first menu item</div>
+      <div class="wizard-sub">Customers need something to order! Add at least one item — you can add the rest anytime.</div>
+      <div class="emoji-picker-row" id="wizEmojiPickerRow"></div>
+      <div class="form-group" style="margin-top:0.75rem;">
+        <label class="form-label">Item name</label>
+        <input class="form-input" type="text" id="wizItemName" placeholder="e.g. Chocolate cupcakes (6 pack)" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Price (R)</label>
+        <input class="form-input" type="number" id="wizItemPrice" placeholder="120" min="0" />
+      </div>
+      <button type="button" class="logo-upload-btn" id="wizAddItemBtn" onclick="wizardAddItem()">+ Add item</button>
+      <div class="wizard-added-list" id="wizAddedItemsList"><div class="wizard-added-empty">No items added yet.</div></div>
+    </div>
+
+    <!-- STEP 3: Store setup -->
+    <div class="wizard-step" id="wizStep3" style="display:none;">
+      <div class="wizard-title">Tell customers about your store</div>
+      <div class="wizard-sub">This shows up when customers land on your order page.</div>
+      <div class="form-group">
+        <label class="form-label">Welcome message</label>
+        <textarea class="form-input" id="wizWelcomeMessage" placeholder="Hi! I'm Fatima and I bake from home every week in Cape Town. Orders close on Thursdays for weekend delivery. Can't wait to bake for you! 🧁" style="min-height:110px;"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Order deadline</label>
+        <input class="form-input" type="text" id="wizOrderDeadline" placeholder="e.g. Orders close every Thursday at 6pm" />
+      </div>
+    </div>
+
+    <!-- STEP 4: Share link -->
+    <div class="wizard-step" id="wizStep4" style="display:none;">
+      <div class="wizard-title">You're all set! 🎉</div>
+      <div class="wizard-sub">Share this link with customers so they can start ordering from you.</div>
+      <div class="link-preview">
+        <span class="link-preview-url" id="wizOrderLink">—</span>
+        <button class="link-copy-btn" onclick="copyLink()">Copy link</button>
+      </div>
+    </div>
+
+    <div class="wizard-nav">
+      <button class="wizard-skip" onclick="wizSkip()">Skip for now</button>
+      <div style="display:flex;gap:8px;">
+        <button class="modal-btn" id="wizBackBtn" style="display:none;" onclick="wizBack()">← Back</button>
+        <button class="modal-btn primary" id="wizNextBtn" onclick="wizNext()">Continue →</button>
+        <button class="modal-btn primary" id="wizFinishBtn" style="display:none;" onclick="wizFinish()">Finish setup ✓</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- SIDEBAR -->
 <aside class="sidebar">
@@ -708,51 +812,6 @@ body {
 
   <!-- ORDER CAP WARNING — shown to Free plan users approaching limit -->
   <div class="cap-warning" id="orderCapWarning"></div>
-
-  <!-- GUIDED TOUR — only shown to new users, dismissed via localStorage -->
-  <div class="tour-card" id="tourCard" style="display:none;">
-    <div class="tour-card-header">
-      <div>
-        <div class="tour-card-title">Welcome to Orderly! 👋</div>
-        <div class="tour-card-sub">Complete these steps to get your store ready for customers</div>
-      </div>
-      <button class="tour-dismiss" onclick="dismissTour()" title="Dismiss">✕</button>
-    </div>
-    <div class="tour-steps">
-      <div class="tour-step" id="tourStep1" onclick="tourAction(1)">
-        <div class="tour-step-check" id="tourCheck1">✓</div>
-        <div class="tour-step-text">
-          <div class="tour-step-title">Add your first menu item</div>
-          <div class="tour-step-desc">Add what you sell so customers can browse and order</div>
-        </div>
-      </div>
-      <div class="tour-step" id="tourStep2" onclick="tourAction(2)">
-        <div class="tour-step-check" id="tourCheck2">✓</div>
-        <div class="tour-step-text">
-          <div class="tour-step-title">Set up your store</div>
-          <div class="tour-step-desc">Add your welcome message, delivery fee, and preferences</div>
-        </div>
-      </div>
-      <div class="tour-step" id="tourStep3" onclick="tourAction(3)">
-        <div class="tour-step-check" id="tourCheck3">✓</div>
-        <div class="tour-step-text">
-          <div class="tour-step-title">Share your order link</div>
-          <div class="tour-step-desc">Send your link to customers on WhatsApp or Instagram</div>
-        </div>
-      </div>
-      <div class="tour-step" id="tourStep4" onclick="tourAction(4)">
-        <div class="tour-step-check" id="tourCheck4">✓</div>
-        <div class="tour-step-text">
-          <div class="tour-step-title">Get your first order</div>
-          <div class="tour-step-desc">When a customer orders, this will tick automatically</div>
-        </div>
-      </div>
-    </div>
-    <div class="tour-progress">
-      <div class="tour-progress-bar"><div class="tour-progress-fill" id="tourProgressFill" style="width:0%"></div></div>
-      <div class="tour-progress-text" id="tourProgressText">0 of 4 done</div>
-    </div>
-  </div>
 
   <!-- STATS -->
   <div class="stats-row">
@@ -1187,13 +1246,13 @@ async function init() {
   // Show trial/plan banner
   initTrialBanner(profile);
 
-  // Load real orders and menu
+  // Load real orders and menu (runs in background, hidden behind the wizard if it's shown)
   const [ordersResult, menuResult] = await Promise.all([loadOrders(profile.id), loadMenu(profile.id)]);
 
-  // Init guided tour — checks what's already set up
-  const hasMenuItems = document.getElementById('catalogList')?.querySelector('.catalog-item') !== null;
-  const hasOrders = document.getElementById('ordersListContainer')?.querySelector('.order-row') !== null;
-  initTour(profile.id, hasMenuItems, hasOrders);
+  // New users step through the onboarding wizard before seeing the dashboard
+  if (!profile.onboarding_completed) {
+    showOnboardingWizard(profile);
+  }
 }
 
 // ── TRIAL & PLAN SYSTEM ────────────────────────────────────────────
@@ -1325,7 +1384,12 @@ function updateStoreUI(profile) {
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
 
   // Sidebar — all via IDs now, no fragile querySelector
-  document.getElementById('sidebarAvatar').textContent = initials;
+  const avatarEl = document.getElementById('sidebarAvatar');
+  if (profile.logo_url) {
+    avatarEl.innerHTML = `<img src="${profile.logo_url}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;" />`;
+  } else {
+    avatarEl.textContent = initials;
+  }
   document.getElementById('sidebarStoreName').textContent = profile.store_name;
   document.getElementById('sidebarBottomName').textContent = profile.store_name;
   // Sidebar bottom role — must reflect trial state, not just raw plan field
@@ -1509,7 +1573,7 @@ function renderOrders(orders) {
   });
 
   container.innerHTML = html;
-  if (orders.length > 0) markTourStep(4); // tick "Get your first order" in the tour
+  if (orders.length > 0) { /* first order received */ }
 }
 
 // ── BULK SELECT MODE ─────────────────────────────────────────────
@@ -1763,7 +1827,6 @@ async function addItem() {
   nameEl.value = '';
   priceEl.value = '';
   showToast(`"${name}" added to your menu ✓`);
-  markTourStep(1); // tick "Add your first menu item" in the tour
 }
 
 // ── DELETE MENU ITEM ───────────────────────────────────────────────
@@ -2214,86 +2277,194 @@ function handleModalClick(e) {
   if (e.target === document.getElementById('invoiceModal')) closeModal();
 }
 
-// ── GUIDED TOUR ────────────────────────────────────────────────────
-const TOUR_KEY = 'orderly_tour_'; // prefix + user id for per-account tracking
+// ── ONBOARDING WIZARD ───────────────────────────────────────────────
+let wizStep = 1;
+let wizPendingLogoFile = null;
+let wizExistingLogoUrl = null;
+let wizLogoRemoved = false;
+let wizAddedItems = [];
+let wizSelectedEmoji = '🍱';
+const WIZ_EMOJI_OPTIONS = ['🍱','🥘','🍲','🧆','🥗','🍰','🧁','🍛','🥙','🥧','🍢','🍕','🍔','🌮','🥟','🍩'];
 
-function initTour(profileId, hasMenuItems, hasOrders) {
-  const key = TOUR_KEY + profileId;
-  const dismissed = localStorage.getItem(key + '_dismissed');
-  if (dismissed) return; // user already dismissed or completed
-
-  const done = JSON.parse(localStorage.getItem(key + '_done') || '[]');
-
-  // Auto-tick step 1 if they already have menu items
-  if (hasMenuItems && !done.includes(1)) done.push(1);
-  // Auto-tick step 4 if they already have orders
-  if (hasOrders && !done.includes(4)) done.push(4);
-
-  localStorage.setItem(key + '_done', JSON.stringify(done));
-
-  // If all 4 steps done, dismiss automatically
-  if (done.length >= 4) {
-    localStorage.setItem(key + '_dismissed', '1');
-    return;
-  }
-
-  // Show tour
-  updateTourUI(done);
-  document.getElementById('tourCard').style.display = 'block';
+function showOnboardingWizard(profile) {
+  wizExistingLogoUrl = profile.logo_url || null;
+  renderWizardLogoPreview(wizExistingLogoUrl);
+  const descEl = document.getElementById('wizStoreDescription');
+  if (descEl) descEl.value = profile.store_description || '';
+  const welcomeEl = document.getElementById('wizWelcomeMessage');
+  if (welcomeEl) welcomeEl.value = profile.welcome_message || '';
+  const deadlineEl = document.getElementById('wizOrderDeadline');
+  if (deadlineEl) deadlineEl.value = profile.order_deadline || '';
+  renderWizardEmojiPicker();
+  wizGoTo(1);
+  document.getElementById('onboardingWizard').style.display = 'flex';
 }
 
-function updateTourUI(done) {
+function wizGoTo(n) {
+  wizStep = n;
   [1,2,3,4].forEach(i => {
-    const step = document.getElementById('tourStep' + i);
-    if (done.includes(i)) {
-      step.classList.add('done');
-    } else {
-      step.classList.remove('done');
+    const el = document.getElementById('wizStep' + i);
+    if (el) el.style.display = (i === n) ? 'block' : 'none';
+    const dot = document.getElementById('wizDot' + i);
+    if (dot) {
+      dot.classList.toggle('active', i === n);
+      dot.classList.toggle('done', i < n);
     }
   });
+  document.getElementById('wizStepLabel').textContent = `Step ${n} of 4`;
+  document.getElementById('wizBackBtn').style.display = (n === 1) ? 'none' : 'inline-block';
+  document.getElementById('wizNextBtn').style.display = (n === 4) ? 'none' : 'inline-block';
+  document.getElementById('wizFinishBtn').style.display = (n === 4) ? 'inline-block' : 'none';
 
-  const pct = Math.round((done.length / 4) * 100);
-  document.getElementById('tourProgressFill').style.width = pct + '%';
-  document.getElementById('tourProgressText').textContent = `${done.length} of 4 done`;
-}
-
-function tourAction(step) {
-  // Step actions — navigate or trigger the relevant feature
-  if (step === 1) {
-    scrollToMenu();
-    markTourStep(step);
-  } else if (step === 2) {
-    window.location.href = 'orderly-settings.html';
-  } else if (step === 3) {
-    copyLink();
-    markTourStep(step);
-  } else if (step === 4) {
-    showToast('This will tick automatically when you get your first order!');
+  if (n === 4) {
+    const link = `orderlyapp.co.za/order-page.html?store=${userProfile?.store_slug || ''}`;
+    document.getElementById('wizOrderLink').textContent = link;
   }
 }
 
-function markTourStep(step) {
-  const key = TOUR_KEY + userProfile?.id;
-  const done = JSON.parse(localStorage.getItem(key + '_done') || '[]');
-  if (!done.includes(step)) {
-    done.push(step);
-    localStorage.setItem(key + '_done', JSON.stringify(done));
-    updateTourUI(done);
+function wizBack() { if (wizStep > 1) wizGoTo(wizStep - 1); }
 
-    if (done.length >= 4) {
-      setTimeout(() => {
-        document.getElementById('tourCard').style.display = 'none';
-        localStorage.setItem(key + '_dismissed', '1');
-        showToast('Setup complete — your store is ready! 🎉');
-      }, 800);
+async function wizNext() {
+  const btn = document.getElementById('wizNextBtn');
+  btn.disabled = true;
+
+  if (wizStep === 1) {
+    let logoUrl = wizExistingLogoUrl;
+    if (wizPendingLogoFile) {
+      try {
+        const compressed = await compressImage(wizPendingLogoFile, 400, 0.85);
+        const fileName = `${userProfile.id}/logo-${Date.now()}.jpg`;
+        const { error: uploadError } = await db.storage.from('store-logos').upload(fileName, compressed, { contentType: 'image/jpeg', upsert: true });
+        if (!uploadError) {
+          const { data: { publicUrl } } = db.storage.from('store-logos').getPublicUrl(fileName);
+          logoUrl = publicUrl;
+        }
+      } catch (e) { console.error(e); }
+    } else if (wizLogoRemoved) {
+      logoUrl = null;
     }
+    const updates = { logo_url: logoUrl, store_description: document.getElementById('wizStoreDescription').value.trim() };
+    await db.from('profiles').update(updates).eq('id', userProfile.id);
+    userProfile = { ...userProfile, ...updates };
+    wizExistingLogoUrl = logoUrl;
+    wizPendingLogoFile = null;
+    wizLogoRemoved = false;
+  } else if (wizStep === 3) {
+    const updates = {
+      welcome_message: document.getElementById('wizWelcomeMessage').value.trim(),
+      order_deadline:  document.getElementById('wizOrderDeadline').value.trim(),
+    };
+    await db.from('profiles').update(updates).eq('id', userProfile.id);
+    userProfile = { ...userProfile, ...updates };
+  }
+
+  btn.disabled = false;
+  wizGoTo(wizStep + 1);
+}
+
+async function wizFinish() {
+  const btn = document.getElementById('wizFinishBtn');
+  btn.disabled = true;
+  btn.textContent = 'Finishing...';
+
+  await db.from('profiles').update({ onboarding_completed: true }).eq('id', userProfile.id);
+  userProfile.onboarding_completed = true;
+
+  document.getElementById('onboardingWizard').style.display = 'none';
+  updateStoreUI(userProfile);
+  await loadMenu(userProfile.id);
+  showToast('Setup complete — your store is ready! 🎉');
+}
+
+async function wizSkip() {
+  if (!confirm('Skip the rest of setup? You can always add these details later in Settings.')) return;
+  await db.from('profiles').update({ onboarding_completed: true }).eq('id', userProfile.id);
+  userProfile.onboarding_completed = true;
+  document.getElementById('onboardingWizard').style.display = 'none';
+  updateStoreUI(userProfile);
+  await loadMenu(userProfile.id);
+}
+
+// Wizard logo upload
+function renderWizardLogoPreview(url) {
+  const preview = document.getElementById('wizLogoPreview');
+  const removeBtn = document.getElementById('wizLogoRemoveBtn');
+  if (!preview) return;
+  if (url) {
+    preview.innerHTML = `<img src="${url}" alt="Store logo" />`;
+    removeBtn.style.display = 'block';
+  } else {
+    preview.innerHTML = '🏪';
+    removeBtn.style.display = 'none';
   }
 }
 
-function dismissTour() {
-  const key = TOUR_KEY + userProfile?.id;
-  localStorage.setItem(key + '_dismissed', '1');
-  document.getElementById('tourCard').style.display = 'none';
+function handleWizardLogoSelect(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) { showToast('Please select an image file'); return; }
+  wizPendingLogoFile = file;
+  wizLogoRemoved = false;
+  renderWizardLogoPreview(URL.createObjectURL(file));
+}
+
+function removeWizardLogo() {
+  wizPendingLogoFile = null;
+  wizLogoRemoved = true;
+  wizExistingLogoUrl = null;
+  renderWizardLogoPreview(null);
+}
+
+// Wizard add-item (step 2)
+function renderWizardEmojiPicker() {
+  const row = document.getElementById('wizEmojiPickerRow');
+  if (!row) return;
+  row.innerHTML = WIZ_EMOJI_OPTIONS.map(e =>
+    `<button class="emoji-pick-btn ${e === wizSelectedEmoji ? 'selected' : ''}" onclick="selectWizardEmoji(this, '${e}')" type="button">${e}</button>`
+  ).join('');
+}
+
+function selectWizardEmoji(btn, emoji) {
+  wizSelectedEmoji = emoji;
+  document.querySelectorAll('#wizEmojiPickerRow .emoji-pick-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+async function wizardAddItem() {
+  const nameEl = document.getElementById('wizItemName');
+  const priceEl = document.getElementById('wizItemPrice');
+  const name = nameEl.value.trim();
+  const price = priceEl.value.trim();
+  if (!name || !price) { showToast('Add a name and price first'); return; }
+
+  const btn = document.getElementById('wizAddItemBtn');
+  btn.disabled = true;
+  btn.textContent = 'Adding...';
+
+  const { error } = await db.from('menu_items').insert({
+    profile_id: userProfile.id, name, price: parseFloat(price), emoji: wizSelectedEmoji,
+  });
+
+  btn.disabled = false;
+  btn.textContent = '+ Add item';
+
+  if (error) { showToast('Could not add item — try again'); return; }
+
+  wizAddedItems.push({ name, price, emoji: wizSelectedEmoji });
+  renderWizardAddedItems();
+  nameEl.value = '';
+  priceEl.value = '';
+  showToast(`"${name}" added ✓`);
+}
+
+function renderWizardAddedItems() {
+  const list = document.getElementById('wizAddedItemsList');
+  if (!list) return;
+  if (wizAddedItems.length === 0) {
+    list.innerHTML = `<div class="wizard-added-empty">No items added yet.</div>`;
+    return;
+  }
+  list.innerHTML = wizAddedItems.map(i => `<span class="wizard-added-chip">${i.emoji} ${i.name} · R${i.price}</span>`).join('');
 }
 
 function showProFeatures() {
