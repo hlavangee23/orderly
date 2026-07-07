@@ -76,8 +76,12 @@ body::before {
 .store-avatar { width: 72px; height: 72px; border-radius: 20px; background: var(--green-500); display: flex; align-items: center; justify-content: center; font-family: 'Instrument Serif', serif; font-size: 26px; color: white; flex-shrink: 0; border: 2px solid rgba(255,255,255,0.2); box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.05); }
 .store-name { font-family: 'Instrument Serif', serif; font-size: 1.9rem; color: white; letter-spacing: -0.02em; line-height: 1.1; }
 .store-sub { font-size: 0.8rem; color: rgba(255,255,255,0.45); margin-top: 3px; font-weight: 300; }
+.store-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 18px; }
+.store-description { font-size: 0.82rem; color: rgba(255,255,255,0.6); margin-top: 8px; font-weight: 300; line-height: 1.5; max-width: 320px; text-align: center; }
 .hero-badges { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
 .hero-badge { font-size: 0.68rem; padding: 4px 12px; border-radius: 20px; background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.55); border: 1px solid rgba(255,255,255,0.1); }
+a.hero-badge { text-decoration: none; display: inline-block; cursor: pointer; transition: background 0.2s; }
+a.hero-badge:hover { background: rgba(255,255,255,0.15); }
 .hero-badge.green { background: rgba(61,139,101,0.25); color: rgba(255,255,255,0.8); border-color: rgba(61,139,101,0.35); }
 
 /* ── STEP 1: WELCOME ─────────────────────────────────────── */
@@ -230,6 +234,7 @@ body::before {
           <div class="store-sub" id="storeCity"></div>
         </div>
       </div>
+      <div class="store-description" id="storeDescription" style="display:none;"></div>
       <div class="hero-badges" id="heroBadges"></div>
     </div>
   </div>
@@ -514,17 +519,30 @@ function populateStoreUI(p) {
     const av = document.getElementById('storeAvatar' + s);
     const nm = document.getElementById('storeName' + s);
     const ct = document.getElementById('storeCity' + s);
-    if (av) av.textContent = initials;
+    if (av) {
+      if (p.logo_url) av.innerHTML = `<img src="${p.logo_url}" alt="${p.store_name} logo" />`;
+      else av.textContent = initials;
+    }
     if (nm) nm.textContent = p.store_name;
     if (ct) ct.textContent = cityLine;
   });
 
   document.title = p.store_name + ' — Order Now';
 
+  // Store description
+  if (p.store_description) {
+    document.getElementById('storeDescription').textContent = p.store_description;
+    document.getElementById('storeDescription').style.display = 'block';
+  }
+
   // Badges
   const badges = document.getElementById('heroBadges');
   if (badges) {
     let html = '';
+    if (p.whatsapp) {
+      const waDigits = p.whatsapp.replace(/\D/g, '');
+      html += `<a class="hero-badge green" href="https://wa.me/${waDigits}" target="_blank" rel="noopener">💬 Message us</a>`;
+    }
     if (p.order_deadline) html += `<span class="hero-badge green">🕐 ${p.order_deadline}</span>`;
     if (p.delivery_enabled) html += `<span class="hero-badge">🚚 Delivery available</span>`;
     if (p.rush_orders_enabled) html += `<span class="hero-badge">⚡ Rush orders available</span>`;

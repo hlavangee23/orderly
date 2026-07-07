@@ -106,6 +106,17 @@ select.form-input { cursor: pointer; }
 .link-copy-btn { background: var(--green-700); color: white; border: none; border-radius: 6px; padding: 0.35rem 0.8rem; font-size: 0.75rem; font-weight: 500; cursor: pointer; font-family: 'DM Sans', sans-serif; white-space: nowrap; transition: background 0.2s; }
 .link-copy-btn:hover { background: var(--green-900); }
 
+/* LOGO UPLOAD */
+.logo-upload-row { display: flex; align-items: center; gap: 1.1rem; margin-bottom: 1.25rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--border); }
+.logo-preview { width: 68px; height: 68px; border-radius: 14px; background: var(--green-50); border: 1.5px dashed var(--border); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: var(--text-muted); flex-shrink: 0; overflow: hidden; }
+.logo-preview img { width: 100%; height: 100%; object-fit: cover; }
+.logo-upload-actions { display: flex; flex-direction: column; gap: 4px; }
+.logo-upload-btn { background: var(--green-50); color: var(--green-700); border: 1.5px solid var(--green-100); border-radius: 8px; padding: 0.5rem 0.9rem; font-family: 'DM Sans', sans-serif; font-size: 0.8rem; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+.logo-upload-btn:hover { background: var(--green-100); border-color: var(--green-400); }
+.logo-remove-btn { background: none; border: none; color: var(--text-muted); font-size: 0.72rem; cursor: pointer; text-decoration: underline; text-align: left; padding: 0; width: fit-content; }
+.logo-remove-btn:hover { color: #DC2626; }
+.logo-upload-hint { font-size: 0.72rem; color: var(--text-muted); font-weight: 300; }
+
 /* DANGER ZONE */
 .danger-section { border-color: #FECACA; }
 .danger-section .section-header { background: #FEF2F2; border-bottom-color: #FECACA; }
@@ -189,9 +200,23 @@ select.form-input { cursor: pointer; }
         </div>
       </div>
       <div class="section-body">
+        <div class="logo-upload-row">
+          <div class="logo-preview" id="logoPreview">🏪</div>
+          <div class="logo-upload-actions">
+            <button type="button" class="logo-upload-btn" onclick="document.getElementById('logoFileInput').click()">Upload logo</button>
+            <input type="file" id="logoFileInput" accept="image/*" style="display:none;" onchange="handleLogoSelect(event)" />
+            <button type="button" class="logo-remove-btn" id="logoRemoveBtn" style="display:none;" onclick="removeLogo()">Remove logo</button>
+            <div class="logo-upload-hint">Square image works best. JPG or PNG.</div>
+          </div>
+        </div>
         <div class="form-group">
           <label class="form-label">Store name</label>
           <input class="form-input" type="text" id="storeName" placeholder="e.g. Fatima's Kitchen" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Store description</label>
+          <textarea class="form-input" id="storeDescription" placeholder="e.g. Home-baked goods made fresh every week, using only real butter and free-range eggs." style="min-height:80px;"></textarea>
+          <p class="form-hint">A short line about your store — shown near your logo on your order page.</p>
         </div>
         <div class="form-group">
           <label class="form-label">City</label>
@@ -224,7 +249,7 @@ select.form-input { cursor: pointer; }
         <div class="form-group">
           <label class="form-label">WhatsApp number</label>
           <input class="form-input" type="tel" id="whatsapp" placeholder="+27 82 000 0000" />
-          <p class="form-hint">Orders and invoices will be sent to this number.</p>
+          <p class="form-hint">Shown to customers as a "Message us" button on your order page, and used to send you orders and invoices.</p>
         </div>
         <div class="form-group">
           <label class="form-label">Your order page link</label>
@@ -468,6 +493,9 @@ const { createClient } = supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let userProfile = null;
+let pendingLogoFile = null;
+let existingLogoUrl = null;
+let logoRemoved = false;
 
 // ── INIT ───────────────────────────────────────────────────────────
 async function init() {
@@ -488,6 +516,9 @@ async function init() {
 
 // ── POPULATE FORM ──────────────────────────────────────────────────
 function populateForm(p) {
+  existingLogoUrl = p.logo_url || null;
+  renderLogoPreview(existingLogoUrl);
+  setValue('storeDescription', p.store_description || '');
   setValue('storeName', p.store_name || '');
   setValue('storeCity', p.city || '');
   setValue('foodType', p.food_type || '');
@@ -520,11 +551,67 @@ function populateForm(p) {
 }
 
 function updateSidebar(p) {
-  const initials = p.store_name.split(' ').map(w => w[0]).join('').substring(0,2).toUpperCase();
-  document.getElementById('sidebarAvatar').textContent = initials;
+  const avatar = document.getElementById('sidebarAvatar');
+  if (p.logo_url) {
+    avatar.innerHTML = `<img src="${p.logo_url}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;" />`;
+  } else {
+    const initials = p.store_name.split(' ').map(w => w[0]).join('').substring(0,2).toUpperCase();
+    avatar.textContent = initials;
+  }
   document.getElementById('sidebarName').textContent = p.store_name;
   document.getElementById('sidebarLink').textContent = p.store_slug + '.orderly.co.za ↗';
   document.getElementById('sidebarBottomName').textContent = p.store_name;
+}
+
+// ── LOGO UPLOAD ────────────────────────────────────────────────────
+function renderLogoPreview(url) {
+  const preview = document.getElementById('logoPreview');
+  const removeBtn = document.getElementById('logoRemoveBtn');
+  if (url) {
+    preview.innerHTML = `<img src="${url}" alt="Store logo" />`;
+    removeBtn.style.display = 'block';
+  } else {
+    preview.innerHTML = '🏪';
+    removeBtn.style.display = 'none';
+  }
+}
+
+function handleLogoSelect(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) { showToast('Please select an image file'); return; }
+  pendingLogoFile = file;
+  logoRemoved = false;
+  renderLogoPreview(URL.createObjectURL(file));
+}
+
+function removeLogo() {
+  pendingLogoFile = null;
+  logoRemoved = true;
+  existingLogoUrl = null;
+  renderLogoPreview(null);
+}
+
+function compressImage(file, maxSize, quality) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let w = img.width, h = img.height;
+        if (w > maxSize || h > maxSize) {
+          if (w > h) { h = Math.round(h * maxSize / w); w = maxSize; }
+          else { w = Math.round(w * maxSize / h); h = maxSize; }
+        }
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        canvas.toBlob(resolve, 'image/jpeg', quality);
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
 }
 
 // ── SAVE ALL ───────────────────────────────────────────────────────
@@ -533,7 +620,27 @@ async function saveAll() {
   btn.disabled = true;
   btn.textContent = 'Saving...';
 
+  let logoUrl = existingLogoUrl;
+
+  if (pendingLogoFile) {
+    try {
+      const compressed = await compressImage(pendingLogoFile, 400, 0.85);
+      const fileName = `${userProfile.id}/logo-${Date.now()}.jpg`;
+      const { error: uploadError } = await db.storage.from('store-logos').upload(fileName, compressed, { contentType: 'image/jpeg', upsert: true });
+      if (!uploadError) {
+        const { data: { publicUrl } } = db.storage.from('store-logos').getPublicUrl(fileName);
+        logoUrl = publicUrl;
+      } else {
+        showToast('Logo upload failed — settings saved without it');
+      }
+    } catch (e) { console.error(e); showToast('Logo upload failed — settings saved without it'); }
+  } else if (logoRemoved) {
+    logoUrl = null;
+  }
+
   const updates = {
+    logo_url:           logoUrl,
+    store_description:  getValue('storeDescription'),
     store_name:         getValue('storeName'),
     city:               getValue('storeCity'),
     food_type:          getValue('foodType'),
@@ -571,6 +678,9 @@ async function saveAll() {
   }
 
   userProfile = { ...userProfile, ...updates };
+  existingLogoUrl = logoUrl;
+  pendingLogoFile = null;
+  logoRemoved = false;
   updateSidebar(userProfile);
 
   const indicator = document.getElementById('saveIndicator');
