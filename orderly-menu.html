@@ -75,6 +75,10 @@ body { font-family: 'DM Sans', sans-serif; background: var(--off-white); color: 
 /* CATEGORY SELECTOR IN ADD FORM */
 .add-form-select { border: 1.5px solid var(--border); border-radius: var(--radius); padding: 0.65rem 0.85rem; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; color: var(--text); background: var(--white); outline: none; width: 100%; transition: border-color 0.2s; appearance: none; }
 .add-form-select:focus { border-color: var(--green-400); }
+.quick-add-row { display: grid; grid-template-columns: 1fr 100px 160px auto; gap: 8px; }
+@media (max-width: 700px) {
+  .quick-add-row { grid-template-columns: 1fr; }
+}
 
 /* CATEGORIES */
 .category-row { display: flex; align-items: center; gap: 10px; padding: 0.85rem 1.4rem; border-bottom: 1px solid var(--border); }
@@ -180,7 +184,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--off-white); color: 
       <h1>My Menu</h1>
       <p>Manage your items, categories, and photos</p>
     </div>
-    <button class="add-form-btn" onclick="openAddItemModal()" style="width:auto;padding:0.65rem 1.25rem;">+ Add item</button>
+    <button class="add-form-btn" onclick="openAddItemModal()" style="width:auto;padding:0.65rem 1.25rem;">+ Add with photo</button>
   </div>
 
   <div class="menu-grid">
@@ -191,6 +195,16 @@ body { font-family: 'DM Sans', sans-serif; background: var(--off-white); color: 
         <div class="card-header">
           <span class="card-title">Menu items</span>
           <span class="card-count" id="itemCount">0 items</span>
+        </div>
+        <div style="padding:1rem 1.4rem;border-bottom:1px solid var(--border);background:var(--off-white);">
+          <div class="quick-add-row">
+            <input class="add-form-input" id="quickItemName" placeholder="Item name" onkeydown="if(event.key==='Enter')quickAddItem()" />
+            <input class="add-form-input" id="quickItemPrice" type="number" placeholder="Price (R)" onkeydown="if(event.key==='Enter')quickAddItem()" />
+            <select class="add-form-select" id="quickItemCategory">
+              <option value="">No category</option>
+            </select>
+            <button class="add-form-btn" onclick="quickAddItem()" id="quickAddBtn">+ Add</button>
+          </div>
         </div>
         <div id="itemsList" class="items-list-scroll"></div>
         <div id="expandBtnWrap" style="padding:0.75rem 1.4rem;border-top:1px solid var(--border);display:none;">
@@ -372,6 +386,18 @@ function hasProAccess() {
   return daysLeft > 0;
 }
 
+// ── FREE PLAN CAP ──────────────────────────────────────────────────
+const FREE_MENU_CAP = 20;
+
+function checkMenuCap() {
+  if (hasProAccess()) return true; // no cap during trial or on Pro
+  if (allItems.length >= FREE_MENU_CAP) {
+    showToast(`Free plan limit — max ${FREE_MENU_CAP} menu items. Upgrade to Pro for unlimited.`);
+    return false;
+  }
+  return true;
+}
+
 // ── LOAD DATA ──────────────────────────────────────────────────────
 async function loadCategories() {
   const { data } = await db.from('menu_categories').select('*')
@@ -399,6 +425,7 @@ function toggleExpand() {
 
 // ── RENDER CATEGORIES ──────────────────────────────────────────────
 function renderCategories() {
+  populateQuickAddCategory();
   const list = document.getElementById('categoriesList');
   document.getElementById('catCount').textContent = `${allCategories.length} categor${allCategories.length === 1 ? 'y' : 'ies'}`;
 
@@ -464,7 +491,50 @@ function renderItems() {
 }
 
 // ── ADD / EDIT ITEM MODAL ──────────────────────────────────────────
+function populateQuickAddCategory() {
+  const sel = document.getElementById('quickItemCategory');
+  if (!sel) return;
+  const current = sel.value;
+  sel.innerHTML = `<option value="">No category</option>` +
+    allCategories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+  if ([...sel.options].some(o => o.value === current)) sel.value = current;
+}
+
+async function quickAddItem() {
+  const nameEl = document.getElementById('quickItemName');
+  const priceEl = document.getElementById('quickItemPrice');
+  const catEl = document.getElementById('quickItemCategory');
+  const name = nameEl.value.trim();
+  const price = priceEl.value.trim();
+  const categoryId = catEl.value || null;
+
+  if (!name || !price) { showToast('Add a name and price first'); return; }
+  if (!checkMenuCap()) return;
+
+  const btn = document.getElementById('quickAddBtn');
+  if (btn.disabled) return;
+  btn.disabled = true;
+  btn.textContent = 'Adding...';
+
+  const { error } = await db.from('menu_items').insert({
+    profile_id: userProfile.id, name, price: parseFloat(price), category_id: categoryId, emoji: '🍱',
+  });
+
+  btn.disabled = false;
+  btn.textContent = '+ Add';
+
+  if (error) { showToast('Could not add item — try again'); return; }
+
+  nameEl.value = '';
+  priceEl.value = '';
+  catEl.value = '';
+  showToast(`"${name}" added to your menu ✓`);
+  await loadItems();
+}
+
 function openAddItemModal() {
+  if (!checkMenuCap()) return;
+
   editingItemId = null;
   selectedEmoji = '🍱';
   pendingImageFile = null;
@@ -580,6 +650,7 @@ async function saveItem() {
   const categoryId = document.getElementById('itemCategoryInput').value || null;
 
   if (!name || !price) { showToast('Please fill in name and price'); return; }
+  if (!editingItemId && !checkMenuCap()) { closeItemModal(); return; }
 
   const btn = document.getElementById('saveItemBtn');
   if (btn.disabled) return;
