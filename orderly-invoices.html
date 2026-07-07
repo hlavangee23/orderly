@@ -97,24 +97,38 @@ body { font-family: 'DM Sans', sans-serif; background: var(--off-white); color: 
 /* INVOICE MODAL — reused pattern from dashboard */
 .modal-overlay { position: fixed; inset: 0; background: rgba(15,35,24,0.5); z-index: 200; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.25s; }
 .modal-overlay.open { opacity: 1; pointer-events: all; }
-.modal { background: var(--white); border-radius: var(--radius-lg); width: 100%; max-width: 480px; padding: 2rem; transform: scale(0.96); transition: transform 0.25s; box-shadow: 0 24px 80px rgba(15,35,24,0.2); max-height: 90vh; overflow-y: auto; margin: 0 1rem; }
+.modal { background: var(--white); border-radius: var(--radius-lg); width: 100%; max-width: 560px; padding: 2rem; transform: scale(0.96); transition: transform 0.25s; box-shadow: 0 24px 80px rgba(15,35,24,0.2); max-height: 90vh; overflow-y: auto; margin: 0 1rem; }
 .modal-overlay.open .modal { transform: scale(1); }
 .modal-title { font-family: 'Instrument Serif', serif; font-size: 1.3rem; color: var(--green-900); margin-bottom: 0.25rem; }
 .modal-sub { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1.5rem; }
-.invoice-preview { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 1.25rem; }
-.invoice-head { background: var(--green-900); padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: center; }
-.invoice-head-logo { font-family: 'Instrument Serif', serif; font-size: 1.1rem; color: white; }
+.invoice-preview { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 1.25rem; background: white; }
+.invoice-head { background: var(--green-900); padding: 1.5rem 1.75rem; display: flex; justify-content: space-between; align-items: flex-start; }
+.invoice-head-logo { font-family: 'Instrument Serif', serif; font-size: 1.25rem; color: white; }
 .invoice-head-brand { display: flex; align-items: center; gap: 9px; }
-.invoice-head-logo-img { width: 34px; height: 34px; border-radius: 8px; object-fit: cover; flex-shrink: 0; }
-.invoice-head-num { font-size: 0.75rem; color: rgba(255,255,255,0.5); }
-.invoice-body { padding: 1rem 1.25rem; }
-.invoice-to { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.06em; }
-.invoice-customer { font-size: 0.9rem; font-weight: 500; color: var(--text); margin-bottom: 1rem; }
-.invoice-line { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-mid); padding: 4px 0; border-bottom: 1px solid var(--border); }
-.invoice-line:last-child { border-bottom: none; }
-.invoice-total-row { display: flex; justify-content: space-between; padding: 0.75rem 1.25rem; background: var(--green-50); border-top: 1px solid var(--border); }
-.invoice-total-label { font-size: 0.82rem; font-weight: 600; color: var(--text-mid); }
-.invoice-total-val { font-family: 'Instrument Serif', serif; font-size: 1.2rem; color: var(--green-700); font-weight: 600; }
+.invoice-head-logo-img { width: 38px; height: 38px; border-radius: 8px; object-fit: cover; flex-shrink: 0; }
+.invoice-head-title-block { text-align: right; }
+.invoice-head-title { font-family: 'Instrument Serif', serif; font-size: 1.4rem; letter-spacing: 0.08em; color: rgba(255,255,255,0.85); }
+.invoice-head-num { font-size: 0.72rem; color: rgba(255,255,255,0.45); margin-top: 3px; }
+.invoice-body { padding: 1.5rem 1.75rem 0.5rem; }
+.invoice-parties { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem; }
+.invoice-to { font-size: 0.66rem; color: #7A9A85; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.06em; }
+.invoice-customer { font-size: 0.95rem; font-weight: 600; color: var(--text); }
+.invoice-meta-right { text-align: right; }
+.invoice-badge { display: inline-block; font-size: 0.68rem; margin-top: 6px; padding: 3px 10px; border-radius: 20px; }
+.invoice-table { width: 100%; border-collapse: collapse; margin-bottom: 0.5rem; }
+.invoice-table thead th { background: var(--green-50); font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--green-700); text-align: left; padding: 0.55rem 1.75rem; font-weight: 600; }
+.invoice-table thead th:not(:first-child) { text-align: right; }
+.invoice-table tbody td { font-size: 0.83rem; color: var(--text-mid); padding: 0.5rem 1.75rem; border-bottom: 1px solid var(--border); }
+.invoice-table tbody td:not(:first-child) { text-align: right; white-space: nowrap; }
+.invoice-table tbody tr:last-child td { border-bottom: none; }
+.invoice-totals { padding: 0.5rem 1.75rem 1.1rem; }
+.invoice-totals-row { display: flex; justify-content: space-between; font-size: 0.83rem; color: var(--text-mid); padding: 3px 0; }
+.invoice-totals-row.total { border-top: 1.5px solid var(--green-900); margin-top: 6px; padding-top: 8px; font-size: 1rem; font-weight: 700; color: var(--green-900); }
+.invoice-notes { padding: 0 1.75rem 1.25rem; }
+.invoice-notes-box { font-size: 0.8rem; color: var(--text-mid); background: var(--off-white); border-radius: 8px; padding: 0.65rem 0.85rem; margin-top: 4px; }
+.invoice-footer { background: var(--green-50); padding: 1rem 1.75rem; text-align: center; border-top: 1px solid var(--border); }
+.invoice-footer-thanks { font-size: 0.85rem; color: var(--green-900); font-weight: 500; margin-bottom: 2px; }
+.invoice-footer-contact { font-size: 0.72rem; color: var(--text-muted); }
 .modal-actions { display: flex; gap: 8px; }
 .modal-btn { flex: 1; padding: 0.75rem; border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: all 0.2s; border: 1.5px solid var(--border); background: var(--white); color: var(--text-mid); }
 .modal-btn:hover { background: var(--off-white); }
@@ -152,7 +166,42 @@ textarea.form-input { resize: vertical; min-height: 60px; }
   .main { margin-left: 0; max-width: 100%; padding: 1.25rem; }
   .inv-date, .inv-meta { display: none; }
 }
+
+/* PRINT / PDF — isolate just the invoice, hide everything else */
+@media print {
+  body * { visibility: hidden; }
+  #defaultInvoicePreview, #defaultInvoicePreview * { visibility: visible; }
+  .modal-overlay {
+    position: static !important;
+    background: none !important;
+    display: block !important;
+  }
+  .modal {
+    position: static !important;
+    max-width: none !important;
+    max-height: none !important;
+    overflow: visible !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    transform: none !important;
+  }
+  .modal-title, .modal-sub, .modal-actions, #customInvoiceContainer, #manualInvoiceModal {
+    display: none !important;
+  }
+  #defaultInvoicePreview {
+    border: none !important;
+    margin: 0 !important;
+    width: 100% !important;
+  }
+  @page { margin: 0.4in; }
+}
 </style>
+
+<!-- If your browser's print dialog shows a "Headers and footers" option
+     (browser-added date/URL/page number), turn that off there — it's a
+     browser setting we can't control from the page itself. -->
 </head>
 <body>
 
@@ -225,32 +274,52 @@ textarea.form-input { resize: vertical; min-height: 60px; }
     <p class="modal-sub">View, send, or download this invoice</p>
     <div class="invoice-preview" id="defaultInvoicePreview">
       <div class="invoice-head">
-        <div>
-          <div class="invoice-head-brand" id="invoiceHeadBrand">
-            <div class="invoice-head-logo" id="invoiceHeadLogo">Orderly</div>
-          </div>
-          <div id="invoicePoweredBy" style="font-size:0.62rem;color:rgba(255,255,255,0.35);margin-top:2px;display:none;">Powered by Orderly</div>
+        <div class="invoice-head-brand" id="invoiceHeadBrand">
+          <div class="invoice-head-logo" id="invoiceHeadLogo">Orderly</div>
         </div>
-        <div class="invoice-head-num" id="invNum">INV-0001</div>
+        <div class="invoice-head-title-block">
+          <div class="invoice-head-title">INVOICE</div>
+          <div class="invoice-head-num" id="invNum">INV-0001</div>
+        </div>
       </div>
+      <div id="invoicePoweredBy" style="font-size:0.62rem;color:rgba(255,255,255,0.4);text-align:left;padding:0 1.75rem;background:var(--green-900);display:none;">Powered by Orderly</div>
+
       <div class="invoice-body">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem;">
+        <div class="invoice-parties">
           <div>
-            <div class="invoice-to">Invoice for</div>
+            <div class="invoice-to">Invoice to</div>
             <div class="invoice-customer" id="invCustomer">—</div>
-            <div style="font-size:0.72rem;color:#7A9A85;margin-top:2px;" id="invPhone"></div>
+            <div style="font-size:0.75rem;color:#7A9A85;margin-top:2px;" id="invPhone"></div>
           </div>
-          <div style="text-align:right;">
-            <div style="font-size:0.7rem;color:#7A9A85;text-transform:uppercase;letter-spacing:0.06em;">Date</div>
-            <div style="font-size:0.8rem;font-weight:500;" id="invDate"></div>
-            <div style="font-size:0.7rem;margin-top:4px;padding:2px 8px;border-radius:20px;" id="invDeliveryBadge"></div>
+          <div class="invoice-meta-right">
+            <div class="invoice-to">Date</div>
+            <div style="font-size:0.82rem;font-weight:500;color:var(--text);" id="invDate"></div>
+            <div class="invoice-badge" id="invDeliveryBadge"></div>
           </div>
         </div>
-        <div id="invLines"></div>
       </div>
-      <div class="invoice-total-row">
-        <div class="invoice-total-label">Total due</div>
-        <div class="invoice-total-val" id="invTotal">R0</div>
+
+      <table class="invoice-table">
+        <thead>
+          <tr><th>Description</th><th>Price</th><th>Qty</th><th>Amount</th></tr>
+        </thead>
+        <tbody id="invLines"></tbody>
+      </table>
+
+      <div class="invoice-totals">
+        <div class="invoice-totals-row"><span>Subtotal</span><span id="invSubtotal">R0</span></div>
+        <div class="invoice-totals-row" id="invExtraRow" style="display:none;"><span>Delivery / rush fee</span><span id="invExtraAmount">R0</span></div>
+        <div class="invoice-totals-row total"><span>Total due</span><span id="invTotal">R0</span></div>
+      </div>
+
+      <div class="invoice-notes" id="invNotesWrap" style="display:none;">
+        <div class="invoice-to">Notes</div>
+        <div class="invoice-notes-box" id="invNotes"></div>
+      </div>
+
+      <div class="invoice-footer">
+        <div class="invoice-footer-thanks">Thank you for your business! 🙏</div>
+        <div class="invoice-footer-contact" id="invFooterContact"></div>
       </div>
     </div>
     <div id="customInvoiceContainer" style="display:none;border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;">
@@ -549,9 +618,31 @@ function openInvoiceFromOrder(orderId) {
     badge.style.color = order.delivery_type === 'delivery' ? '#15803D' : '#0369A1';
   }
 
-  document.getElementById('invLines').innerHTML = itemNames.map((name, i) =>
-    `<div class="invoice-line"><span>${name}</span><span>R${itemPrices[i]}</span></div>`
+  document.getElementById('invLines').innerHTML = items.map(i =>
+    `<tr><td>${i.name}</td><td>R${i.price}</td><td>${i.qty}</td><td>R${i.price * i.qty}</td></tr>`
   ).join('');
+
+  const subtotal = items.reduce((s, i) => s + (i.price * i.qty), 0);
+  const extra = order.total - subtotal;
+  document.getElementById('invSubtotal').textContent = 'R' + subtotal;
+  const extraRow = document.getElementById('invExtraRow');
+  if (extra > 0) {
+    extraRow.style.display = 'flex';
+    document.getElementById('invExtraAmount').textContent = 'R' + extra;
+  } else {
+    extraRow.style.display = 'none';
+  }
+
+  const notesWrap = document.getElementById('invNotesWrap');
+  if (order.notes) {
+    notesWrap.style.display = 'block';
+    document.getElementById('invNotes').textContent = order.notes;
+  } else {
+    notesWrap.style.display = 'none';
+  }
+
+  const contactParts = [userProfile?.whatsapp, userProfile?.city].filter(Boolean);
+  document.getElementById('invFooterContact').textContent = contactParts.join(' · ');
 
   document.getElementById('invoiceModal').classList.add('open');
 }
