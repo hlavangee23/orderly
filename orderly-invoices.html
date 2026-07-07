@@ -104,6 +104,8 @@ body { font-family: 'DM Sans', sans-serif; background: var(--off-white); color: 
 .invoice-preview { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 1.25rem; }
 .invoice-head { background: var(--green-900); padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: center; }
 .invoice-head-logo { font-family: 'Instrument Serif', serif; font-size: 1.1rem; color: white; }
+.invoice-head-brand { display: flex; align-items: center; gap: 9px; }
+.invoice-head-logo-img { width: 34px; height: 34px; border-radius: 8px; object-fit: cover; flex-shrink: 0; }
 .invoice-head-num { font-size: 0.75rem; color: rgba(255,255,255,0.5); }
 .invoice-body { padding: 1rem 1.25rem; }
 .invoice-to { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.06em; }
@@ -224,7 +226,9 @@ textarea.form-input { resize: vertical; min-height: 60px; }
     <div class="invoice-preview">
       <div class="invoice-head">
         <div>
-          <div class="invoice-head-logo" id="invoiceHeadLogo">Orderly</div>
+          <div class="invoice-head-brand" id="invoiceHeadBrand">
+            <div class="invoice-head-logo" id="invoiceHeadLogo">Orderly</div>
+          </div>
           <div id="invoicePoweredBy" style="font-size:0.62rem;color:rgba(255,255,255,0.35);margin-top:2px;display:none;">Powered by Orderly</div>
         </div>
         <div class="invoice-head-num" id="invNum">INV-0001</div>
@@ -471,10 +475,15 @@ function openInvoiceFromOrder(orderId) {
   document.getElementById('invTotal').textContent = 'R' + order.total;
   document.getElementById('invNum').textContent = 'INV-' + invNum;
   document.getElementById('invDate').textContent = new Date(order.created_at).toLocaleDateString('en-ZA', { day:'numeric', month:'short', year:'numeric' });
-  // Branding swap — Free shows "Orderly", Pro shows their own store name
+  // Branding swap — Free shows "Orderly", Pro shows their own logo + store name
   const isPro = hasProAccess(userProfile);
   const brandName = isPro ? (userProfile?.store_name || 'Orderly') : 'Orderly';
-  document.getElementById('invoiceHeadLogo').textContent = brandName;
+  const brandEl = document.getElementById('invoiceHeadBrand');
+  if (isPro && userProfile?.logo_url) {
+    brandEl.innerHTML = `<img class="invoice-head-logo-img" src="${userProfile.logo_url}" alt="${brandName} logo" /><div class="invoice-head-logo">${brandName}</div>`;
+  } else {
+    brandEl.innerHTML = `<div class="invoice-head-logo">${brandName}</div>`;
+  }
   const poweredBy = document.getElementById('invoicePoweredBy');
   if (poweredBy) poweredBy.style.display = isPro ? 'none' : 'block';
 
