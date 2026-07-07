@@ -476,6 +476,16 @@ const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ── STATE ──────────────────────────────────────────────────
 let storeProfile = null;
+
+const TRIAL_DAYS = 30;
+function storeHasProAccess(p) {
+  if (!p) return false;
+  if (p.plan === 'pro') return true;
+  if (!p.trial_start_date) return false;
+  const trialStart = new Date(p.trial_start_date);
+  const daysLeft = TRIAL_DAYS - Math.floor((Date.now() - trialStart) / (1000*60*60*24));
+  return daysLeft > 0;
+}
 let menuItems = [];
 let cart = {};
 let currentCat = 'all';
@@ -865,9 +875,10 @@ async function submitOrder() {
   btn.textContent = 'Placing order...';
 
   // ── ORDER CAP CHECK ────────────────────────────────────────────
-  // Check if this store is on Free plan and has hit the 50 order/month cap.
-  // We check server-side (not just dashboard) so the cap is real, not just cosmetic.
-  if (storeProfile) {
+  // Only Free-plan stores past their trial are capped at 50 orders/month.
+  // plan + trial_start_date are exposed via public_store_profiles so we
+  // can check this correctly instead of capping every store blindly.
+  if (storeProfile && !storeHasProAccess(storeProfile)) {
     const now = new Date();
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
     const { count: ordersThisMonth } = await db
@@ -876,9 +887,6 @@ async function submitOrder() {
       .eq('profile_id', storeProfile.id)
       .gte('created_at', monthStart);
 
-    // Check store's plan via auth — we use a simple heuristic:
-    // if they have trial_start_date and it's > 30 days ago and plan is 'free', they're capped
-    // We don't expose plan data publicly so we check order count only
     const FREE_CAP = 50;
     if (ordersThisMonth >= FREE_CAP) {
       btn.disabled = false;
