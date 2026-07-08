@@ -861,10 +861,19 @@ function updateOrderTotal() {
 
 // ── SUBMIT ORDER ───────────────────────────────────────────
 async function submitOrder() {
+  // Open the WhatsApp tab RIGHT NOW, synchronously, in the same tick as
+  // the click — before any await. Browsers only allow window.open() to
+  // bypass the popup blocker inside the original user-gesture window;
+  // once we await anything first, that window closes and the call gets
+  // silently blocked. We fill in the real URL further down once we know
+  // it, via waPopup.location.href — this is the standard workaround.
+  const waPopup = window.open('', '_blank');
+
   const addr = deliveryChoice === 'delivery' ? document.getElementById('reviewAddress').value.trim() : customer.address;
   const notes = document.getElementById('notes')?.value.trim() || '';
 
   if (deliveryChoice === 'delivery' && !addr) {
+    if (waPopup) waPopup.close();
     document.getElementById('reviewAddress').classList.add('error');
     document.getElementById('reviewAddress').focus();
     return;
@@ -889,6 +898,7 @@ async function submitOrder() {
 
     const FREE_CAP = 50;
     if (ordersThisMonth >= FREE_CAP) {
+      if (waPopup) waPopup.close();
       btn.disabled = false;
       btn.textContent = 'Confirm order ✓';
       // Show a friendly message — celebrate the store's success, not a hard error
@@ -959,7 +969,23 @@ async function submitOrder() {
     <div class="success-detail-row"><span class="label">Total</span><span class="value" style="color:var(--green-500);font-weight:600;">R${total}</span></div>
   `;
 
-  if (waFormatted) window.open(`https://wa.me/${waFormatted}?text=${msg}`, '_blank');
+  if (waFormatted) {
+    const waUrl = `https://wa.me/${waFormatted}?text=${msg}`;
+    if (waPopup) {
+      // Reuse the tab opened synchronously at the top — this is the tab
+      // that actually bypassed the popup blocker.
+      waPopup.location.href = waUrl;
+    } else {
+      // waPopup can be null if the browser blocked even the blank open
+      // (rare, but happens with very strict popup settings) — fall back
+      // to a direct attempt, which will likely still be blocked, but at
+      // least we tried rather than silently dropping the message.
+      window.open(waUrl, '_blank');
+    }
+  } else if (waPopup) {
+    // No store WhatsApp number on file — don't leave a stray blank tab open
+    waPopup.close();
+  }
 
   cart = {};
   document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
