@@ -99,11 +99,59 @@ export default async function handler(req, res) {
       }
     }
 
-    // ── WHATSAPP ───────────────────────────────────────────────────
+    // ── WHATSAPP (store owner) ────────────────────────────────────
     // Preference is stored and honoured once Meta Cloud API is wired up.
     // Logging intent now so nothing silently disappears.
     if (profile.notify_new_order_whatsapp) {
       results.whatsapp = 'preference set — Meta Cloud API integration pending (Phase 3)';
+    }
+
+    // ── CUSTOMER RECEIPT (email only — WhatsApp receipt is handled
+    // client-side on order-page.html via the "message yourself" flow,
+    // since it needs the customer's own browser to open the tab) ─────
+    results.customer_receipt = 'skipped';
+    if (order.receipt_method === 'email' && order.customer_email && process.env.RESEND_API_KEY) {
+      const itemLines = (order.items || [])
+        .map(i => `${i.qty}× ${i.name} — R${(i.price * i.qty).toFixed(2)}`)
+        .join('<br/>');
+
+      const receiptHtml = `
+        <div style="font-family:'DM Sans',Arial,sans-serif;background:#F8FAF7;padding:32px;">
+          <div style="max-width:480px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;border:1px solid #D6EAD9;">
+            <div style="background:#0F2318;padding:20px 24px;">
+              <span style="font-family:Georgia,serif;font-size:1.3rem;color:#fff;">Order<span style="color:rgba(255,255,255,0.4);">ly</span></span>
+            </div>
+            <div style="padding:28px 24px;">
+              <h2 style="margin:0 0 4px;color:#0F2318;font-size:1.2rem;">🧾 Your receipt from ${profile.store_name || 'your order'}</h2>
+              <p style="margin:0 0 18px;color:#7A9A85;font-size:0.8rem;">Order #${order.invoice_number || ''}</p>
+              <div style="font-size:0.88rem;color:#3D5A47;line-height:1.7;margin-bottom:16px;">${itemLines}</div>
+              <div style="border-top:1px solid #D6EAD9;padding-top:12px;font-size:0.95rem;font-weight:600;color:#0F2318;">
+                Total: R${Number(order.total || 0).toFixed(2)}
+              </div>
+              <p style="margin:20px 0 0;color:#3D5A47;font-size:0.85rem;">Thanks for your order! 🙏</p>
+            </div>
+          </div>
+        </div>
+      `;
+
+      const receiptResp = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: process.env.RESEND_FROM,
+          to: order.customer_email,
+          subject: `Your receipt from ${profile.store_name || 'Orderly'} 🧾`,
+          html: receiptHtml,
+        }),
+      });
+
+      results.customer_receipt = receiptResp.ok ? 'sent' : `failed (${receiptResp.status})`;
+      if (!receiptResp.ok) {
+        console.error('notify-new-order: customer receipt send failed', await receiptResp.text());
+      }
     }
 
     return res.status(200).json({ ok: true, results });

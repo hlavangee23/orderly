@@ -431,6 +431,30 @@ a.hero-badge:hover { background: rgba(255,255,255,0.15); }
       </div>
     </div>
 
+    <!-- RECEIPT METHOD -->
+    <div class="review-card">
+      <div class="review-card-header">How should we send your receipt?</div>
+      <div class="review-card-body">
+        <div class="toggle-grid" id="receiptToggle">
+          <div class="toggle-opt selected" id="receipt-whatsapp" onclick="selectReceiptMethod('whatsapp')">
+            <span class="toggle-opt-icon">📱</span>
+            <span class="toggle-opt-label">WhatsApp</span>
+            <span class="toggle-opt-sub">We'll open a message for you to send yourself</span>
+          </div>
+          <div class="toggle-opt" id="receipt-email" onclick="selectReceiptMethod('email')">
+            <span class="toggle-opt-icon">📧</span>
+            <span class="toggle-opt-label">Email</span>
+            <span class="toggle-opt-sub">Sent automatically, no extra steps</span>
+          </div>
+        </div>
+        <div class="delivery-address-field" id="receiptEmailField">
+          <label class="form-label" style="margin-bottom:6px;display:block;">Email address</label>
+          <input class="form-input" type="email" id="receiptEmail" placeholder="you@example.com" />
+          <div id="receiptEmailError" style="display:none;color:#DC2626;font-size:0.72rem;margin-top:5px;">Please enter a valid email address</div>
+        </div>
+      </div>
+    </div>
+
     <button class="btn-primary" onclick="submitOrder()" id="confirmBtn">
       Confirm order ✓
     </button>
@@ -492,6 +516,7 @@ let currentCat = 'all';
 let menuCategories = [];
 let deliveryChoice = 'collection';
 let rushChoice = 'standard';
+let receiptMethod = 'whatsapp';
 let customer = {};
 
 // ── INIT ───────────────────────────────────────────────────
@@ -850,6 +875,15 @@ function selectRush(type) {
   updateOrderTotal();
 }
 
+function selectReceiptMethod(method) {
+  receiptMethod = method;
+  document.querySelectorAll('#receiptToggle .toggle-opt').forEach(o => o.classList.remove('selected'));
+  document.getElementById('receipt-' + method).classList.add('selected');
+  const emailField = document.getElementById('receiptEmailField');
+  emailField.classList.toggle('show', method === 'email');
+  document.getElementById('receiptEmailError').style.display = 'none';
+}
+
 function updateOrderTotal() {
   const { subtotal, deliveryFee, rushFee, total } = getTotals(true);
   let html = `<div class="review-line"><span>Subtotal</span><span>R${subtotal}</span></div>`;
@@ -861,13 +895,11 @@ function updateOrderTotal() {
 
 // ── SUBMIT ORDER ───────────────────────────────────────────
 async function submitOrder() {
-  // Open the WhatsApp tab RIGHT NOW, synchronously, in the same tick as
-  // the click — before any await. Browsers only allow window.open() to
-  // bypass the popup blocker inside the original user-gesture window;
-  // once we await anything first, that window closes and the call gets
-  // silently blocked. We fill in the real URL further down once we know
-  // it, via waPopup.location.href — this is the standard workaround.
-  const waPopup = window.open('', '_blank');
+  // Only open a WhatsApp tab if that's the chosen receipt method — no
+  // point opening a blank tab for an email receipt. Must happen
+  // synchronously, in the same tick as the click, or the popup blocker
+  // silently kills it once we hit the first await below.
+  const waPopup = (receiptMethod === 'whatsapp') ? window.open('', '_blank') : null;
 
   const addr = deliveryChoice === 'delivery' ? document.getElementById('reviewAddress').value.trim() : customer.address;
   const notes = document.getElementById('notes')?.value.trim() || '';
@@ -877,6 +909,18 @@ async function submitOrder() {
     document.getElementById('reviewAddress').classList.add('error');
     document.getElementById('reviewAddress').focus();
     return;
+  }
+
+  let receiptEmail = '';
+  if (receiptMethod === 'email') {
+    receiptEmail = document.getElementById('receiptEmail').value.trim();
+    const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(receiptEmail);
+    if (!emailValid) {
+      document.getElementById('receiptEmailError').style.display = 'block';
+      document.getElementById('receiptEmail').focus();
+      return;
+    }
+    document.getElementById('receiptEmailError').style.display = 'none';
   }
 
   const btn = document.getElementById('confirmBtn');
@@ -918,7 +962,9 @@ async function submitOrder() {
 
   const { subtotal, deliveryFee, rushFee, total } = getTotals(true);
 
-  // Save to Supabase
+  // Save to Supabase — this alone is what triggers the store owner's
+  // notification (bell + email) server-side, via the notifications
+  // trigger on the orders table. Nothing else needed here for that side.
   if (storeProfile) {
     // Assign a permanent, sequential invoice number for this store —
     // count existing orders and add 1, rather than recalculating later
@@ -932,6 +978,8 @@ async function submitOrder() {
       profile_id:      storeProfile.id,
       customer_name:   customer.name,
       customer_phone:  customer.phone,
+      customer_email:  receiptMethod === 'email' ? receiptEmail : null,
+      receipt_method:  receiptMethod,
       items:           cartItems,
       total,
       delivery_type:   deliveryChoice,
@@ -944,22 +992,10 @@ async function submitOrder() {
     });
   }
 
-  // WhatsApp message to store owner
-  const itemLines = cartItems.map(i => `${i.qty}× ${i.name} — R${i.price * i.qty}`).join('\n');
-  const msg = encodeURIComponent(
-    `🛍️ New order from ${customer.name}!\n\n` +
-    itemLines + '\n\n' +
-    `${deliveryChoice === 'delivery' ? `🚗 Delivery to: ${addr}\n+R${deliveryFee} delivery fee` : `🏠 Collection${storeProfile?.collection_address ? ' — ' + storeProfile.collection_address : ''}`}\n` +
-    `${rushChoice === 'rush' ? `⚡ RUSH ORDER (+R${rushFee}) — ${storeProfile?.rush_days || '1–3 days'}\n` : `📅 Standard — ${storeProfile?.standard_days || '3–5 days'}\n`}` +
-    (notes ? `📝 Notes: ${notes}\n` : '') +
-    `\n💰 Total: R${total}\n📱 ${customer.phone}`
-  );
-
-  const waNumber = storeProfile?.whatsapp?.replace(/\D/g, '') || '';
-  const waFormatted = waNumber.startsWith('0') ? '27' + waNumber.slice(1) : waNumber;
-
-  // Show success
-  document.getElementById('successSub').textContent = `${storeProfile?.store_name} will confirm your order via WhatsApp shortly.`;
+  // Show success — wording depends on how the receipt is being delivered
+  document.getElementById('successSub').textContent = receiptMethod === 'email'
+    ? `A receipt is on its way to ${receiptEmail}.`
+    : `We've opened WhatsApp so you can save a copy of your receipt.`;
 
   document.getElementById('successDetails').innerHTML = `
     <div class="success-detail-row"><span class="label">Name</span><span class="value">${customer.name}</span></div>
@@ -969,22 +1005,31 @@ async function submitOrder() {
     <div class="success-detail-row"><span class="label">Total</span><span class="value" style="color:var(--green-500);font-weight:600;">R${total}</span></div>
   `;
 
-  if (waFormatted) {
-    const waUrl = `https://wa.me/${waFormatted}?text=${msg}`;
-    if (waPopup) {
+  // Customer's own WhatsApp receipt — a "message yourself" chat, pre-filled
+  // with their order summary, so they have a portable copy of it after
+  // this tab closes. This is entirely separate from the store owner's
+  // notification, which already happened server-side above.
+  if (waPopup) {
+    const itemLines = cartItems.map(i => `${i.qty}× ${i.name} — R${i.price * i.qty}`).join('\n');
+    const receiptMsg = encodeURIComponent(
+      `🧾 Your receipt from ${storeProfile?.store_name || 'your order'}\n\n` +
+      itemLines + '\n\n' +
+      `${deliveryChoice === 'delivery' ? `🚗 Delivery to: ${addr}\n+R${deliveryFee} delivery fee` : `🏠 Collection${storeProfile?.collection_address ? ' — ' + storeProfile.collection_address : ''}`}\n` +
+      `${rushChoice === 'rush' ? `⚡ RUSH ORDER (+R${rushFee}) — ${storeProfile?.rush_days || '1–3 days'}\n` : `📅 Standard — ${storeProfile?.standard_days || '3–5 days'}\n`}` +
+      (notes ? `📝 Notes: ${notes}\n` : '') +
+      `\n💰 Total: R${total}\n\nThanks for your order! 🙏`
+    );
+
+    const custNumber = customer.phone?.replace(/\D/g, '') || '';
+    const custFormatted = custNumber.startsWith('0') ? '27' + custNumber.slice(1) : custNumber;
+
+    if (custFormatted) {
       // Reuse the tab opened synchronously at the top — this is the tab
       // that actually bypassed the popup blocker.
-      waPopup.location.href = waUrl;
+      waPopup.location.href = `https://wa.me/${custFormatted}?text=${receiptMsg}`;
     } else {
-      // waPopup can be null if the browser blocked even the blank open
-      // (rare, but happens with very strict popup settings) — fall back
-      // to a direct attempt, which will likely still be blocked, but at
-      // least we tried rather than silently dropping the message.
-      window.open(waUrl, '_blank');
+      waPopup.close();
     }
-  } else if (waPopup) {
-    // No store WhatsApp number on file — don't leave a stray blank tab open
-    waPopup.close();
   }
 
   cart = {};
