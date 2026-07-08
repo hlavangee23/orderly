@@ -10,5 +10,11 @@
     { "source": "/faq", "destination": "/orderly-faq.html" },
     { "source": "/contact", "destination": "/orderly-contact.html" },
     { "source": "/order/:slug", "destination": "/order-page.html" }
+  ],
+  "crons": [
+    {
+      "path": "/api/send-trial-emails",
+      "schedule": "0 8 * * *"
+    }
   ]
 }
