@@ -158,12 +158,94 @@ body {
   position: relative;
 }
 .notif-dot {
-  width: 8px; height: 8px;
+  min-width: 16px; height: 16px;
+  padding: 0 3px;
   border-radius: 50%;
-  background: #22C55E;
+  background: #DC2626;
   position: absolute;
-  top: 6px; right: 6px;
+  top: -4px; right: -4px;
   border: 1.5px solid var(--off-white);
+  display: none;
+  align-items: center; justify-content: center;
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: white;
+  line-height: 1;
+}
+.notif-dot.show { display: flex; }
+
+/* NOTIFICATION PANEL */
+.notif-wrap { position: relative; }
+.notif-panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 340px;
+  max-height: 420px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  z-index: 200;
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+}
+.notif-panel.open { display: flex; }
+.notif-panel-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.9rem 1.1rem;
+  border-bottom: 1px solid var(--border);
+}
+.notif-panel-title { font-size: 0.85rem; font-weight: 600; color: var(--green-900); }
+.notif-panel-markall {
+  font-size: 0.72rem; color: var(--green-500); cursor: pointer; font-weight: 500;
+  background: none; border: none; font-family: 'DM Sans', sans-serif;
+}
+.notif-panel-markall:hover { text-decoration: underline; }
+.notif-panel-list { overflow-y: auto; flex: 1; }
+.notif-item {
+  display: flex; gap: 10px;
+  padding: 0.75rem 1.1rem;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.15s;
+  position: relative;
+}
+.notif-item:last-child { border-bottom: none; }
+.notif-item:hover { background: var(--green-50); }
+.notif-item.unread { background: var(--green-50); }
+.notif-item.unread::before {
+  content: '';
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--green-500);
+  position: absolute; left: 4px; top: 1.05rem;
+}
+.notif-item-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+.notif-item-title { font-size: 0.8rem; font-weight: 600; color: var(--green-900); margin-bottom: 2px; }
+.notif-item-body { font-size: 0.75rem; color: var(--text-mid); line-height: 1.4; }
+.notif-item-time { font-size: 0.68rem; color: var(--text-muted); margin-top: 4px; }
+.notif-panel-empty { padding: 2.5rem 1rem; text-align: center; color: var(--text-muted); font-size: 0.82rem; }
+
+/* WIZARD — NOTIFICATION PREFERENCE ROWS */
+.notif-pref-row {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 0.7rem;
+}
+.notif-pref-info { display: flex; align-items: flex-start; gap: 10px; }
+.notif-pref-icon { font-size: 1.2rem; margin-top: 1px; }
+.notif-pref-title { font-size: 0.85rem; font-weight: 600; color: var(--green-900); }
+.notif-pref-sub { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; line-height: 1.4; }
+.notif-pref-toggle { width: 20px; height: 20px; accent-color: var(--green-500); cursor: pointer; flex-shrink: 0; }
+.notif-pref-row.disabled { opacity: 0.55; }
+.notif-pref-badge {
+  font-size: 0.62rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;
+  background: var(--green-100); color: var(--green-500);
+  padding: 2px 7px; border-radius: 5px; margin-left: 6px;
 }
 
 /* STAT CARDS */
@@ -688,8 +770,9 @@ textarea.form-input { resize: vertical; line-height: 1.5; }
       <div class="wizard-dot" id="wizDot2"></div>
       <div class="wizard-dot" id="wizDot3"></div>
       <div class="wizard-dot" id="wizDot4"></div>
+      <div class="wizard-dot" id="wizDot5"></div>
     </div>
-    <div class="wizard-step-label" id="wizStepLabel">Step 1 of 4</div>
+    <div class="wizard-step-label" id="wizStepLabel">Step 1 of 5</div>
 
     <!-- STEP 1: Branding -->
     <div class="wizard-step" id="wizStep1">
@@ -741,8 +824,38 @@ textarea.form-input { resize: vertical; line-height: 1.5; }
       </div>
     </div>
 
-    <!-- STEP 4: Share link -->
+    <!-- STEP 4: Notification preferences -->
     <div class="wizard-step" id="wizStep4" style="display:none;">
+      <div class="wizard-title">How should we let you know about new orders?</div>
+      <div class="wizard-sub">We'll notify you the moment a customer orders. You can change this anytime in Settings.</div>
+
+      <div class="notif-pref-row">
+        <div class="notif-pref-info">
+          <span class="notif-pref-icon">📧</span>
+          <div>
+            <div class="notif-pref-title">Email</div>
+            <div class="notif-pref-sub" id="wizEmailPrefSub">Sent to your account email</div>
+          </div>
+        </div>
+        <input type="checkbox" class="notif-pref-toggle" id="wizNotifEmail" checked>
+      </div>
+
+      <div class="notif-pref-row">
+        <div class="notif-pref-info">
+          <span class="notif-pref-icon">💬</span>
+          <div>
+            <div class="notif-pref-title">WhatsApp <span class="notif-pref-badge">Coming soon</span></div>
+            <div class="notif-pref-sub">We'll message your WhatsApp number the moment an order lands. Turn this on now and it'll start working automatically once it's live — no need to come back.</div>
+          </div>
+        </div>
+        <input type="checkbox" class="notif-pref-toggle" id="wizNotifWhatsapp">
+      </div>
+
+      <div class="wizard-sub" style="margin-top:0.5rem;">You'll always see new orders in the bell icon on your dashboard too — that one's always on.</div>
+    </div>
+
+    <!-- STEP 5: Share link -->
+    <div class="wizard-step" id="wizStep5" style="display:none;">
       <div class="wizard-title">You're all set! 🎉</div>
       <div class="wizard-sub">Share this link with customers so they can start ordering from you.</div>
       <div class="link-preview">
@@ -797,7 +910,18 @@ textarea.form-input { resize: vertical; line-height: 1.5; }
     </div>
     <div class="topbar-right">
       <button class="share-btn" onclick="copyLink()">🔗 Share my order page</button>
-      <div class="notif-btn">🔔<div class="notif-dot"></div></div>
+      <div class="notif-wrap">
+        <div class="notif-btn" onclick="toggleNotifPanel(event)">🔔<div class="notif-dot" id="notifDot"></div></div>
+        <div class="notif-panel" id="notifPanel">
+          <div class="notif-panel-header">
+            <span class="notif-panel-title">Notifications</span>
+            <button class="notif-panel-markall" onclick="markAllNotificationsRead()">Mark all read</button>
+          </div>
+          <div class="notif-panel-list" id="notifPanelList">
+            <div class="notif-panel-empty">Loading...</div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -1231,6 +1355,8 @@ const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 let invoiceCount = 1;
 let currentInvoiceData = {};
 let userProfile = null;
+let notifications = [];
+let notifChannel = null;
 
 // ── INIT ───────────────────────────────────────────────────────────
 async function init() {
@@ -1265,10 +1391,124 @@ async function init() {
   // Load real orders and menu (runs in background, hidden behind the wizard if it's shown)
   const [ordersResult, menuResult] = await Promise.all([loadOrders(profile.id), loadMenu(profile.id)]);
 
+  // Notifications — load existing feed, then subscribe for live updates
+  loadNotifications(profile.id);
+  subscribeToNotifications(profile.id);
+
   // New users step through the onboarding wizard before seeing the dashboard
   if (!profile.onboarding_completed) {
     showOnboardingWizard(profile);
   }
+}
+
+// ── NOTIFICATIONS ─────────────────────────────────────────────────
+async function loadNotifications(profileId) {
+  const { data, error } = await db
+    .from('notifications')
+    .select('*')
+    .eq('profile_id', profileId)
+    .order('created_at', { ascending: false })
+    .limit(30);
+
+  if (error) { console.error('loadNotifications error', error); return; }
+  notifications = data || [];
+  renderNotifPanel();
+  updateNotifBadge();
+}
+
+function subscribeToNotifications(profileId) {
+  if (notifChannel) db.removeChannel(notifChannel);
+  notifChannel = db
+    .channel('notifications-' + profileId)
+    .on('postgres_changes', {
+      event: 'INSERT',
+      schema: 'public',
+      table: 'notifications',
+      filter: `profile_id=eq.${profileId}`,
+    }, (payload) => {
+      notifications.unshift(payload.new);
+      renderNotifPanel();
+      updateNotifBadge();
+      showToast('🔔 ' + payload.new.title);
+    })
+    .subscribe();
+}
+
+function updateNotifBadge() {
+  const dot = document.getElementById('notifDot');
+  if (!dot) return;
+  const unread = notifications.filter(n => !n.read).length;
+  if (unread > 0) {
+    dot.textContent = unread > 9 ? '9+' : String(unread);
+    dot.classList.add('show');
+  } else {
+    dot.classList.remove('show');
+  }
+}
+
+const NOTIF_ICONS = { new_order: '🎉', order_status: '📦', trial: '⏰', system: 'ℹ️' };
+
+function renderNotifPanel() {
+  const list = document.getElementById('notifPanelList');
+  if (!list) return;
+
+  if (!notifications.length) {
+    list.innerHTML = `<div class="notif-panel-empty">You're all caught up — no notifications yet.</div>`;
+    return;
+  }
+
+  list.innerHTML = notifications.map(n => `
+    <div class="notif-item ${n.read ? '' : 'unread'}" onclick="handleNotifClick('${n.id}', ${n.link ? `'${n.link}'` : 'null'})">
+      <span class="notif-item-icon">${NOTIF_ICONS[n.type] || '🔔'}</span>
+      <div>
+        <div class="notif-item-title">${n.title}</div>
+        ${n.body ? `<div class="notif-item-body">${n.body}</div>` : ''}
+        <div class="notif-item-time">${getTimeAgo(n.created_at)}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function toggleNotifPanel(e) {
+  e.stopPropagation();
+  const panel = document.getElementById('notifPanel');
+  panel.classList.toggle('open');
+  if (panel.classList.contains('open')) {
+    document.addEventListener('click', closeNotifPanelOnOutsideClick);
+  }
+}
+
+function closeNotifPanelOnOutsideClick(e) {
+  const panel = document.getElementById('notifPanel');
+  const wrap = document.querySelector('.notif-wrap');
+  if (panel && wrap && !wrap.contains(e.target)) {
+    panel.classList.remove('open');
+    document.removeEventListener('click', closeNotifPanelOnOutsideClick);
+  }
+}
+
+async function handleNotifClick(id, link) {
+  const n = notifications.find(x => x.id === id);
+  if (n && !n.read) {
+    n.read = true;
+    updateNotifBadge();
+    renderNotifPanel();
+    await db.from('notifications').update({ read: true }).eq('id', id);
+  }
+  if (link) {
+    document.getElementById('notifPanel').classList.remove('open');
+    const target = document.querySelector(link);
+    if (target) target.scrollIntoView({ behavior: 'smooth' });
+  }
+}
+
+async function markAllNotificationsRead() {
+  const unreadIds = notifications.filter(n => !n.read).map(n => n.id);
+  if (!unreadIds.length) return;
+  notifications.forEach(n => n.read = true);
+  updateNotifBadge();
+  renderNotifPanel();
+  await db.from('notifications').update({ read: true }).in('id', unreadIds);
 }
 
 // ── TRIAL & PLAN SYSTEM ────────────────────────────────────────────
@@ -2327,6 +2567,12 @@ function showOnboardingWizard(profile) {
   if (welcomeEl) welcomeEl.value = profile.welcome_message || '';
   const deadlineEl = document.getElementById('wizOrderDeadline');
   if (deadlineEl) deadlineEl.value = profile.order_deadline || '';
+  const emailPrefEl = document.getElementById('wizNotifEmail');
+  if (emailPrefEl) emailPrefEl.checked = profile.notify_new_order_email !== false;
+  const waPrefEl = document.getElementById('wizNotifWhatsapp');
+  if (waPrefEl) waPrefEl.checked = !!profile.notify_new_order_whatsapp;
+  const emailSubEl = document.getElementById('wizEmailPrefSub');
+  if (emailSubEl) emailSubEl.textContent = `Sent to your account email`;
   renderWizardEmojiPicker();
   wizGoTo(1);
   document.getElementById('onboardingWizard').style.display = 'flex';
@@ -2334,7 +2580,7 @@ function showOnboardingWizard(profile) {
 
 function wizGoTo(n) {
   wizStep = n;
-  [1,2,3,4].forEach(i => {
+  [1,2,3,4,5].forEach(i => {
     const el = document.getElementById('wizStep' + i);
     if (el) el.style.display = (i === n) ? 'block' : 'none';
     const dot = document.getElementById('wizDot' + i);
@@ -2343,12 +2589,12 @@ function wizGoTo(n) {
       dot.classList.toggle('done', i < n);
     }
   });
-  document.getElementById('wizStepLabel').textContent = `Step ${n} of 4`;
+  document.getElementById('wizStepLabel').textContent = `Step ${n} of 5`;
   document.getElementById('wizBackBtn').style.display = (n === 1) ? 'none' : 'inline-block';
-  document.getElementById('wizNextBtn').style.display = (n === 4) ? 'none' : 'inline-block';
-  document.getElementById('wizFinishBtn').style.display = (n === 4) ? 'inline-block' : 'none';
+  document.getElementById('wizNextBtn').style.display = (n === 5) ? 'none' : 'inline-block';
+  document.getElementById('wizFinishBtn').style.display = (n === 5) ? 'inline-block' : 'none';
 
-  if (n === 4) {
+  if (n === 5) {
     const link = `orderlyapp.co.za/order-page.html?store=${userProfile?.store_slug || ''}`;
     document.getElementById('wizOrderLink').textContent = link;
   }
@@ -2385,6 +2631,13 @@ async function wizNext() {
     const updates = {
       welcome_message: document.getElementById('wizWelcomeMessage').value.trim(),
       order_deadline:  document.getElementById('wizOrderDeadline').value.trim(),
+    };
+    await db.from('profiles').update(updates).eq('id', userProfile.id);
+    userProfile = { ...userProfile, ...updates };
+  } else if (wizStep === 4) {
+    const updates = {
+      notify_new_order_email:    document.getElementById('wizNotifEmail').checked,
+      notify_new_order_whatsapp: document.getElementById('wizNotifWhatsapp').checked,
     };
     await db.from('profiles').update(updates).eq('id', userProfile.id);
     userProfile = { ...userProfile, ...updates };

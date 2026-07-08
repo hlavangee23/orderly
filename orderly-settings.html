@@ -428,7 +428,50 @@ select.form-input { cursor: pointer; }
     </div>
   </div>
 
-  <!-- BANKING DETAILS FULL WIDTH -->
+  <!-- NOTIFICATIONS -->
+  <div class="settings-grid full" style="margin-bottom:1.25rem;">
+    <div class="section-card">
+      <div class="section-header">
+        <div class="section-icon">🔔</div>
+        <div>
+          <div class="section-title">Notifications</div>
+          <div class="section-sub">How you're alerted when a new order comes in</div>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <div class="toggle-label">Email</div>
+            <div class="toggle-desc">Sent to your account email the moment an order lands</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="notifyEmail" checked />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <div class="toggle-label">WhatsApp <span style="font-size:0.62rem;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;background:var(--green-100);color:var(--green-500);padding:2px 7px;border-radius:5px;margin-left:6px;">Coming soon</span></div>
+            <div class="toggle-desc">We'll message <span id="notifyWaNumberPreview">your WhatsApp number</span> automatically once this is live — turn it on now, no need to come back</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="notifyWhatsapp" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <div class="toggle-label">Dashboard bell icon</div>
+            <div class="toggle-desc">Always on — every new order appears in your notification feed</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" checked disabled style="opacity:0.5;" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
   <div class="settings-grid full" style="margin-bottom:1.25rem;">
     <div class="section-card">
       <div class="section-header">
@@ -548,6 +591,10 @@ function populateForm(p) {
   setChecked('autoConfirm', !!p.auto_confirm);
   setChecked('showBranding', p.show_branding !== false);
   setChecked('allowNotes', p.allow_notes !== false);
+  setChecked('notifyEmail', p.notify_new_order_email !== false);
+  setChecked('notifyWhatsapp', !!p.notify_new_order_whatsapp);
+  const waPreview = document.getElementById('notifyWaNumberPreview');
+  if (waPreview) waPreview.textContent = p.whatsapp ? p.whatsapp : 'your WhatsApp number';
   setValue('bankName', p.bank_name || '');
   setValue('bankAccountHolder', p.bank_account_holder || '');
   setValue('bankAccountNumber', p.bank_account_number || '');
@@ -670,6 +717,8 @@ async function saveAll() {
     auto_confirm:       getChecked('autoConfirm'),
     show_branding:      getChecked('showBranding'),
     allow_notes:        getChecked('allowNotes'),
+    notify_new_order_email:    getChecked('notifyEmail'),
+    notify_new_order_whatsapp: getChecked('notifyWhatsapp'),
     bank_name:          getValue('bankName'),
     bank_account_holder: getValue('bankAccountHolder'),
     bank_account_number: getValue('bankAccountNumber'),
