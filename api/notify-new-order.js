@@ -1,4 +1,4 @@
-// api/notify-new-order.js
+// /api/notify-new-order.js
 // Triggered by the `trg_notify_on_new_order` Postgres trigger (via pg_net)
 // the moment a new row lands in `orders`. Handles delivery on top of the
 // in-app notification, which the trigger already wrote directly to the DB.
@@ -7,17 +7,16 @@
 //   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, RESEND_API_KEY,
 //   RESEND_FROM (e.g. "Orderly <hello@orderlyapp.co.za>")
 //
+// Talks to Supabase via plain REST fetch calls, same as send-trial-emails.js
+// — deliberately NOT using the @supabase/supabase-js package, since this
+// repo doesn't have it as an installed dependency (the HTML files load it
+// from a CDN script tag, which isn't the same as an npm package being
+// available inside a serverless function).
+//
 // WhatsApp: NOT implemented yet. `notify_new_order_whatsapp` is read and
 // logged so you can see intent, but nothing is sent — that's blocked on
 // Meta Business verification + approved message templates (Phase 3).
 // When that's ready, this is the only file that needs a new branch added.
-
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -29,28 +28,40 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'order_id and profile_id are required' });
   }
 
-  try {
-    const [{ data: profile, error: profileErr }, { data: order, error: orderErr }] =
-      await Promise.all([
-        supabase.from('profiles').select('*').eq('id', profile_id).maybeSingle(),
-        supabase.from('orders').select('*').eq('id', order_id).maybeSingle(),
-      ]);
+  const SUPABASE_URL = process.env.SUPABASE_URL;
+  const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-    if (profileErr || !profile) {
-      console.error('notify-new-order: profile lookup failed', profileErr);
+  const headers = {
+    apikey: SERVICE_KEY,
+    Authorization: `Bearer ${SERVICE_KEY}`,
+    'Content-Type': 'application/json',
+  };
+
+  try {
+    const [profileRes, orderRes] = await Promise.all([
+      fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${profile_id}&select=*`, { headers }),
+      fetch(`${SUPABASE_URL}/rest/v1/orders?id=eq.${order_id}&select=*`, { headers }),
+    ]);
+
+    const profiles = await profileRes.json();
+    const orders = await orderRes.json();
+    const profile = profiles?.[0];
+    const order = orders?.[0];
+
+    if (!profile) {
+      console.error('notify-new-order: profile not found', profile_id);
       return res.status(404).json({ error: 'Profile not found' });
     }
-    if (orderErr || !order) {
-      console.error('notify-new-order: order lookup failed', orderErr);
+    if (!order) {
+      console.error('notify-new-order: order not found', order_id);
       return res.status(404).json({ error: 'Order not found' });
     }
 
-    const results = { email: 'skipped', whatsapp: 'skipped' };
+    const results = { email: 'skipped', whatsapp: 'skipped', customer_receipt: 'skipped' };
 
-    // ── EMAIL ──────────────────────────────────────────────────────
+    // ── EMAIL (store owner) ────────────────────────────────────────
     if (profile.notify_new_order_email) {
-      const { data: authUser } = await supabase.auth.admin.getUserById(profile_id);
-      const ownerEmail = authUser?.user?.email;
+      const ownerEmail = await getUserEmail(SUPABASE_URL, headers, profile_id);
 
       if (ownerEmail && process.env.RESEND_API_KEY) {
         const orderTotal = order.total != null ? `R${Number(order.total).toFixed(2)}` : '';
@@ -101,15 +112,11 @@ export default async function handler(req, res) {
 
     // ── WHATSAPP (store owner) ────────────────────────────────────
     // Preference is stored and honoured once Meta Cloud API is wired up.
-    // Logging intent now so nothing silently disappears.
     if (profile.notify_new_order_whatsapp) {
       results.whatsapp = 'preference set — Meta Cloud API integration pending (Phase 3)';
     }
 
-    // ── CUSTOMER RECEIPT (email only — WhatsApp receipt is handled
-    // client-side on order-page.html via the "message yourself" flow,
-    // since it needs the customer's own browser to open the tab) ─────
-    results.customer_receipt = 'skipped';
+    // ── CUSTOMER RECEIPT (email only) ──────────────────────────────
     if (order.receipt_method === 'email' && order.customer_email && process.env.RESEND_API_KEY) {
       const itemLines = (order.items || [])
         .map(i => `${i.qty}× ${i.name} — R${(i.price * i.qty).toFixed(2)}`)
@@ -157,6 +164,13 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: true, results });
   } catch (err) {
     console.error('notify-new-order: unexpected error', err);
-    return res.status(500).json({ error: 'Internal error' });
+    return res.status(500).json({ error: 'Internal error', message: err.message });
   }
+}
+
+async function getUserEmail(SUPABASE_URL, headers, userId) {
+  const resp = await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${userId}`, { headers });
+  if (!resp.ok) return null;
+  const data = await resp.json();
+  return data?.email || null;
 }
