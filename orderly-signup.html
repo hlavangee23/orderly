@@ -692,12 +692,12 @@ select.form-input { cursor: pointer; }
       <!-- STEP 3: Success -->
       <div class="step-panel" id="panel3">
         <div class="success-wrap">
-          <div class="success-icon-wrap">🎉</div>
-          <h2 class="success-heading">You're live!</h2>
-          <p class="success-sub">Your Orderly store is ready. Share your link and start taking orders today.</p>
+          <div class="success-icon-wrap">📬</div>
+          <h2 class="success-heading">Almost there!</h2>
+          <p class="success-sub">We've sent a confirmation link to <strong id="finalEmail"></strong>. Click it to activate your store and go straight to your dashboard.</p>
 
           <div class="your-link-box">
-            <div class="your-link-label">Your order page</div>
+            <div class="your-link-label">Your order page (will go live once confirmed)</div>
             <div class="your-link-url" id="finalLink">yourstore.orderly.co.za</div>
             <button class="your-link-copy" onclick="copyLink()">📋 Copy link</button>
           </div>
@@ -705,21 +705,19 @@ select.form-input { cursor: pointer; }
           <div class="checklist">
             <div class="checklist-item">
               <div class="checklist-icon">✓</div>
-              <span>Your order page is live and ready to share</span>
-            </div>
-            <div class="checklist-item">
-              <div class="checklist-icon">✓</div>
-              <span>WhatsApp notifications are set up</span>
+              <span>Your store details are saved</span>
             </div>
             <div class="checklist-item">
               <div class="checklist-icon" style="background:var(--off-white);color:var(--text-muted);">→</div>
-              <span style="color:var(--text-muted);">Add your menu items to get started</span>
+              <span style="color:var(--text-muted);">Check your email and click the confirmation link</span>
+            </div>
+            <div class="checklist-item">
+              <div class="checklist-icon" style="background:var(--off-white);color:var(--text-muted);">→</div>
+              <span style="color:var(--text-muted);">Add your menu items once you're in</span>
             </div>
           </div>
 
-          <button class="btn-primary" onclick="goToDashboard()" style="margin-top:0;">
-            Go to my dashboard →
-          </button>
+          <p style="font-size:0.78rem;color:var(--text-muted);margin-top:1rem;">Didn't get it? Check spam, or <a href="#" onclick="resendConfirmation(); return false;" style="color:var(--green-700);">resend the email</a>.</p>
         </div>
       </div>
 
@@ -910,6 +908,7 @@ async function goStep3() {
 
     // 5. Show success
     document.getElementById('finalLink').textContent = slug + '.orderly.co.za';
+    document.getElementById('finalEmail').textContent = tempEmail;
     setStep(3);
 
   } catch (err) {
@@ -920,12 +919,14 @@ async function goStep3() {
   }
 }
 
-// ─── GO TO DASHBOARD ───────────────────────────────────────────────
-function goToDashboard() {
-  showToast('Opening your dashboard... ✓');
-  setTimeout(() => {
-    window.location.href = 'orderly-dashboard.html';
-  }, 800);
+// ─── RESEND CONFIRMATION EMAIL ─────────────────────────────────────
+async function resendConfirmation() {
+  const { error } = await db.auth.resend({ type: 'signup', email: tempEmail });
+  if (error) {
+    showToast("Couldn't resend right now — try again in a moment.");
+  } else {
+    showToast('Confirmation email resent ✓');
+  }
 }
 
 // ─── SLUG GENERATOR ────────────────────────────────────────────────

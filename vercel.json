@@ -9,7 +9,7 @@
     { "source": "/invoices", "destination": "/orderly-invoices.html" },
     { "source": "/faq", "destination": "/orderly-faq.html" },
     { "source": "/contact", "destination": "/orderly-contact.html" },
-    { "source": "/order/:slug", "destination": "/order-page.html" }
+    { "source": "/order/:slug", "destination": "/order-page.html?store=:slug" }
   ],
   "crons": [
     {
