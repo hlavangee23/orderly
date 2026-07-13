@@ -815,7 +815,7 @@ function escJs(str) { return String(str).replace(/\\/g,'\\\\').replace(/'/g,"\\'
 
 function copyLink() {
   const slug = userProfile?.store_slug || '';
-  navigator.clipboard.writeText(`https://orderlyapp.co.za/order-page.html?store=${slug}`).catch(() => {});
+  navigator.clipboard.writeText(`https://orderlyapp.co.za/order/${slug}`).catch(() => {});
   showToast('Order link copied! 🔗');
 }
 

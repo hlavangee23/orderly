@@ -622,7 +622,7 @@ select.form-input { cursor: pointer; }
           <div class="error-msg" id="name-err">Please enter your business name.</div>
           <div class="slug-preview" id="slugPreview" style="display:none;">
             <span class="slug-preview-icon">🔗</span>
-            <span class="slug-preview-text">Your link: <strong id="slugText">yourstore.orderly.co.za</strong></span>
+            <span class="slug-preview-text">Your link: <strong id="slugText">orderlyapp.co.za/order/yourstore</strong></span>
           </div>
         </div>
 
@@ -698,7 +698,7 @@ select.form-input { cursor: pointer; }
 
           <div class="your-link-box">
             <div class="your-link-label">Your order page (will go live once confirmed)</div>
-            <div class="your-link-url" id="finalLink">yourstore.orderly.co.za</div>
+            <div class="your-link-url" id="finalLink">orderlyapp.co.za/order/yourstore</div>
             <button class="your-link-copy" onclick="copyLink()">📋 Copy link</button>
           </div>
 
@@ -907,7 +907,7 @@ async function goStep3() {
     localStorage.setItem('orderly_wa', waEl.value.trim());
 
     // 5. Show success
-    document.getElementById('finalLink').textContent = slug + '.orderly.co.za';
+    document.getElementById('finalLink').textContent = 'orderlyapp.co.za/order/' + slug;
     document.getElementById('finalEmail').textContent = tempEmail;
     setStep(3);
 
@@ -941,7 +941,7 @@ function updateSlug(val) {
   const preview  = document.getElementById('slugPreview');
   const slugText = document.getElementById('slugText');
   if (val.trim()) {
-    slugText.textContent = toSlug(val) + '.orderly.co.za';
+    slugText.textContent = 'orderlyapp.co.za/order/' + toSlug(val);
     preview.style.display = 'flex';
   } else {
     preview.style.display = 'none';

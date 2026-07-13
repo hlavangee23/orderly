@@ -1685,7 +1685,7 @@ function updateStoreUI(profile) {
 
   // Share banner
   const shareLink = document.getElementById('shareBannerLink');
-  if (shareLink) shareLink.textContent = `orderlyapp.co.za/order-page.html?store=${profile.store_slug}`;
+  if (shareLink) shareLink.textContent = `orderlyapp.co.za/order/${profile.store_slug}`;
 }
 
 // ── LOAD REAL ORDERS ───────────────────────────────────────────────
@@ -2601,7 +2601,7 @@ function wizGoTo(n) {
   document.getElementById('wizFinishBtn').style.display = (n === 5) ? 'inline-block' : 'none';
 
   if (n === 5) {
-    const link = `orderlyapp.co.za/order-page.html?store=${userProfile?.store_slug || ''}`;
+    const link = `orderlyapp.co.za/order/${userProfile?.store_slug || ''}`;
     document.getElementById('wizOrderLink').textContent = link;
   }
 }
@@ -2787,7 +2787,7 @@ function scrollToMenu() {
 // ── SHARE LINK ─────────────────────────────────────────────────────
 function copyLink() {
   const slug = userProfile?.store_slug || localStorage.getItem('orderly_slug') || '';
-  const link = `https://orderlyapp.co.za/order-page.html?store=${slug}`;
+  const link = `https://orderlyapp.co.za/order/${slug}`;
   navigator.clipboard.writeText(link).catch(() => {});
   showToast('Order link copied! 🔗');
 }
