@@ -2080,8 +2080,14 @@ async function addItem() {
   btn.disabled = false;
   btn.textContent = originalLabel;
 
-  if (error) { showToast('Could not add item — try again'); return; }
-
+if (error) {
+  if (error.message?.includes('FREE_PLAN_MENU_CAP')) {
+    showToast(`Free plan limit — max 20 menu items. Upgrade to Pro for unlimited.`);
+  } else {
+    showToast('Could not add item — try again');
+  }
+  return;
+}
   const list = document.getElementById('catalogList');
   // Remove empty state message if present
   const emptyMsg = list.querySelector('div:not(.catalog-item)');
