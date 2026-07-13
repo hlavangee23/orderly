@@ -783,7 +783,12 @@ function goStep2() {
   if (!email.value || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) {
     showError('email-err', email); valid = false;
   }
-  if (!pw.value || pw.value.length < 8) {
+  const pwHasLower  = /[a-z]/.test(pw.value);
+  const pwHasUpper  = /[A-Z]/.test(pw.value);
+  const pwHasNumber = /[0-9]/.test(pw.value);
+  const pwHasSymbol = /[^a-zA-Z0-9]/.test(pw.value);
+  if (!pw.value || pw.value.length < 8 || !pwHasLower || !pwHasUpper || !pwHasNumber || !pwHasSymbol) {
+    document.getElementById('pw-err').textContent = 'Needs 8+ characters with upper & lower case, a number, and a symbol (e.g. Tasty123!).';
     showError('pw-err', pw); valid = false;
   }
   if (pw.value !== confirm.value) {
@@ -849,6 +854,14 @@ async function goStep3() {
         showToast('That email is already registered. Try signing in.');
         document.getElementById('email-err').textContent = 'This email already has an account.';
         showError('email-err', document.getElementById('email'));
+        setLoading('btn2', 'spinner2', 'btn2-text', false);
+        setStep(1);
+        return;
+      }
+      if (authError.message.includes('Password should contain')) {
+        showToast('Password too weak — needs upper & lower case, a number, and a symbol.');
+        document.getElementById('pw-err').textContent = 'Needs 8+ characters with upper & lower case, a number, and a symbol (e.g. Tasty123!).';
+        showError('pw-err', document.getElementById('password'));
         setLoading('btn2', 'spinner2', 'btn2-text', false);
         setStep(1);
         return;
