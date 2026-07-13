@@ -583,6 +583,7 @@ select.form-input { cursor: pointer; }
             <input class="form-input" type="password" id="password" placeholder="At least 8 characters" autocomplete="new-password" oninput="checkStrength(this.value)" />
             <button class="toggle-pw" onclick="togglePw()" type="button" id="toggleBtn">👁</button>
           </div>
+          <div class="form-hint">Must include upper &amp; lower case letters, a number, and a symbol (e.g. Tasty123!).</div>
           <div class="pw-strength" id="pwStrength" style="display:none;">
             <div class="pw-strength-bar"><div class="pw-strength-fill" id="pwFill"></div></div>
             <div class="pw-strength-label" id="pwLabel"></div>
@@ -843,10 +844,26 @@ async function goStep3() {
       return;
     }
 
-    // 2. Create Supabase auth user
+    // 2. Create Supabase auth user — store data goes in as user metadata so
+    // the on_auth_user_created DB trigger can build the profile row
+    // server-side. This matters because "Confirm email" is enabled on this
+    // project: signUp() doesn't grant an active session until the user
+    // clicks the confirmation link, so a client-side insert into `profiles`
+    // right here would be blocked by RLS (no auth.uid() yet). The trigger
+    // runs as part of the auth.users insert itself, so it works regardless
+    // of confirmation state.
     const { data: authData, error: authError } = await db.auth.signUp({
       email: tempEmail,
       password: tempPassword,
+      options: {
+        data: {
+          store_name: nameEl.value.trim(),
+          store_slug: slug,
+          food_type:  selectedType,
+          city:       cityEl.value,
+          whatsapp:   waEl.value.trim(),
+        }
+      }
     });
 
     if (authError) {
@@ -871,19 +888,11 @@ async function goStep3() {
 
     const userId = authData.user.id;
 
-    // 3. Save profile/store to database
-    const { error: profileError } = await db.from('profiles').insert({
-      id:         userId,
-      store_name: nameEl.value.trim(),
-      store_slug: slug,
-      food_type:  selectedType,
-      city:       cityEl.value,
-      whatsapp:   waEl.value.trim(),
-      plan:       'free',
-      trial_start_date: new Date().toISOString(),
-    });
-
-    if (profileError) throw profileError;
+    // 3. Profile row is created automatically by the on_auth_user_created
+    // trigger (see the SQL migration) — no client-side insert needed here.
+    // This also means it works correctly even before the user confirms
+    // their email, since the trigger runs server-side on the auth.users
+    // insert itself.
 
     // 4. Save to localStorage so dashboard can read it
     localStorage.setItem('orderly_slug', slug);
