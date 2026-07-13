@@ -856,6 +856,13 @@ async function goStep3() {
       email: tempEmail,
       password: tempPassword,
       options: {
+        // Without this, Supabase sends people to the bare Site URL after
+        // they click the confirmation email — which is our marketing
+        // homepage with no Supabase client on it, so nothing happens.
+        // orderly-signin.html already knows how to pick up the session
+        // from the URL hash and redirect straight into the dashboard
+        // (same pattern used for the password-reset flow), so we reuse it.
+        emailRedirectTo: 'https://orderlyapp.co.za/orderly-signin.html',
         data: {
           store_name: nameEl.value.trim(),
           store_slug: slug,
