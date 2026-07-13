@@ -974,7 +974,15 @@ async function submitOrder() {
       .select('id', { count: 'exact', head: true })
       .eq('profile_id', storeProfile.id);
 
-    await db.from('orders').insert({
+    // Server-side caps (menu item / monthly order limits) are enforced
+    // by Postgres triggers on the `orders` table now, in addition to the
+    // client-side check above — this catches the rare edge case where
+    // the client-side count above was stale (e.g. two tabs open at once,
+    // or a request made directly against the API). Without checking the
+    // error here, a rejected insert would silently fall through to the
+    // success screen below and the customer would think their order went
+    // through when nothing was actually saved.
+    const { error: orderError } = await db.from('orders').insert({
       profile_id:      storeProfile.id,
       customer_name:   customer.name,
       customer_phone:  customer.phone,
@@ -990,6 +998,18 @@ async function submitOrder() {
       status:          storeProfile.auto_confirm ? 'confirmed' : 'new',
       invoice_number:  (count || 0) + 1,
     });
+
+    if (orderError) {
+      if (waPopup) waPopup.close();
+      btn.disabled = false;
+      btn.textContent = 'Confirm order ✓';
+      if (orderError.message?.includes('FREE_PLAN_ORDER_CAP')) {
+        showToast_(`This store is fully booked for the month — please check back soon.`);
+      } else {
+        showToast_('Could not place order — please try again.');
+      }
+      return;
+    }
   }
 
   // Show success — wording depends on how the receipt is being delivered
@@ -1043,6 +1063,20 @@ function hideLoading() {
   const el = document.getElementById('loadingScreen');
   el.classList.add('hidden');
   setTimeout(() => el.style.display = 'none', 400);
+}
+
+// Simple toast for this page (order-page.html has no toast element by
+// default — reuse one if present, otherwise fall back to an alert so the
+// error is never silently swallowed).
+function showToast_(msg) {
+  const existing = document.getElementById('toast');
+  if (existing) {
+    existing.textContent = msg;
+    existing.classList.add('show');
+    setTimeout(() => existing.classList.remove('show'), 3000);
+  } else {
+    alert(msg);
+  }
 }
 
 // ── ITEM IMAGE LIGHTBOX ─────────────────────────────────────────────
