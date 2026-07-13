@@ -521,8 +521,19 @@ let customer = {};
 
 // ── INIT ───────────────────────────────────────────────────
 async function init() {
+  // Supports two URL shapes:
+  //  1. /order-page.html?store=slug   (old direct/query style, keep working)
+  //  2. /order/slug                    (new clean Vercel rewrite — the
+  //     rewrite's "?store=" query only exists server-side; the browser's
+  //     actual URL has no query string at all, so we must also check the
+  //     path itself for the slug)
   const params = new URLSearchParams(window.location.search);
-  const slug = params.get('store');
+  let slug = params.get('store');
+
+  if (!slug) {
+    const pathMatch = window.location.pathname.match(/^\/order\/([a-z0-9-]+)\/?$/i);
+    if (pathMatch) slug = pathMatch[1];
+  }
 
   if (!slug) {
     document.getElementById('storeName').textContent = 'Store not found';
