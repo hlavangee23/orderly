@@ -725,6 +725,17 @@ textarea.form-input { resize: vertical; line-height: 1.5; }
 
 /* ONBOARDING WIZARD */
 .wizard-overlay { position: fixed; inset: 0; background: var(--off-white); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 1.5rem; }
+
+/* GUIDED TOUR */
+.tour-highlight { position: fixed; z-index: 2000; border-radius: 10px; box-shadow: 0 0 0 4px var(--green-400), 0 0 0 9999px rgba(15,35,24,0.6); transition: top 0.25s ease, left 0.25s ease, width 0.25s ease, height 0.25s ease; pointer-events: none; }
+.tour-popup { position: fixed; z-index: 2001; background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow-md); padding: 1.1rem 1.25rem; width: 270px; transition: top 0.25s ease, left 0.25s ease; }
+.tour-popup-title { font-family: 'Fraunces', serif; font-size: 1.05rem; color: var(--text); margin-bottom: 0.4rem; }
+.tour-popup-text { font-size: 0.85rem; color: var(--text-mid); line-height: 1.55; margin-bottom: 1rem; }
+.tour-popup-actions { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.tour-popup-skip { background: none; border: none; color: var(--text-muted); font-size: 0.78rem; cursor: pointer; padding: 0; }
+.tour-popup-skip:hover { color: var(--text-mid); text-decoration: underline; }
+.tour-popup-next { background: var(--green-700); color: white; border: none; border-radius: var(--radius); padding: 0.55rem 1rem; font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 500; cursor: pointer; }
+.tour-popup-next:hover { background: var(--green-900); }
 .wizard-card { background: var(--white); border-radius: var(--radius-lg); width: 100%; max-width: 560px; padding: 2.25rem 2.5rem; box-shadow: var(--shadow-md); max-height: 92vh; overflow-y: auto; }
 .wizard-progress { display: flex; align-items: center; gap: 6px; margin-bottom: 1.25rem; }
 .wizard-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); transition: background 0.2s; }
@@ -770,9 +781,8 @@ textarea.form-input { resize: vertical; line-height: 1.5; }
       <div class="wizard-dot" id="wizDot2"></div>
       <div class="wizard-dot" id="wizDot3"></div>
       <div class="wizard-dot" id="wizDot4"></div>
-      <div class="wizard-dot" id="wizDot5"></div>
     </div>
-    <div class="wizard-step-label" id="wizStepLabel">Step 1 of 5</div>
+    <div class="wizard-step-label" id="wizStepLabel">Step 1 of 4</div>
 
     <!-- STEP 1: Branding -->
     <div class="wizard-step" id="wizStep1">
@@ -793,25 +803,8 @@ textarea.form-input { resize: vertical; line-height: 1.5; }
       </div>
     </div>
 
-    <!-- STEP 2: Add first item -->
+    <!-- STEP 2: Store info -->
     <div class="wizard-step" id="wizStep2" style="display:none;">
-      <div class="wizard-title">Add your first menu item</div>
-      <div class="wizard-sub">Customers need something to order! Add at least one item — you can add the rest anytime.</div>
-      <div class="emoji-picker-row" id="wizEmojiPickerRow"></div>
-      <div class="form-group" style="margin-top:0.75rem;">
-        <label class="form-label">Item name</label>
-        <input class="form-input" type="text" id="wizItemName" placeholder="e.g. Chocolate cupcakes (6 pack)" />
-      </div>
-      <div class="form-group">
-        <label class="form-label">Price (R)</label>
-        <input class="form-input" type="number" id="wizItemPrice" placeholder="120" min="0" />
-      </div>
-      <button type="button" class="logo-upload-btn" id="wizAddItemBtn" onclick="wizardAddItem()">+ Add item</button>
-      <div class="wizard-added-list" id="wizAddedItemsList"><div class="wizard-added-empty">No items added yet.</div></div>
-    </div>
-
-    <!-- STEP 3: Store setup -->
-    <div class="wizard-step" id="wizStep3" style="display:none;">
       <div class="wizard-title">Tell customers about your store</div>
       <div class="wizard-sub">This shows up when customers land on your order page.</div>
       <div class="form-group">
@@ -824,38 +817,23 @@ textarea.form-input { resize: vertical; line-height: 1.5; }
       </div>
     </div>
 
-    <!-- STEP 4: Notification preferences -->
-    <div class="wizard-step" id="wizStep4" style="display:none;">
-      <div class="wizard-title">How should we let you know about new orders?</div>
-      <div class="wizard-sub">We'll notify you the moment a customer orders. You can change this anytime in Settings.</div>
-
-      <div class="notif-pref-row">
+    <!-- STEP 3: Point to Settings for delivery/rush setup -->
+    <div class="wizard-step" id="wizStep3" style="display:none;">
+      <div class="wizard-title">One more thing before you go 📦</div>
+      <div class="wizard-sub">Head to <strong>Settings</strong> to set up your delivery areas, delivery fee, and rush order options — customers will see these when they place an order.</div>
+      <div class="notif-pref-row" style="align-items:flex-start;">
         <div class="notif-pref-info">
-          <span class="notif-pref-icon">📧</span>
+          <span class="notif-pref-icon">🚚</span>
           <div>
-            <div class="notif-pref-title">Email</div>
-            <div class="notif-pref-sub" id="wizEmailPrefSub">Sent to your account email</div>
+            <div class="notif-pref-title">Delivery &amp; rush orders</div>
+            <div class="notif-pref-sub">Not set up yet — do this in Settings whenever you're ready. Your store works fine without it, but customers won't see delivery options until it's configured.</div>
           </div>
         </div>
-        <input type="checkbox" class="notif-pref-toggle" id="wizNotifEmail" checked>
       </div>
-
-      <div class="notif-pref-row">
-        <div class="notif-pref-info">
-          <span class="notif-pref-icon">💬</span>
-          <div>
-            <div class="notif-pref-title">WhatsApp <span class="notif-pref-badge">Coming soon</span></div>
-            <div class="notif-pref-sub">We'll message your WhatsApp number the moment an order lands. Turn this on now and it'll start working automatically once it's live — no need to come back.</div>
-          </div>
-        </div>
-        <input type="checkbox" class="notif-pref-toggle" id="wizNotifWhatsapp">
-      </div>
-
-      <div class="wizard-sub" style="margin-top:0.5rem;">You'll always see new orders in the bell icon on your dashboard too — that one's always on.</div>
     </div>
 
-    <!-- STEP 5: Share link -->
-    <div class="wizard-step" id="wizStep5" style="display:none;">
+    <!-- STEP 4: Share link -->
+    <div class="wizard-step" id="wizStep4" style="display:none;">
       <div class="wizard-title">You're all set! 🎉</div>
       <div class="wizard-sub">Share this link with customers so they can start ordering from you.</div>
       <div class="link-preview">
@@ -885,10 +863,10 @@ textarea.form-input { resize: vertical; line-height: 1.5; }
   </div>
   <div class="nav-section-label">Menu</div>
   <a class="nav-item active"><span class="icon">📋</span> Orders</a>
-  <a class="nav-item" href="orderly-menu.html"><span class="icon">🍽️</span> My Menu</a>
+  <a class="nav-item" id="navMenuItem" href="orderly-menu.html"><span class="icon">🍽️</span> My Menu</a>
   <a class="nav-item" href="orderly-invoices.html"><span class="icon">🧾</span> Invoices</a>
   <div class="nav-section-label">Account</div>
-  <a class="nav-item" href="orderly-settings.html"><span class="icon">⚙️</span> Settings</a>
+  <a class="nav-item" id="navSettingsItem" href="orderly-settings.html"><span class="icon">⚙️</span> Settings</a>
   <div class="nav-section-label">Support</div>
   <a class="nav-item" href="orderly-faq.html"><span class="icon">❓</span> FAQ</a>
   <a class="nav-item" href="orderly-contact.html"><span class="icon">💬</span> Contact us</a>
@@ -909,6 +887,7 @@ textarea.form-input { resize: vertical; line-height: 1.5; }
       <p id="topbarDate">Loading...</p>
     </div>
     <div class="topbar-right">
+      <button class="share-btn" id="beginTourBtn" onclick="startTour()" style="background:var(--white);color:var(--green-700);border:1.5px solid var(--border);">🧭 Begin tour</button>
       <button class="share-btn" onclick="copyLink()">🔗 Share my order page</button>
       <div class="notif-wrap">
         <div class="notif-btn" onclick="toggleNotifPanel(event)">🔔<div class="notif-dot" id="notifDot"></div></div>
@@ -1344,6 +1323,17 @@ textarea.form-input { resize: vertical; line-height: 1.5; }
 
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
+
+<!-- GUIDED TOUR -->
+<div class="tour-highlight" id="tourHighlight" style="display:none;"></div>
+<div class="tour-popup" id="tourPopup" style="display:none;">
+  <div class="tour-popup-title" id="tourPopupTitle"></div>
+  <div class="tour-popup-text" id="tourPopupText"></div>
+  <div class="tour-popup-actions">
+    <button class="tour-popup-skip" onclick="endTour()">Skip tour</button>
+    <button class="tour-popup-next" id="tourPopupNextBtn" onclick="nextTourStep()">Next →</button>
+  </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -2573,20 +2563,13 @@ function showOnboardingWizard(profile) {
   if (welcomeEl) welcomeEl.value = profile.welcome_message || '';
   const deadlineEl = document.getElementById('wizOrderDeadline');
   if (deadlineEl) deadlineEl.value = profile.order_deadline || '';
-  const emailPrefEl = document.getElementById('wizNotifEmail');
-  if (emailPrefEl) emailPrefEl.checked = profile.notify_new_order_email !== false;
-  const waPrefEl = document.getElementById('wizNotifWhatsapp');
-  if (waPrefEl) waPrefEl.checked = !!profile.notify_new_order_whatsapp;
-  const emailSubEl = document.getElementById('wizEmailPrefSub');
-  if (emailSubEl) emailSubEl.textContent = `Sent to your account email`;
-  renderWizardEmojiPicker();
   wizGoTo(1);
   document.getElementById('onboardingWizard').style.display = 'flex';
 }
 
 function wizGoTo(n) {
   wizStep = n;
-  [1,2,3,4,5].forEach(i => {
+  [1,2,3,4].forEach(i => {
     const el = document.getElementById('wizStep' + i);
     if (el) el.style.display = (i === n) ? 'block' : 'none';
     const dot = document.getElementById('wizDot' + i);
@@ -2595,12 +2578,12 @@ function wizGoTo(n) {
       dot.classList.toggle('done', i < n);
     }
   });
-  document.getElementById('wizStepLabel').textContent = `Step ${n} of 5`;
+  document.getElementById('wizStepLabel').textContent = `Step ${n} of 4`;
   document.getElementById('wizBackBtn').style.display = (n === 1) ? 'none' : 'inline-block';
-  document.getElementById('wizNextBtn').style.display = (n === 5) ? 'none' : 'inline-block';
-  document.getElementById('wizFinishBtn').style.display = (n === 5) ? 'inline-block' : 'none';
+  document.getElementById('wizNextBtn').style.display = (n === 4) ? 'none' : 'inline-block';
+  document.getElementById('wizFinishBtn').style.display = (n === 4) ? 'inline-block' : 'none';
 
-  if (n === 5) {
+  if (n === 4) {
     const link = `orderlyapp.co.za/order/${userProfile?.store_slug || ''}`;
     document.getElementById('wizOrderLink').textContent = link;
   }
@@ -2633,17 +2616,10 @@ async function wizNext() {
     wizExistingLogoUrl = logoUrl;
     wizPendingLogoFile = null;
     wizLogoRemoved = false;
-  } else if (wizStep === 3) {
+  } else if (wizStep === 2) {
     const updates = {
       welcome_message: document.getElementById('wizWelcomeMessage').value.trim(),
       order_deadline:  document.getElementById('wizOrderDeadline').value.trim(),
-    };
-    await db.from('profiles').update(updates).eq('id', userProfile.id);
-    userProfile = { ...userProfile, ...updates };
-  } else if (wizStep === 4) {
-    const updates = {
-      notify_new_order_email:    document.getElementById('wizNotifEmail').checked,
-      notify_new_order_whatsapp: document.getElementById('wizNotifWhatsapp').checked,
     };
     await db.from('profiles').update(updates).eq('id', userProfile.id);
     userProfile = { ...userProfile, ...updates };
@@ -2790,6 +2766,69 @@ function copyLink() {
   const link = `https://orderlyapp.co.za/order/${slug}`;
   navigator.clipboard.writeText(link).catch(() => {});
   showToast('Order link copied! 🔗');
+}
+
+// ── GUIDED TOUR ───────────────────────────────────────────────────
+// Point-and-let-them-click: highlights a nav item and explains it, but
+// never navigates for the user — they click through in their own time.
+const TOUR_STEPS = [
+  {
+    target: 'navMenuItem',
+    title: "Let's build your menu",
+    text: "Customers need something to order! Click here whenever you're ready to add your menu items, photos, and categories.",
+  },
+  {
+    target: 'navSettingsItem',
+    title: 'Set up delivery & rush orders',
+    text: "Head into Settings to configure your delivery areas, delivery fee, and rush order options. Your store works without this, but customers won't see delivery choices until it's set up.",
+  },
+];
+let tourStepIndex = 0;
+
+function startTour() {
+  tourStepIndex = 0;
+  showTourStep(0);
+}
+
+function showTourStep(i) {
+  const step = TOUR_STEPS[i];
+  const target = document.getElementById(step.target);
+  if (!target) { endTour(); return; }
+
+  const rect = target.getBoundingClientRect();
+  const pad = 6;
+  const highlight = document.getElementById('tourHighlight');
+  highlight.style.display = 'block';
+  highlight.style.top = `${rect.top - pad}px`;
+  highlight.style.left = `${rect.left - pad}px`;
+  highlight.style.width = `${rect.width + pad * 2}px`;
+  highlight.style.height = `${rect.height + pad * 2}px`;
+
+  const popup = document.getElementById('tourPopup');
+  document.getElementById('tourPopupTitle').textContent = step.title;
+  document.getElementById('tourPopupText').textContent = step.text;
+  document.getElementById('tourPopupNextBtn').textContent = (i === TOUR_STEPS.length - 1) ? 'Got it ✓' : 'Next →';
+  popup.style.display = 'block';
+
+  // Position the popup just to the right of the highlighted item, clamped
+  // so it never runs off the bottom of the viewport.
+  const popupTop = Math.min(rect.top, window.innerHeight - 220);
+  popup.style.top = `${Math.max(popupTop, 16)}px`;
+  popup.style.left = `${rect.right + 20}px`;
+}
+
+function nextTourStep() {
+  if (tourStepIndex < TOUR_STEPS.length - 1) {
+    tourStepIndex++;
+    showTourStep(tourStepIndex);
+  } else {
+    endTour();
+  }
+}
+
+function endTour() {
+  document.getElementById('tourHighlight').style.display = 'none';
+  document.getElementById('tourPopup').style.display = 'none';
 }
 
 // ── SIGN OUT ───────────────────────────────────────────────────────
