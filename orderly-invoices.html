@@ -377,17 +377,6 @@ textarea.form-input { resize: vertical; min-height: 60px; }
   </div>
 </div>
 
-<!-- PDF RENDER TARGET — sits at real on-screen coordinates (not pushed off
-     with negative positioning, which this html2canvas version fails to
-     capture and produces a blank page) but stays invisible via z-index,
-     tucked behind all normal content. Used only for PDF/share capture. -->
-<!-- PDF RENDER FRAME — a separate, dedicated iframe used only for PDF/share
-     capture (never shown to the user). Capturing an iframe's own document is
-     the pattern that's proven to actually render content in this app; a
-     hidden plain div did not. Kept at real coordinates with z-index:-1
-     (tucked behind everything) rather than a negative offset. -->
-<iframe id="pdfFrame" style="position:fixed;top:0;left:0;width:800px;height:600px;border:0;z-index:-1;" src="about:blank"></iframe>
-
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1073,7 +1062,18 @@ function openInvoiceFromOrder(orderId) {
 
   const html = renderInvoiceHTML(settings, data);
   currentInvoiceHTML = html;
-  document.getElementById('invoiceFrame').srcdoc = `<html><body style="margin:0;">${html}</body></html>`;
+  const previewFrame = document.getElementById('invoiceFrame');
+  previewFrame.onload = () => {
+    // Size the preview iframe to its actual content height instead of the
+    // fixed height="700" attribute, so what's captured for PDF/share is
+    // exactly what's on screen — no separate hidden copy involved.
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      const body = previewFrame.contentDocument.body;
+      const fullHeight = Math.max(body.scrollHeight, body.offsetHeight, body.getBoundingClientRect().height);
+      previewFrame.style.height = fullHeight + 'px';
+    }));
+  };
+  previewFrame.srcdoc = `<html><body style="margin:0;">${html}</body></html>`;
   document.getElementById('invoiceModal').classList.add('open');
 }
 
@@ -1120,7 +1120,7 @@ async function sendInvoiceWhatsApp() {
   // through the native share sheet instead, which lets WhatsApp attach it directly.
   if (typeof html2pdf !== 'undefined' && navigator.canShare) {
     try {
-      const { body: target, height } = await renderPdfFrame(currentInvoiceHTML);
+      const { body: target, height } = await prepareInvoiceFrameForCapture();
       const blob = await html2pdf().set({
         margin: 0.3, image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { scale: 2, useCORS: true, width: 800, windowWidth: 800, height, windowHeight: height }, jsPDF: { unit: 'in', format: 'a4' },
@@ -1140,32 +1140,21 @@ async function sendInvoiceWhatsApp() {
   closeModal();
 }
 
-// Loads invoice HTML into the dedicated hidden PDF iframe and waits for it
-// to actually fire 'load' (srcdoc rendering is async) plus one extra paint
-// frame, before handing back its body for html2canvas to capture.
-//
-// The iframe's CSS box is fixed at 800x600 purely so it has real on-screen
-// coordinates to render into off-screen (see the comment above the iframe
-// tag). That fixed 600px height was clipping anything taller than a short
-// invoice — html2canvas was only capturing what fit inside that 600px
-// window. Fix: measure the actual rendered content height once it's loaded,
-// resize the iframe to match, and hand that height back so html2canvas can
-// be told about it too (via windowHeight) instead of clipping.
-function renderPdfFrame(html) {
+// Captures directly from the SAME preview iframe the user already sees
+// rendering correctly (#invoiceFrame), instead of reloading a duplicate
+// copy of the invoice into a separate hidden iframe (#pdfFrame). That
+// second-iframe approach is what produced the blank/clipped PDFs — since
+// the on-screen preview is confirmed correct, capturing it directly removes
+// the extra, more fragile moving part entirely.
+function prepareInvoiceFrameForCapture() {
   return new Promise((resolve) => {
-    const frame = document.getElementById('pdfFrame');
-    frame.onload = () => {
-      requestAnimationFrame(() => requestAnimationFrame(() => {
-        const body = frame.contentDocument.body;
-        const fullHeight = Math.max(body.scrollHeight, body.offsetHeight, body.getBoundingClientRect().height);
-        frame.style.height = fullHeight + 'px';
-        console.log('Orderly PDF debug: measured height =', fullHeight, '| scrollHeight =', body.scrollHeight, '| offsetHeight =', body.offsetHeight, '| rect.height =', body.getBoundingClientRect().height, '| children =', body.children.length);
-        requestAnimationFrame(() => requestAnimationFrame(() => {
-          resolve({ body: frame.contentDocument.body, height: fullHeight });
-        }));
-      }));
-    };
-    frame.srcdoc = `<html><body style="margin:0;">${html}</body></html>`;
+    const frame = document.getElementById('invoiceFrame');
+    const body = frame.contentDocument.body;
+    const fullHeight = Math.max(body.scrollHeight, body.offsetHeight, body.getBoundingClientRect().height);
+    frame.style.height = fullHeight + 'px';
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      resolve({ body: frame.contentDocument.body, height: fullHeight });
+    }));
   });
 }
 
@@ -1173,20 +1162,17 @@ async function printInvoice() {
   const filename = `Invoice-INV-${currentInvoiceData.invNum || '0000'}.pdf`;
 
   // If html2pdf failed to load (e.g. blocked network), fall back to the
-  // browser's print dialog — using the same full-height offscreen pdfFrame
-  // that the html2pdf path uses (not the constrained, scroll-clipped
-  // on-screen preview iframe), so this path isn't broken the same way.
+  // browser's print dialog on the same preview iframe.
   if (typeof html2pdf === 'undefined') {
     console.warn('Orderly: html2pdf did not load — falling back to browser print dialog. Check the network tab for a blocked/failed request to cdnjs.cloudflare.com.');
     showToast('PDF library unavailable — using browser print instead');
-    await renderPdfFrame(currentInvoiceHTML); // resizes #pdfFrame to full content height
-    const frame = document.getElementById('pdfFrame');
+    const frame = document.getElementById('invoiceFrame');
     frame.contentWindow.focus();
     frame.contentWindow.print();
     return;
   }
 
-  const { body: target, height } = await renderPdfFrame(currentInvoiceHTML);
+  const { body: target, height } = await prepareInvoiceFrameForCapture();
   console.log('Orderly PDF debug: passing to html2canvas — height =', height, '| target.outerHTML length =', target.outerHTML.length);
 
   showToast('Preparing your PDF...');
