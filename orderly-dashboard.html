@@ -539,6 +539,34 @@ body {
 .invoice-total-label { font-size: 0.82rem; font-weight: 600; color: var(--text-mid); }
 .invoice-total-val { font-family: 'Instrument Serif', serif; font-size: 1.2rem; color: var(--green-700); font-weight: 600; }
 .modal-actions { display: flex; gap: 8px; }
+
+/* PRINT — isolate just the invoice card so "Download PDF" doesn't
+   capture the dashboard/backdrop behind it or clip at the modal's
+   90vh scroll height. */
+@media print {
+  body * { visibility: hidden; }
+  .invoice-preview, .invoice-preview * { visibility: visible; }
+  .modal-overlay, .modal {
+    position: static !important;
+    inset: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    background: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    width: auto !important;
+    max-width: none !important;
+    transform: none !important;
+  }
+  .modal-title, .modal-sub, .modal-actions { display: none !important; }
+  .invoice-preview {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    margin: 0;
+    border: none;
+  }
+}
 .modal-btn {
   flex: 1;
   padding: 0.75rem;
