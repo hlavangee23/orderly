@@ -391,7 +391,7 @@ textarea.form-input { resize: vertical; min-height: 60px; }
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" onerror="console.error('Orderly: html2pdf.bundle.min.js failed to load from cdnjs.cloudflare.com — Download PDF will fall back to browser print.')"></script>
 <script>
 const SUPABASE_URL = 'https://qhcdlfnsjdspisjkfndq.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoY2RsZm5zamRzcGlzamtmbmRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwNDc3MTAsImV4cCI6MjA5NjYyMzcxMH0.1S4jvY38z-0XI22QwlB0Kkr4ttt-ptvDKRayEbk5Bgo';
@@ -1170,9 +1170,15 @@ function renderPdfFrame(html) {
 async function printInvoice() {
   const filename = `Invoice-INV-${currentInvoiceData.invNum || '0000'}.pdf`;
 
-  // If html2pdf failed to load (e.g. blocked network), fall back to the browser's print dialog
+  // If html2pdf failed to load (e.g. blocked network), fall back to the
+  // browser's print dialog — using the same full-height offscreen pdfFrame
+  // that the html2pdf path uses (not the constrained, scroll-clipped
+  // on-screen preview iframe), so this path isn't broken the same way.
   if (typeof html2pdf === 'undefined') {
-    const frame = document.getElementById('invoiceFrame');
+    console.warn('Orderly: html2pdf did not load — falling back to browser print dialog. Check the network tab for a blocked/failed request to cdnjs.cloudflare.com.');
+    showToast('PDF library unavailable — using browser print instead');
+    await renderPdfFrame(currentInvoiceHTML); // resizes #pdfFrame to full content height
+    const frame = document.getElementById('pdfFrame');
     frame.contentWindow.focus();
     frame.contentWindow.print();
     return;
@@ -1189,7 +1195,8 @@ async function printInvoice() {
     jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
   }).from(target).save().then(() => {
     showToast('Invoice downloaded ✓');
-  }).catch(() => {
+  }).catch((err) => {
+    console.error('Orderly: html2pdf export failed', err);
     showToast('Could not generate PDF — try again');
   });
 }
