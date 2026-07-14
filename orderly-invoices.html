@@ -1156,8 +1156,10 @@ function renderPdfFrame(html) {
     const frame = document.getElementById('pdfFrame');
     frame.onload = () => {
       requestAnimationFrame(() => requestAnimationFrame(() => {
-        const fullHeight = Math.max(frame.contentDocument.body.scrollHeight, frame.contentDocument.body.offsetHeight);
+        const body = frame.contentDocument.body;
+        const fullHeight = Math.max(body.scrollHeight, body.offsetHeight, body.getBoundingClientRect().height);
         frame.style.height = fullHeight + 'px';
+        console.log('Orderly PDF debug: measured height =', fullHeight, '| scrollHeight =', body.scrollHeight, '| offsetHeight =', body.offsetHeight, '| rect.height =', body.getBoundingClientRect().height, '| children =', body.children.length);
         requestAnimationFrame(() => requestAnimationFrame(() => {
           resolve({ body: frame.contentDocument.body, height: fullHeight });
         }));
@@ -1185,13 +1187,19 @@ async function printInvoice() {
   }
 
   const { body: target, height } = await renderPdfFrame(currentInvoiceHTML);
+  console.log('Orderly PDF debug: passing to html2canvas — height =', height, '| target.outerHTML length =', target.outerHTML.length);
 
   showToast('Preparing your PDF...');
   html2pdf().set({
     margin: 0.3,
     filename,
     image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true, width: 800, windowWidth: 800, height, windowHeight: height },
+    html2canvas: {
+      scale: 2, useCORS: true, width: 800, windowWidth: 800, height, windowHeight: height,
+      onclone: (clonedDoc) => {
+        console.log('Orderly PDF debug: html2canvas clone — body.scrollHeight =', clonedDoc.body.scrollHeight, '| body.innerHTML length =', clonedDoc.body.innerHTML.length);
+      },
+    },
     jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
   }).from(target).save().then(() => {
     showToast('Invoice downloaded ✓');
