@@ -82,6 +82,23 @@ body { font-family: 'DM Sans', sans-serif; background: var(--off-white); color: 
 .quick-add-label { font-size: 0.7rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
 .quick-add-cat-row { display: flex; gap: 6px; }
 .quick-add-cat-row .add-form-input { flex: 1; }
+
+/* MEDIA PICKER (image/emoji) for the add-item form */
+.quick-add-media-row { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 10px; position: relative; }
+.quick-media-box { width: 68px; height: 68px; border-radius: 12px; border: 1.5px dashed var(--border); background: var(--white); display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; font-size: 1.5rem; gap: 2px; transition: border-color 0.15s, background 0.15s; position: relative; overflow: hidden; }
+.quick-media-box:hover { border-color: var(--green-400); background: var(--green-50); }
+.quick-media-box img { width: 100%; height: 100%; object-fit: cover; }
+.quick-media-hint { font-size: 0.78rem; color: var(--text-muted); line-height: 1.5; padding-top: 4px; }
+.quick-media-hint strong { color: var(--text); font-weight: 500; }
+.quick-media-popover { position: absolute; top: 76px; left: 0; z-index: 30; background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-md); padding: 0.9rem; width: 300px; display: none; }
+.quick-media-popover.open { display: block; }
+.quick-media-popover-section { margin-bottom: 0.75rem; }
+.quick-media-popover-label { font-size: 0.7rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+.quick-photo-upload-btn { display: flex; align-items: center; gap: 8px; border: 1.5px solid var(--border); border-radius: var(--radius); padding: 0.6rem 0.75rem; font-size: 0.82rem; color: var(--text); cursor: pointer; position: relative; background: var(--off-white); }
+.quick-photo-upload-btn:hover { border-color: var(--green-400); }
+.quick-photo-upload-btn input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.quick-photo-locked { background: var(--off-white); color: var(--text-muted); cursor: pointer; }
+.quick-photo-locked-tag { margin-left: auto; background: var(--green-50); color: var(--green-500); border: 1px solid var(--green-100); border-radius: 999px; padding: 2px 8px; font-size: 0.68rem; font-weight: 500; }
 @media (max-width: 700px) {
   .quick-add-row { grid-template-columns: 1fr; }
   .quick-add-cat-block { border-left: none; padding-left: 0; border-top: 1px solid var(--border); padding-top: 1rem; flex-basis: 100%; }
@@ -207,6 +224,28 @@ body { font-family: 'DM Sans', sans-serif; background: var(--off-white); color: 
           <div class="quick-add-wrapper">
             <div class="quick-add-block">
               <div class="quick-add-label">Add menu item</div>
+
+              <div class="quick-add-media-row">
+                <div class="quick-media-box" id="quickMediaBox" onclick="toggleQuickMediaPopover()">
+                  <span id="quickMediaBoxContent">🍱</span>
+                </div>
+                <div class="quick-media-hint"><strong>Add an image or emoji</strong><br>Click the box to choose an emoji, or upload a photo (Pro feature).</div>
+
+                <div class="quick-media-popover" id="quickMediaPopover">
+                  <div class="quick-media-popover-section">
+                    <div class="quick-media-popover-label">Photo</div>
+                    <label class="quick-photo-upload-btn" id="quickPhotoUploadBtn">
+                      <span>📸</span><span id="quickPhotoUploadText">Upload a photo</span>
+                      <input type="file" accept="image/jpeg,image/png,image/webp" id="quickItemImageInput" onchange="handleQuickImageSelect(event)" />
+                    </label>
+                  </div>
+                  <div class="quick-media-popover-section" style="margin-bottom:0;">
+                    <div class="quick-media-popover-label">Emoji</div>
+                    <div class="emoji-picker-row" id="quickEmojiPicker"></div>
+                  </div>
+                </div>
+              </div>
+
               <div class="quick-add-row">
                 <input class="add-form-input" id="quickItemName" placeholder="Item name" onkeydown="if(event.key==='Enter')quickAddItem()" />
                 <input class="add-form-input" id="quickItemPrice" type="number" placeholder="Price (R)" onkeydown="if(event.key==='Enter')quickAddItem()" />
@@ -363,6 +402,8 @@ let editingCatId = null;
 let selectedEmoji = '🍱';
 let pendingImageFile = null;
 let existingImageUrl = null;
+let quickSelectedEmoji = '🍱';
+let quickPendingImageFile = null;
 
 // ── INIT ───────────────────────────────────────────────────────────
 async function init() {
@@ -374,6 +415,7 @@ async function init() {
 
   userProfile = profile;
   updateSidebar(profile);
+  initQuickMediaPicker();
   await Promise.all([loadCategories(), loadItems()]);
 }
 
@@ -503,6 +545,80 @@ function renderItems() {
   }).join('');
 }
 
+// ── QUICK-ADD MEDIA PICKER (image/emoji) ────────────────────────────
+function initQuickMediaPicker() {
+  document.getElementById('quickEmojiPicker').innerHTML = EMOJI_OPTIONS.map(e =>
+    `<button class="emoji-pick-btn ${e === quickSelectedEmoji ? 'selected' : ''}" onclick="quickSelectEmoji(this,'${e}')" type="button">${e}</button>`
+  ).join('');
+  refreshQuickPhotoButtonState();
+
+  // Close the popover when clicking anywhere outside it
+  document.addEventListener('click', (e) => {
+    const popover = document.getElementById('quickMediaPopover');
+    const box = document.getElementById('quickMediaBox');
+    if (!popover || !box) return;
+    if (popover.classList.contains('open') && !popover.contains(e.target) && !box.contains(e.target)) {
+      popover.classList.remove('open');
+    }
+  });
+}
+
+function refreshQuickPhotoButtonState() {
+  const btn = document.getElementById('quickPhotoUploadBtn');
+  const text = document.getElementById('quickPhotoUploadText');
+  const input = document.getElementById('quickItemImageInput');
+  if (!btn) return;
+  if (hasProAccess()) {
+    btn.classList.remove('quick-photo-locked');
+    text.textContent = 'Upload a photo';
+    input.disabled = false;
+    const existingTag = btn.querySelector('.quick-photo-locked-tag');
+    if (existingTag) existingTag.remove();
+  } else {
+    btn.classList.add('quick-photo-locked');
+    text.textContent = 'Upload a photo';
+    input.disabled = true;
+    if (!btn.querySelector('.quick-photo-locked-tag')) {
+      btn.insertAdjacentHTML('beforeend', `<span class="quick-photo-locked-tag">Upgrade to Pro</span>`);
+    }
+  }
+}
+
+function toggleQuickMediaPopover() {
+  refreshQuickPhotoButtonState();
+  document.getElementById('quickMediaPopover').classList.toggle('open');
+}
+
+function quickSelectEmoji(btn, emoji) {
+  quickSelectedEmoji = emoji;
+  quickPendingImageFile = null;
+  document.querySelectorAll('#quickEmojiPicker .emoji-pick-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  document.getElementById('quickMediaBoxContent').outerHTML = `<span id="quickMediaBoxContent">${emoji}</span>`;
+  document.getElementById('quickMediaPopover').classList.remove('open');
+}
+
+function handleQuickImageSelect(e) {
+  if (!hasProAccess()) { showToast('Photo upload is a Pro feature — upgrade to add photos'); return; }
+  const file = e.target.files[0];
+  if (!file) return;
+  quickPendingImageFile = file;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    document.getElementById('quickMediaBox').innerHTML = `<img src="${ev.target.result}" alt="Preview" />`;
+    document.getElementById('quickMediaPopover').classList.remove('open');
+  };
+  reader.readAsDataURL(file);
+}
+
+function resetQuickMediaPicker() {
+  quickSelectedEmoji = '🍱';
+  quickPendingImageFile = null;
+  document.getElementById('quickItemImageInput').value = '';
+  document.getElementById('quickMediaBox').innerHTML = `<span id="quickMediaBoxContent">🍱</span>`;
+  document.querySelectorAll('#quickEmojiPicker .emoji-pick-btn').forEach(b => b.classList.remove('selected'));
+}
+
 // ── ADD / EDIT ITEM MODAL ──────────────────────────────────────────
 function populateQuickAddCategory() {
   const sel = document.getElementById('quickItemCategory');
@@ -529,8 +645,22 @@ async function quickAddItem() {
   btn.disabled = true;
   btn.textContent = 'Adding...';
 
+  let imageUrl = null;
+  if (quickPendingImageFile && hasProAccess()) {
+    try {
+      const compressed = await compressImage(quickPendingImageFile, 800, 0.8);
+      const fileName = `${userProfile.id}/${Date.now()}.jpg`;
+      const { error: uploadError } = await db.storage.from('menu-images').upload(fileName, compressed, { contentType: 'image/jpeg', upsert: true });
+      if (!uploadError) {
+        const { data: { publicUrl } } = db.storage.from('menu-images').getPublicUrl(fileName);
+        imageUrl = publicUrl;
+      }
+    } catch (err) { /* fall back to emoji if the upload fails */ }
+  }
+
   const { error } = await db.from('menu_items').insert({
-    profile_id: userProfile.id, name, price: parseFloat(price), category_id: categoryId, emoji: '🍱',
+    profile_id: userProfile.id, name, price: parseFloat(price), category_id: categoryId,
+    emoji: quickSelectedEmoji, image_url: imageUrl,
   });
 
   btn.disabled = false;
@@ -541,6 +671,7 @@ async function quickAddItem() {
   nameEl.value = '';
   priceEl.value = '';
   catEl.value = '';
+  resetQuickMediaPicker();
   showToast(`"${name}" added to your menu ✓`);
   await loadItems();
 }
