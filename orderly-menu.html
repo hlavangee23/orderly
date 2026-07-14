@@ -284,6 +284,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--off-white); color: 
                   <span>📸</span><span id="quickPhotoUploadText">Upload a photo</span>
                   <input type="file" accept="image/jpeg,image/png,image/webp" id="quickItemImageInput" onchange="handleQuickImageSelect(event)" />
                 </label>
+                <button type="button" class="img-remove-btn" id="quickRemovePhotoBtn" style="display:none;margin-top:6px;" onclick="removeQuickImage()">✕ Remove photo</button>
               </div>
               <div class="quick-media-popover-section" style="margin-bottom:0;">
                 <div class="quick-media-popover-label">Emoji</div>
@@ -618,9 +619,12 @@ function toggleQuickMediaPopover() {
 function quickSelectEmoji(btn, emoji) {
   quickSelectedEmoji = emoji;
   quickPendingImageFile = null;
+  document.getElementById('quickItemImageInput').value = '';
+  document.getElementById('quickRemovePhotoBtn').style.display = 'none';
   document.querySelectorAll('#quickEmojiPicker .emoji-pick-btn').forEach(b => b.classList.remove('selected'));
   btn.classList.add('selected');
-  document.getElementById('quickMediaBoxContent').outerHTML = `<span id="quickMediaBoxContent">${emoji}</span>`;
+  // Replace the whole box content (not just an inner span) since a photo preview may have replaced it with an <img>
+  document.getElementById('quickMediaBox').innerHTML = `<span id="quickMediaBoxContent">${emoji}</span>`;
   document.getElementById('quickMediaPopover').classList.remove('open');
 }
 
@@ -628,19 +632,30 @@ function handleQuickImageSelect(e) {
   if (!hasProAccess()) { showToast('Photo upload is a Pro feature — upgrade to add photos'); return; }
   const file = e.target.files[0];
   if (!file) return;
+  if (file.size > 2 * 1024 * 1024) { showToast('Image too large — max 2MB'); e.target.value = ''; return; }
   quickPendingImageFile = file;
+  document.querySelectorAll('#quickEmojiPicker .emoji-pick-btn').forEach(b => b.classList.remove('selected'));
   const reader = new FileReader();
   reader.onload = (ev) => {
     document.getElementById('quickMediaBox').innerHTML = `<img src="${ev.target.result}" alt="Preview" />`;
+    document.getElementById('quickRemovePhotoBtn').style.display = 'inline';
     document.getElementById('quickMediaPopover').classList.remove('open');
   };
   reader.readAsDataURL(file);
+}
+
+function removeQuickImage() {
+  quickPendingImageFile = null;
+  document.getElementById('quickItemImageInput').value = '';
+  document.getElementById('quickRemovePhotoBtn').style.display = 'none';
+  document.getElementById('quickMediaBox').innerHTML = `<span id="quickMediaBoxContent">${quickSelectedEmoji}</span>`;
 }
 
 function resetQuickMediaPicker() {
   quickSelectedEmoji = '🍱';
   quickPendingImageFile = null;
   document.getElementById('quickItemImageInput').value = '';
+  document.getElementById('quickRemovePhotoBtn').style.display = 'none';
   document.getElementById('quickMediaBox').innerHTML = `<span id="quickMediaBoxContent">🍱</span>`;
   document.querySelectorAll('#quickEmojiPicker .emoji-pick-btn').forEach(b => b.classList.remove('selected'));
 }
