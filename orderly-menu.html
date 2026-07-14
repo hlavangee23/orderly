@@ -39,8 +39,28 @@ body { font-family: 'DM Sans', sans-serif; background: var(--off-white); color: 
 .topbar h1 { font-family: 'Instrument Serif', serif; font-size: 1.6rem; color: var(--green-900); letter-spacing: -0.02em; }
 .topbar p { font-size: 0.82rem; color: var(--text-muted); margin-top: 2px; }
 
-/* TWO COLUMN LAYOUT */
-.menu-grid { display: grid; grid-template-columns: 1fr 340px; gap: 1.5rem; align-items: start; }
+/* NEW LAYOUT: tips strip, then left column (add item + categories) + right sidebar (items) */
+.tips-card { margin-bottom: 1.5rem; }
+.tips-row { display: flex; gap: 1.5rem; flex-wrap: wrap; padding: 1rem 1.4rem; }
+.tips-row-item { flex: 1; min-width: 200px; font-size: 0.8rem; color: var(--text-muted); line-height: 1.6; }
+.tips-row-item strong { color: var(--text-mid); font-weight: 500; }
+.menu-layout { display: grid; grid-template-columns: 1fr 340px; gap: 1.5rem; align-items: start; }
+.menu-layout-left { display: flex; flex-direction: column; gap: 1.5rem; }
+
+/* EXPANDED ADD-ITEM BLOCK */
+.add-item-card-body { padding: 1.25rem 1.4rem; }
+.add-item-media-row { display: grid; grid-template-columns: 88px 1fr; gap: 16px; align-items: start; margin-bottom: 12px; position: relative; }
+.add-item-fields { display: flex; flex-direction: column; gap: 10px; }
+.add-item-name-desc-row { display: grid; grid-template-columns: 1fr 1.6fr; gap: 10px; }
+.add-item-price-cat-row { display: grid; grid-template-columns: 1fr 1.4fr auto; gap: 10px; align-items: center; }
+.new-cat-shortcut-btn { height: 100%; padding: 0 12px; border-radius: var(--radius); border: 1.5px solid var(--border); background: var(--off-white); font-size: 0.78rem; color: var(--text-mid); cursor: pointer; white-space: nowrap; transition: border-color 0.15s; }
+.new-cat-shortcut-btn:hover { border-color: var(--green-400); color: var(--green-700); }
+.new-cat-inline-row { display: none; gap: 8px; margin-top: 10px; }
+.new-cat-inline-row.open { display: flex; }
+.new-cat-inline-row .add-form-input { flex: 1; }
+.add-item-submit-btn { width: 100%; margin-top: 14px; padding: 0.75rem; border-radius: var(--radius); background: var(--green-700); color: white; border: none; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: background 0.2s; }
+.add-item-submit-btn:hover { background: var(--green-900); }
+.add-item-submit-btn:disabled { background: var(--border); color: var(--text-muted); cursor: not-allowed; }
 
 /* CARDS */
 .card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); overflow: hidden; margin-bottom: 1.25rem; }
@@ -49,16 +69,16 @@ body { font-family: 'DM Sans', sans-serif; background: var(--off-white); color: 
 .card-count { font-size: 0.72rem; color: var(--text-muted); background: var(--green-50); border: 1px solid var(--green-100); border-radius: 20px; padding: 2px 8px; }
 
 /* MENU ITEMS */
-.menu-item-row { display: flex; align-items: center; gap: 12px; padding: 0.85rem 1.4rem; border-bottom: 1px solid var(--border); transition: background 0.15s; }
+.menu-item-row { display: flex; align-items: center; gap: 12px; padding: 0.85rem 1.4rem; border-bottom: 1px solid var(--border); transition: background 0.15s; flex-wrap: wrap; }
 .menu-item-row:last-child { border-bottom: none; }
 .menu-item-row:hover { background: var(--off-white); }
 .item-thumb { width: 52px; height: 52px; border-radius: 10px; object-fit: cover; border: 1px solid var(--border); flex-shrink: 0; }
 .item-thumb-emoji { width: 52px; height: 52px; border-radius: 10px; background: var(--green-50); border: 1px solid var(--green-100); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; flex-shrink: 0; }
-.item-details { flex: 1; min-width: 0; }
+.item-details { flex: 1; min-width: 140px; }
 .item-name-text { font-size: 0.88rem; font-weight: 500; color: var(--text); }
 .item-price-text { font-size: 0.78rem; color: var(--text-muted); margin-top: 2px; }
 .item-cat-badge { font-size: 0.65rem; background: var(--green-50); border: 1px solid var(--green-100); color: var(--green-500); border-radius: 20px; padding: 2px 8px; margin-top: 3px; display: inline-block; }
-.item-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.item-actions { display: flex; gap: 6px; flex-shrink: 0; flex-basis: 100%; justify-content: flex-end; padding-left: 64px; margin-top: 4px; }
 .item-btn { background: var(--off-white); border: 1px solid var(--border); border-radius: 8px; padding: 5px 10px; font-family: 'DM Sans', sans-serif; font-size: 0.75rem; color: var(--text-mid); cursor: pointer; transition: all 0.15s; }
 .item-btn:hover { border-color: var(--green-400); color: var(--green-700); background: var(--green-50); }
 .item-btn.danger:hover { border-color: #DC2626; color: #DC2626; background: #FEF2F2; }
@@ -211,69 +231,73 @@ body { font-family: 'DM Sans', sans-serif; background: var(--off-white); color: 
     <button class="add-form-btn" onclick="openAddItemModal()" style="width:auto;padding:0.65rem 1.25rem;">+ Add with photo</button>
   </div>
 
-  <div class="menu-grid">
+  <!-- BLOCK 1: TIPS (full width, horizontal) -->
+  <div class="card tips-card">
+    <div class="card-header"><span class="card-title">💡 Tips</span></div>
+    <div class="tips-row">
+      <div class="tips-row-item">• <strong>Add categories first</strong>, then assign items to them</div>
+      <div class="tips-row-item">• Items without a category show under <strong>All</strong> on your order page</div>
+      <div class="tips-row-item">• Photos are a <strong>Pro feature</strong> — they appear on your order page and help customers decide</div>
+      <div class="tips-row-item">• Best photo format: square, min 500×500px</div>
+    </div>
+  </div>
 
-    <!-- LEFT: MENU ITEMS -->
-    <div>
-      <div class="card" id="itemsCard">
+  <div class="menu-layout">
+
+    <!-- LEFT COLUMN: ADD ITEM + CATEGORIES -->
+    <div class="menu-layout-left">
+
+      <!-- BLOCK 2: ADD MENU ITEM (expanded) -->
+      <div class="card" id="addItemCard">
         <div class="card-header">
-          <span class="card-title">Menu items</span>
-          <span class="card-count" id="itemCount">0 items</span>
+          <span class="card-title">Add menu item</span>
         </div>
-        <div style="padding:1rem 1.4rem;border-bottom:1px solid var(--border);background:var(--off-white);">
-          <div class="quick-add-wrapper">
-            <div class="quick-add-block">
-              <div class="quick-add-label">Add menu item</div>
+        <div class="add-item-card-body">
 
-              <div class="quick-add-media-row">
-                <div class="quick-media-box" id="quickMediaBox" onclick="toggleQuickMediaPopover()">
-                  <span id="quickMediaBoxContent">🍱</span>
-                </div>
-                <div class="quick-media-hint"><strong>Add an image or emoji</strong><br>Click the box to choose an emoji, or upload a photo (Pro feature).</div>
+          <div class="add-item-media-row">
+            <div class="quick-media-box" id="quickMediaBox" onclick="toggleQuickMediaPopover()">
+              <span id="quickMediaBoxContent">🍱</span>
+            </div>
 
-                <div class="quick-media-popover" id="quickMediaPopover">
-                  <div class="quick-media-popover-section">
-                    <div class="quick-media-popover-label">Photo</div>
-                    <label class="quick-photo-upload-btn" id="quickPhotoUploadBtn">
-                      <span>📸</span><span id="quickPhotoUploadText">Upload a photo</span>
-                      <input type="file" accept="image/jpeg,image/png,image/webp" id="quickItemImageInput" onchange="handleQuickImageSelect(event)" />
-                    </label>
-                  </div>
-                  <div class="quick-media-popover-section" style="margin-bottom:0;">
-                    <div class="quick-media-popover-label">Emoji</div>
-                    <div class="emoji-picker-row" id="quickEmojiPicker"></div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="quick-add-row">
+            <div class="add-item-fields">
+              <div class="add-item-name-desc-row">
                 <input class="add-form-input" id="quickItemName" placeholder="Item name" onkeydown="if(event.key==='Enter')quickAddItem()" />
+                <input class="add-form-input" id="quickItemDescription" placeholder="Description (optional)" maxlength="100" onkeydown="if(event.key==='Enter')quickAddItem()" />
+              </div>
+              <div class="add-item-price-cat-row">
                 <input class="add-form-input" id="quickItemPrice" type="number" placeholder="Price (R)" onkeydown="if(event.key==='Enter')quickAddItem()" />
                 <select class="add-form-select" id="quickItemCategory">
                   <option value="">No category</option>
                 </select>
-                <button class="add-form-btn" onclick="quickAddItem()" id="quickAddBtn">+ Add</button>
+                <button type="button" class="new-cat-shortcut-btn" onclick="toggleQuickNewCategory()">+ New category</button>
+              </div>
+              <div class="new-cat-inline-row" id="quickNewCatRow">
+                <input class="add-form-input" id="quickNewCatName" placeholder="e.g. Cakes" onkeydown="if(event.key==='Enter'){event.preventDefault();addCategory('quickNewCatName','quickNewCatBtn',true);}" />
+                <button type="button" class="add-form-btn" id="quickNewCatBtn" onclick="addCategory('quickNewCatName','quickNewCatBtn',true)">+ Add</button>
               </div>
             </div>
-            <div class="quick-add-block quick-add-cat-block">
-              <div class="quick-add-label">Add category</div>
-              <div class="quick-add-cat-row">
-                <input class="add-form-input" id="quickCatName" placeholder="e.g. Cakes" onkeydown="if(event.key==='Enter')addCategory('quickCatName','quickCatBtn')" />
-                <button class="add-form-btn" onclick="addCategory('quickCatName','quickCatBtn')" id="quickCatBtn">+ Add</button>
+
+            <div class="quick-media-popover" id="quickMediaPopover">
+              <div class="quick-media-popover-section">
+                <div class="quick-media-popover-label">Photo</div>
+                <label class="quick-photo-upload-btn" id="quickPhotoUploadBtn">
+                  <span>📸</span><span id="quickPhotoUploadText">Upload a photo</span>
+                  <input type="file" accept="image/jpeg,image/png,image/webp" id="quickItemImageInput" onchange="handleQuickImageSelect(event)" />
+                </label>
+              </div>
+              <div class="quick-media-popover-section" style="margin-bottom:0;">
+                <div class="quick-media-popover-label">Emoji</div>
+                <div class="emoji-picker-row" id="quickEmojiPicker"></div>
               </div>
             </div>
           </div>
-        </div>
-        <div id="itemsList" class="items-list-scroll"></div>
-        <div id="expandBtnWrap" style="padding:0.75rem 1.4rem;border-top:1px solid var(--border);display:none;">
-          <button class="expand-btn" id="expandBtn" onclick="toggleExpand()">Show all items ↓</button>
+
+          <button class="add-item-submit-btn" onclick="quickAddItem()" id="quickAddBtn">+ Add item</button>
         </div>
       </div>
-    </div>
 
-    <!-- RIGHT: CATEGORIES -->
-    <div>
-      <div class="card">
+      <!-- BLOCK 3: CATEGORIES -->
+      <div class="card" id="categoriesCard" style="margin-bottom:0;">
         <div class="card-header">
           <span class="card-title">Categories</span>
           <span class="card-count" id="catCount">0 categories</span>
@@ -293,15 +317,17 @@ body { font-family: 'DM Sans', sans-serif; background: var(--off-white); color: 
         </div>
       </div>
 
-      <!-- QUICK TIPS -->
-      <div class="card" style="margin-top:0;">
-        <div class="card-header"><span class="card-title">💡 Tips</span></div>
-        <div style="padding:1rem 1.4rem;font-size:0.8rem;color:var(--text-muted);line-height:1.7;">
-          <div style="margin-bottom:0.5rem;">• Add categories first, then assign items to them</div>
-          <div style="margin-bottom:0.5rem;">• Items without a category show under <strong>All</strong> on your order page</div>
-          <div style="margin-bottom:0.5rem;">• Photos are a Pro feature — they appear on your order page and help customers decide</div>
-          <div>• Best photo format: square, min 500×500px</div>
-        </div>
+    </div>
+
+    <!-- RIGHT: BLOCK 4 — MENU ITEMS (tall vertical sidebar) -->
+    <div class="card" id="itemsCard" style="margin-bottom:0;">
+      <div class="card-header">
+        <span class="card-title">Menu items</span>
+        <span class="card-count" id="itemCount">0 items</span>
+      </div>
+      <div id="itemsList" class="items-list-scroll"></div>
+      <div id="expandBtnWrap" style="padding:0.75rem 1.4rem;border-top:1px solid var(--border);display:none;">
+        <button class="expand-btn" id="expandBtn" onclick="toggleExpand()">Show all items ↓</button>
       </div>
     </div>
 
@@ -631,9 +657,11 @@ function populateQuickAddCategory() {
 
 async function quickAddItem() {
   const nameEl = document.getElementById('quickItemName');
+  const descEl = document.getElementById('quickItemDescription');
   const priceEl = document.getElementById('quickItemPrice');
   const catEl = document.getElementById('quickItemCategory');
   const name = nameEl.value.trim();
+  const description = descEl.value.trim();
   const price = priceEl.value.trim();
   const categoryId = catEl.value || null;
 
@@ -659,16 +687,17 @@ async function quickAddItem() {
   }
 
   const { error } = await db.from('menu_items').insert({
-    profile_id: userProfile.id, name, price: parseFloat(price), category_id: categoryId,
+    profile_id: userProfile.id, name, description: description || null, price: parseFloat(price), category_id: categoryId,
     emoji: quickSelectedEmoji, image_url: imageUrl,
   });
 
   btn.disabled = false;
-  btn.textContent = '+ Add';
+  btn.textContent = '+ Add item';
 
   if (error) { showToast('Could not add item — try again'); return; }
 
   nameEl.value = '';
+  descEl.value = '';
   priceEl.value = '';
   catEl.value = '';
   resetQuickMediaPicker();
@@ -853,7 +882,7 @@ async function deleteItem(id) {
 }
 
 // ── CATEGORIES ─────────────────────────────────────────────────────
-async function addCategory(inputId = 'newCatName', btnId = 'addCatBtn') {
+async function addCategory(inputId = 'newCatName', btnId = 'addCatBtn', fromQuickAdd = false) {
   const nameEl = document.getElementById(inputId);
   const name = nameEl.value.trim();
   if (!name) return;
@@ -863,7 +892,9 @@ async function addCategory(inputId = 'newCatName', btnId = 'addCatBtn') {
   btn.textContent = 'Adding...';
 
   const sortOrder = allCategories.length;
-  const { error } = await db.from('menu_categories').insert({ profile_id: userProfile.id, name, sort_order: sortOrder });
+  const { data, error } = await db.from('menu_categories')
+    .insert({ profile_id: userProfile.id, name, sort_order: sortOrder })
+    .select().single();
 
   btn.disabled = false;
   btn.textContent = originalLabel;
@@ -872,6 +903,17 @@ async function addCategory(inputId = 'newCatName', btnId = 'addCatBtn') {
   nameEl.value = '';
   showToast(`"${name}" category added ✓`);
   await loadCategories();
+
+  if (fromQuickAdd) {
+    document.getElementById('quickNewCatRow').classList.remove('open');
+    const catSelect = document.getElementById('quickItemCategory');
+    if (catSelect && data) catSelect.value = data.id;
+  }
+}
+
+function toggleQuickNewCategory() {
+  document.getElementById('quickNewCatRow').classList.toggle('open');
+  document.getElementById('quickNewCatName').focus();
 }
 
 function openEditCat(id, name) {
