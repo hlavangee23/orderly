@@ -529,6 +529,21 @@ function renderInvoiceHTML(settings, data) {
   const addressBlockFn = (mutedColor) => (data.deliveryAddress)
     ? `<div style="margin-top:3px;font-size:0.78rem;color:${mutedColor};">Deliver to: ${data.deliveryAddress}</div>` : '';
 
+  // Payment/EFT details — only rendered if the store has bank details set up.
+  // Mirrors the wording/icons used in the dashboard's per-order invoice modal.
+  const bankingBlockFn = ({ bg, border, labelColor, textColor, radius = '8px' }) => {
+    if (!data.bankName || !data.bankAccountNumber) return '';
+    return `<div style="background:${bg};border-radius:${radius};padding:0.85rem 1rem;margin-top:1rem;">
+      <div style="font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:${labelColor};margin-bottom:0.5rem;">Payment details (EFT)</div>
+      <div style="font-size:0.82rem;color:${textColor};line-height:1.8;">
+        <div>🏦 <strong>Bank:</strong> ${data.bankName}</div>
+        <div>👤 <strong>Account holder:</strong> ${data.bankAccountHolder || data.storeName}</div>
+        <div>💳 <strong>Account number:</strong> ${data.bankAccountNumber}</div>
+        ${data.bankBranchCode ? `<div>🔢 <strong>Branch code:</strong> ${data.bankBranchCode}</div>` : ''}
+      </div>
+    </div>`;
+  };
+
   const page = (inner) => `<div style="font-family:${font};width:100%;box-sizing:border-box;color:#222;background:white;">${inner}</div>`;
 
   const themes = {
@@ -573,6 +588,7 @@ function renderInvoiceHTML(settings, data) {
           <div style="display:flex;justify-content:space-between;font-size:1.15rem;font-weight:700;border-top:2px solid #222;margin-top:0.5rem;padding-top:0.75rem;"><span>Total due</span><span>R${data.total}</span></div>
         </div>
         ${(showNotes && data.notes) ? `<div style="margin-top:2rem;"><div style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.06em;color:#7A9A85;margin-bottom:4px;">Notes</div><div style="font-size:0.88rem;background:#F8FAF7;border-radius:8px;padding:0.85rem 1rem;">${data.notes}</div></div>` : ''}
+        ${bankingBlockFn({ bg: '#F8FAF7', labelColor: '#7A9A85', textColor: '#3D5A47' })}
       </div>
       <div style="background:#F2FAF5;padding:1.5rem 3rem;text-align:center;border-top:1px solid #e5e5e5;margin-top:1rem;">
         <div style="font-size:0.95rem;font-weight:500;">${footerMsg}</div>
@@ -621,6 +637,7 @@ function renderInvoiceHTML(settings, data) {
         <span style="color:${onAccent};font-weight:800;font-size:1.3rem;">R${data.total}</span>
       </div>
       ${(showNotes && data.notes) ? `<div style="padding:1.5rem 3rem 0;"><div style="font-size:0.75rem;font-weight:700;">TERMS & NOTES</div><div style="font-size:0.85rem;color:#666;margin-top:4px;">${data.notes}</div></div>` : ''}
+      <div style="padding:1.5rem 3rem 0;">${bankingBlockFn({ bg: '#F5F5F5', labelColor: '#999', textColor: '#333', radius: '4px' })}</div>
       <div style="padding:2rem 3rem 2.5rem;text-align:center;">
         <div style="font-size:0.95rem;font-weight:600;">${footerMsg}</div>
         <div style="font-size:0.78rem;color:#999;margin-top:2px;">${data.contactLine}</div>
@@ -666,6 +683,7 @@ function renderInvoiceHTML(settings, data) {
           <div style="display:flex;justify-content:space-between;font-size:1.15rem;color:${accentText};padding:10px 0;margin-top:4px;border-top:1px solid #eee;"><span>Total due</span><span>R${data.total}</span></div>
         </div>
         ${(showNotes && data.notes) ? `<div style="margin-top:1.5rem;"><div style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.06em;color:#aaa;">Notes</div><div style="font-size:0.85rem;color:#666;margin-top:3px;">${data.notes}</div></div>` : ''}
+        ${bankingBlockFn({ bg: '#FAFAFA', labelColor: '#aaa', textColor: '#444', radius: '0' })}
         <div style="text-align:center;margin-top:3rem;padding-top:1.5rem;border-top:1px solid #eee;">
           <div style="font-size:0.9rem;">${footerMsg}</div>
           <div style="font-size:0.78rem;color:#aaa;margin-top:2px;">${data.contactLine}</div>
@@ -710,6 +728,7 @@ function renderInvoiceHTML(settings, data) {
             <div style="display:flex;justify-content:space-between;font-size:1.1rem;font-weight:700;color:${accentText};border-top:1.5px solid ${accent};margin-top:8px;padding-top:10px;"><span>Total due</span><span>R${data.total}</span></div>
           </div>
           ${(showNotes && data.notes) ? `<div style="margin-top:1.25rem;"><div style="font-size:0.72rem;text-transform:uppercase;color:#A08670;">Notes</div><div style="font-size:0.85rem;color:#6B5344;background:#FBF6F0;border-radius:8px;padding:0.75rem 1rem;margin-top:4px;">${data.notes}</div></div>` : ''}
+          ${bankingBlockFn({ bg: '#FBF6F0', labelColor: '#A08670', textColor: '#6B5344' })}
         </div>
         <div style="text-align:center;padding:1.5rem 0 0;">
           <div style="font-size:0.92rem;color:#5C4033;font-weight:500;">${footerMsg}</div>
@@ -822,6 +841,10 @@ function updateInvoiceLivePreview() {
     notes: 'Paid in cash at pickup',
     deliveryLabel: 'Delivery',
     contactLine: [userProfile?.whatsapp, userProfile?.city].filter(Boolean).join(' · '),
+    bankName: userProfile?.bank_name || 'First National Bank',
+    bankAccountHolder: userProfile?.bank_account_holder || userProfile?.store_name || 'Your Store',
+    bankAccountNumber: userProfile?.bank_account_number || '1234567890',
+    bankBranchCode: userProfile?.bank_branch_code || '250655',
   };
   const html = renderInvoiceHTML(settings, sampleData);
   const frame = document.getElementById('invoiceLivePreviewFrame');
@@ -1007,6 +1030,8 @@ function openInvoiceFromOrder(orderId) {
   currentInvoiceData = {
     customer: order.customer_name, total: order.total, itemNames, itemPrices,
     deliveryType: order.delivery_type, phone: order.customer_phone, invNum,
+    bankName: userProfile?.bank_name || '', bankAccountHolder: userProfile?.bank_account_holder || '',
+    bankAccountNumber: userProfile?.bank_account_number || '', bankBranchCode: userProfile?.bank_branch_code || '',
   };
 
   const deliveryLabels = { delivery: 'Delivery', collection: 'Collection', manual: 'Manual sale' };
@@ -1040,6 +1065,10 @@ function openInvoiceFromOrder(orderId) {
     notes: cleanNotes,
     deliveryLabel: legacyRush ? `${deliveryLabel} · ⚡ Rush` : deliveryLabel,
     contactLine: contactParts.join(' · '),
+    bankName: userProfile?.bank_name || '',
+    bankAccountHolder: userProfile?.bank_account_holder || '',
+    bankAccountNumber: userProfile?.bank_account_number || '',
+    bankBranchCode: userProfile?.bank_branch_code || '',
   };
 
   const html = renderInvoiceHTML(settings, data);
@@ -1065,13 +1094,22 @@ async function sendInvoiceWhatsApp() {
                       : 'Collection';
   const iconThanks = '\u{1F64F}'; // 🙏
 
+  const bankingLines = (d.bankName && d.bankAccountNumber)
+    ? `\n\n*Payment details (EFT)*\n` +
+      `*Bank:* ${d.bankName}\n` +
+      `*Account holder:* ${d.bankAccountHolder || brandName}\n` +
+      `*Account number:* ${d.bankAccountNumber}\n` +
+      (d.bankBranchCode ? `*Branch code:* ${d.bankBranchCode}` : '')
+    : '';
+
   const msgText =
     `${iconInvoice} *Invoice from ${brandName}*\n` +
     `INV-${d.invNum} \u00B7 ${new Date().toLocaleDateString('en-ZA')}\n\n` +
     `*${d.customer}*\n\n` +
     lines + `\n\n` +
     `${iconVehicle} ${deliveryText}\n` +
-    `*Total: R${d.total}*\n\n` +
+    `*Total: R${d.total}*` +
+    bankingLines + `\n\n` +
     `Thank you for your order! ${iconThanks}`;
 
   const phone = d.phone?.replace(/\D/g,'') || '';
