@@ -1120,10 +1120,10 @@ async function sendInvoiceWhatsApp() {
   // through the native share sheet instead, which lets WhatsApp attach it directly.
   if (typeof html2pdf !== 'undefined' && navigator.canShare) {
     try {
-      const target = await renderPdfFrame(currentInvoiceHTML);
+      const { body: target, height } = await renderPdfFrame(currentInvoiceHTML);
       const blob = await html2pdf().set({
         margin: 0.3, image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, width: 800, windowWidth: 800 }, jsPDF: { unit: 'in', format: 'a4' },
+        html2canvas: { scale: 2, useCORS: true, width: 800, windowWidth: 800, height, windowHeight: height }, jsPDF: { unit: 'in', format: 'a4' },
       }).from(target).outputPdf('blob');
       const file = new File([blob], `Invoice-INV-${d.invNum}.pdf`, { type: 'application/pdf' });
       if (navigator.canShare({ files: [file] })) {
@@ -1143,12 +1143,24 @@ async function sendInvoiceWhatsApp() {
 // Loads invoice HTML into the dedicated hidden PDF iframe and waits for it
 // to actually fire 'load' (srcdoc rendering is async) plus one extra paint
 // frame, before handing back its body for html2canvas to capture.
+//
+// The iframe's CSS box is fixed at 800x600 purely so it has real on-screen
+// coordinates to render into off-screen (see the comment above the iframe
+// tag). That fixed 600px height was clipping anything taller than a short
+// invoice — html2canvas was only capturing what fit inside that 600px
+// window. Fix: measure the actual rendered content height once it's loaded,
+// resize the iframe to match, and hand that height back so html2canvas can
+// be told about it too (via windowHeight) instead of clipping.
 function renderPdfFrame(html) {
   return new Promise((resolve) => {
     const frame = document.getElementById('pdfFrame');
     frame.onload = () => {
       requestAnimationFrame(() => requestAnimationFrame(() => {
-        resolve(frame.contentDocument.body);
+        const fullHeight = Math.max(frame.contentDocument.body.scrollHeight, frame.contentDocument.body.offsetHeight);
+        frame.style.height = fullHeight + 'px';
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          resolve({ body: frame.contentDocument.body, height: fullHeight });
+        }));
       }));
     };
     frame.srcdoc = `<html><body style="margin:0;">${html}</body></html>`;
@@ -1166,14 +1178,14 @@ async function printInvoice() {
     return;
   }
 
-  const target = await renderPdfFrame(currentInvoiceHTML);
+  const { body: target, height } = await renderPdfFrame(currentInvoiceHTML);
 
   showToast('Preparing your PDF...');
   html2pdf().set({
     margin: 0.3,
     filename,
     image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true, width: 800, windowWidth: 800 },
+    html2canvas: { scale: 2, useCORS: true, width: 800, windowWidth: 800, height, windowHeight: height },
     jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
   }).from(target).save().then(() => {
     showToast('Invoice downloaded ✓');
