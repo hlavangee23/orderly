@@ -105,6 +105,38 @@ body { font-family: 'DM Sans', sans-serif; background: var(--off-white); color: 
 .invoice-frame-container { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 1.25rem; background: white; }
 .invoice-frame-container iframe { width: 100%; border: none; display: block; }
 .modal-actions { display: flex; gap: 8px; }
+
+/* PRINT — isolate just the invoice preview iframe so the native browser
+   print/Save-as-PDF captures exactly what's on screen, with no JS
+   re-rendering step involved (html2canvas repeatedly failed to reproduce
+   the preview faithfully; the browser's own print engine can't diverge
+   from what it's already rendering). */
+@media print {
+  body * { visibility: hidden; }
+  .invoice-frame-container, .invoice-frame-container * { visibility: visible; }
+  .modal-overlay, .modal {
+    position: static !important;
+    inset: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    background: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    width: auto !important;
+    max-width: none !important;
+    transform: none !important;
+  }
+  .modal-title, .modal-sub, .modal-actions,
+  .sidebar, .topbar, .search-row, #invoicesCard, .upgrade-banner { display: none !important; }
+  .invoice-frame-container {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    margin: 0;
+    border: none;
+  }
+  .invoice-frame-container iframe { height: auto !important; }
+}
 .modal-btn { flex: 1; padding: 0.75rem; border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: all 0.2s; border: 1.5px solid var(--border); background: var(--white); color: var(--text-mid); }
 .modal-btn:hover { background: var(--off-white); }
 .modal-btn.primary { background: var(--green-700); color: white; border-color: var(--green-700); }
@@ -1158,41 +1190,16 @@ function prepareInvoiceFrameForCapture() {
   });
 }
 
-async function printInvoice() {
-  const filename = `Invoice-INV-${currentInvoiceData.invNum || '0000'}.pdf`;
-
-  // If html2pdf failed to load (e.g. blocked network), fall back to the
-  // browser's print dialog on the same preview iframe.
-  if (typeof html2pdf === 'undefined') {
-    console.warn('Orderly: html2pdf did not load — falling back to browser print dialog. Check the network tab for a blocked/failed request to cdnjs.cloudflare.com.');
-    showToast('PDF library unavailable — using browser print instead');
-    const frame = document.getElementById('invoiceFrame');
-    frame.contentWindow.focus();
-    frame.contentWindow.print();
-    return;
-  }
-
-  const { body: target, height } = await prepareInvoiceFrameForCapture();
-  console.log('Orderly PDF debug: passing to html2canvas — height =', height, '| target.outerHTML length =', target.outerHTML.length);
-
-  showToast('Preparing your PDF...');
-  html2pdf().set({
-    margin: 0.3,
-    filename,
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: {
-      scale: 2, useCORS: true, width: 800, windowWidth: 800, height, windowHeight: height,
-      onclone: (clonedDoc) => {
-        console.log('Orderly PDF debug: html2canvas clone — body.scrollHeight =', clonedDoc.body.scrollHeight, '| body.innerHTML length =', clonedDoc.body.innerHTML.length);
-      },
-    },
-    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
-  }).from(target).save().then(() => {
-    showToast('Invoice downloaded ✓');
-  }).catch((err) => {
-    console.error('Orderly: html2pdf export failed', err);
-    showToast('Could not generate PDF — try again');
-  });
+// Uses the browser's own print engine (via the @media print rules above)
+// instead of html2canvas/html2pdf. html2canvas re-implements layout in JS to
+// draw onto a canvas, and across several attempts it kept failing to
+// reproduce this invoice faithfully (blank/clipped output despite the
+// on-screen preview being correct). Native print can't diverge from the
+// preview because it's rendering the exact same DOM through the exact same
+// engine — there's no re-implementation step to go wrong.
+function printInvoice() {
+  showToast('Opening print dialog — choose "Save as PDF" as the destination');
+  window.print();
 }
 
 function closeModal() {
