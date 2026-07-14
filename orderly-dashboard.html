@@ -1,0 +1,3063 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Orderly — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --white: #FFFFFF;
+  --off-white: #F8FAF7;
+  --green-900: #0F2318;
+  --green-700: #1A3D2B;
+  --green-500: #2D6A4F;
+  --green-400: #3D8B65;
+  --green-100: #E8F4ED;
+  --green-50: #F2FAF5;
+  --text: #0F2318;
+  --text-mid: #3D5A47;
+  --text-muted: #7A9A85;
+  --border: #D6EAD9;
+  --shadow-sm: 0 1px 4px rgba(15,35,24,0.06);
+  --shadow-md: 0 4px 20px rgba(15,35,24,0.08);
+  --radius: 12px;
+  --radius-lg: 16px;
+  --sidebar-w: 220px;
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--off-white);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  display: flex;
+}
+
+/* SIDEBAR */
+.sidebar {
+  width: var(--sidebar-w);
+  background: var(--green-900);
+  height: 100vh;
+  position: fixed;
+  left: 0; top: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem 0;
+  z-index: 50;
+}
+.sidebar-logo {
+  font-family: 'Instrument Serif', serif;
+  font-size: 1.3rem;
+  color: white;
+  padding: 0 1.5rem 1.5rem;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.sidebar-logo span { color: rgba(255,255,255,0.4); }
+.sidebar-store {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  margin-bottom: 0.5rem;
+}
+.sidebar-store-avatar {
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  background: var(--green-500);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Instrument Serif', serif;
+  font-size: 14px; color: white;
+  margin-bottom: 0.5rem;
+}
+.sidebar-store-name { font-size: 0.85rem; font-weight: 500; color: white; }
+.sidebar-store-link {
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.4);
+  display: flex; align-items: center; gap: 4px;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.sidebar-store-link:hover { color: rgba(255,255,255,0.7); }
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0.6rem 1.5rem;
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.5);
+  cursor: pointer;
+  transition: all 0.15s;
+  border-radius: 0;
+  text-decoration: none;
+}
+.nav-item:hover { color: white; background: rgba(255,255,255,0.05); }
+.nav-item.active { color: white; background: rgba(255,255,255,0.1); }
+.nav-item .icon { font-size: 1rem; width: 20px; text-align: center; }
+.nav-section-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(255,255,255,0.25);
+  padding: 1rem 1.5rem 0.4rem;
+}
+.sidebar-bottom {
+  margin-top: auto;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+.sidebar-bottom-name { font-size: 0.82rem; color: rgba(255,255,255,0.6); }
+.sidebar-bottom-role { font-size: 0.72rem; color: rgba(255,255,255,0.3); }
+
+/* MAIN */
+.main {
+  margin-left: var(--sidebar-w);
+  flex: 1;
+  padding: 2rem;
+  max-width: calc(100% - var(--sidebar-w));
+}
+
+/* TOP BAR */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+}
+.topbar-left h1 {
+  font-family: 'Instrument Serif', serif;
+  font-size: 1.6rem;
+  color: var(--green-900);
+  letter-spacing: -0.02em;
+}
+.topbar-left p { font-size: 0.82rem; color: var(--text-muted); margin-top: 2px; }
+.topbar-right { display: flex; align-items: center; gap: 10px; }
+.share-btn {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--green-50);
+  border: 1px solid var(--green-100);
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-size: 0.82rem;
+  color: var(--green-500);
+  font-weight: 500;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: all 0.2s;
+}
+.share-btn:hover { background: var(--green-100); }
+.notif-btn {
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem;
+  cursor: pointer;
+  position: relative;
+}
+.notif-dot {
+  min-width: 16px; height: 16px;
+  padding: 0 3px;
+  border-radius: 50%;
+  background: #DC2626;
+  position: absolute;
+  top: -4px; right: -4px;
+  border: 1.5px solid var(--off-white);
+  display: none;
+  align-items: center; justify-content: center;
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: white;
+  line-height: 1;
+}
+.notif-dot.show { display: flex; }
+
+/* NOTIFICATION PANEL */
+.notif-wrap { position: relative; }
+.notif-panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 340px;
+  max-height: 420px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  z-index: 200;
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+}
+.notif-panel.open { display: flex; }
+.notif-panel-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.9rem 1.1rem;
+  border-bottom: 1px solid var(--border);
+}
+.notif-panel-title { font-size: 0.85rem; font-weight: 600; color: var(--green-900); }
+.notif-panel-markall {
+  font-size: 0.72rem; color: var(--green-500); cursor: pointer; font-weight: 500;
+  background: none; border: none; font-family: 'DM Sans', sans-serif;
+}
+.notif-panel-markall:hover { text-decoration: underline; }
+.notif-panel-list { overflow-y: auto; flex: 1; }
+.notif-item {
+  display: flex; gap: 10px;
+  padding: 0.75rem 1.1rem;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.15s;
+  position: relative;
+}
+.notif-item:last-child { border-bottom: none; }
+.notif-item:hover { background: var(--green-50); }
+.notif-item.unread { background: var(--green-50); }
+.notif-item.unread::before {
+  content: '';
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--green-500);
+  position: absolute; left: 4px; top: 1.05rem;
+}
+.notif-item-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+.notif-item-title { font-size: 0.8rem; font-weight: 600; color: var(--green-900); margin-bottom: 2px; }
+.notif-item-body { font-size: 0.75rem; color: var(--text-mid); line-height: 1.4; }
+.notif-item-time { font-size: 0.68rem; color: var(--text-muted); margin-top: 4px; }
+.notif-panel-empty { padding: 2.5rem 1rem; text-align: center; color: var(--text-muted); font-size: 0.82rem; }
+
+/* WIZARD — NOTIFICATION PREFERENCE ROWS */
+.notif-pref-row {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 0.7rem;
+}
+.notif-pref-info { display: flex; align-items: flex-start; gap: 10px; }
+.notif-pref-icon { font-size: 1.2rem; margin-top: 1px; }
+.notif-pref-title { font-size: 0.85rem; font-weight: 600; color: var(--green-900); }
+.notif-pref-sub { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; line-height: 1.4; }
+.notif-pref-toggle { width: 20px; height: 20px; accent-color: var(--green-500); cursor: pointer; flex-shrink: 0; }
+.notif-pref-row.disabled { opacity: 0.55; }
+.notif-pref-badge {
+  font-size: 0.62rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;
+  background: var(--green-100); color: var(--green-500);
+  padding: 2px 7px; border-radius: 5px; margin-left: 6px;
+}
+
+/* STAT CARDS */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+}
+.stat-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.4rem;
+  box-shadow: var(--shadow-sm);
+}
+.stat-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin-bottom: 0.6rem;
+}
+.stat-value {
+  font-family: 'Instrument Serif', serif;
+  font-size: 2rem;
+  color: var(--green-900);
+  line-height: 1;
+  margin-bottom: 0.35rem;
+}
+.stat-change {
+  font-size: 0.75rem;
+  color: #16A34A;
+  font-weight: 500;
+}
+.stat-change.down { color: #DC2626; }
+
+/* GRID LAYOUT */
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+/* CARD */
+.card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.1rem 1.4rem;
+  border-bottom: 1px solid var(--border);
+}
+.card-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--green-900);
+}
+.card-action {
+  font-size: 0.78rem;
+  color: var(--green-400);
+  cursor: pointer;
+  font-weight: 500;
+  background: none; border: none;
+  font-family: 'DM Sans', sans-serif;
+}
+.card-action:hover { color: var(--green-700); }
+
+/* ORDERS TABLE */
+.order-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0.85rem 1.4rem;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
+  cursor: pointer;
+}
+.order-row:last-child { border-bottom: none; }
+.order-row:hover { background: var(--off-white); }
+.order-status-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.dot-new { background: #22C55E; }
+.dot-pending { background: #F59E0B; }
+.dot-done { background: #D1D5DB; }
+.order-info { flex: 1; min-width: 0; }
+.order-customer { font-size: 0.85rem; font-weight: 500; color: var(--text); }
+.order-items { font-size: 0.75rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.order-meta { text-align: right; flex-shrink: 0; }
+.order-price { font-size: 0.9rem; font-weight: 600; color: var(--green-500); }
+.order-time { font-size: 0.72rem; color: var(--text-muted); margin-top: 1px; }
+.order-badge {
+  display: inline-block;
+  font-size: 0.68rem;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-weight: 500;
+  margin-left: 6px;
+}
+.badge-new { background: #DCFCE7; color: #15803D; }
+.badge-pending { background: #FEF3C7; color: #B45309; }
+.badge-done { background: #F3F4F6; color: #6B7280; }
+.badge-confirmed { background: #DBEAFE; color: #1D4ED8; }
+.badge-preparing { background: #FEF3C7; color: #B45309; }
+.badge-packing { background: #EDE9FE; color: #6D28D9; }
+.badge-ready { background: #CCFBF1; color: #0F766E; }
+.badge-outfordelivery { background: #CCFBF1; color: #0F766E; }
+.badge-delivered { background: #F3F4F6; color: #6B7280; }
+.badge-collected { background: #F3F4F6; color: #6B7280; }
+.badge-cancelled { background: #FEE2E2; color: #B91C1C; }
+
+.dot-confirmed { background: #3B82F6; }
+.dot-preparing { background: #F59E0B; }
+.dot-packing { background: #8B5CF6; }
+.dot-ready, .dot-outfordelivery { background: #14B8A6; }
+.dot-delivered, .dot-collected { background: #D1D5DB; }
+.dot-cancelled { background: #EF4444; }
+
+/* ACTION BUTTONS ON ORDER */
+.order-actions { display: flex; gap: 6px; }
+.action-btn {
+  font-size: 0.72rem;
+  padding: 3px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 500;
+  border: 1px solid var(--border);
+  background: var(--white);
+  color: var(--text-mid);
+  transition: all 0.15s;
+}
+.action-btn:hover { background: var(--off-white); }
+.action-btn.confirm {
+  background: var(--green-700);
+  color: white;
+  border-color: var(--green-700);
+}
+.action-btn.confirm:hover { background: var(--green-900); }
+
+/* CATALOG */
+.catalog-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0.75rem 1.4rem;
+  border-bottom: 1px solid var(--border);
+}
+.catalog-item:last-child { border-bottom: none; }
+.catalog-emoji {
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  background: var(--green-50);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+.catalog-name { font-size: 0.85rem; font-weight: 500; color: var(--text); flex: 1; }
+.catalog-price { font-size: 0.85rem; font-weight: 600; color: var(--green-500); }
+.catalog-edit {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: none; border: 1px solid var(--border);
+  font-family: 'DM Sans', sans-serif;
+  transition: all 0.15s;
+}
+.catalog-edit:hover { background: var(--off-white); color: var(--text); }
+
+/* ADD ITEM FORM */
+.add-item-row {
+  display: flex;
+  gap: 8px;
+  padding: 0.9rem 1.4rem;
+  background: var(--off-white);
+  border-top: 1px solid var(--border);
+}
+.add-input {
+  flex: 2;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.82rem;
+  color: var(--text);
+  background: var(--white);
+  outline: none;
+  transition: border-color 0.2s;
+}
+.add-input:focus { border-color: var(--green-400); }
+.add-input.price { flex: 1; }
+.add-btn {
+  background: var(--green-700);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s;
+}
+.add-btn:hover { background: var(--green-900); }
+
+/* QUICK STATS SIDE */
+.side-stat {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1.4rem;
+  border-bottom: 1px solid var(--border);
+}
+.side-stat:last-child { border-bottom: none; }
+.side-stat-label { font-size: 0.82rem; color: var(--text-mid); }
+.side-stat-val { font-size: 0.9rem; font-weight: 600; color: var(--green-700); }
+
+/* INVOICE MODAL */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(15,35,24,0.5);
+  z-index: 200;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.25s;
+}
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 480px;
+  padding: 2rem;
+  transform: scale(0.96);
+  transition: transform 0.25s;
+  box-shadow: 0 24px 80px rgba(15,35,24,0.2);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.modal-overlay.open .modal { transform: scale(1); }
+.modal-title {
+  font-family: 'Instrument Serif', serif;
+  font-size: 1.3rem;
+  color: var(--green-900);
+  margin-bottom: 0.25rem;
+}
+.modal-sub { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1.5rem; }
+.invoice-preview {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 1.25rem;
+}
+.invoice-head {
+  background: var(--green-900);
+  padding: 1rem 1.25rem;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.invoice-head-logo { font-family: 'Instrument Serif', serif; font-size: 1.1rem; color: white; }
+.invoice-head-num { font-size: 0.75rem; color: rgba(255,255,255,0.5); }
+.invoice-body { padding: 1rem 1.25rem; }
+.invoice-to { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.06em; }
+.invoice-customer { font-size: 0.9rem; font-weight: 500; color: var(--text); margin-bottom: 1rem; }
+.invoice-line {
+  display: flex; justify-content: space-between;
+  font-size: 0.8rem; color: var(--text-mid);
+  padding: 4px 0;
+  border-bottom: 1px solid var(--border);
+}
+.invoice-line:last-child { border-bottom: none; }
+.invoice-total-row {
+  display: flex; justify-content: space-between;
+  padding: 0.75rem 1.25rem;
+  background: var(--green-50);
+  border-top: 1px solid var(--border);
+}
+.invoice-total-label { font-size: 0.82rem; font-weight: 600; color: var(--text-mid); }
+.invoice-total-val { font-family: 'Instrument Serif', serif; font-size: 1.2rem; color: var(--green-700); font-weight: 600; }
+.modal-actions { display: flex; gap: 8px; }
+.modal-btn {
+  flex: 1;
+  padding: 0.75rem;
+  border-radius: 10px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1.5px solid var(--border);
+  background: var(--white);
+  color: var(--text-mid);
+}
+.modal-btn:hover { background: var(--off-white); }
+.modal-btn.primary {
+  background: var(--green-700);
+  color: white;
+  border-color: var(--green-700);
+}
+.modal-btn.primary:hover { background: var(--green-900); }
+
+/* STATUS MODAL */
+.status-current { background: var(--off-white); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.85rem 1rem; margin-bottom: 1.25rem; display: flex; align-items: center; justify-content: space-between; }
+.status-current-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+.status-option-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 1rem; }
+.status-option-btn { display: flex; align-items: center; gap: 10px; border: 1.5px solid var(--border); border-radius: var(--radius); padding: 0.75rem 1rem; cursor: pointer; background: var(--white); transition: all 0.15s; text-align: left; font-family: 'DM Sans', sans-serif; }
+.status-option-btn:hover { border-color: var(--green-400); background: var(--green-50); }
+.status-option-icon { font-size: 1.1rem; flex-shrink: 0; }
+.status-option-text { flex: 1; }
+.status-option-title { font-size: 0.85rem; font-weight: 500; color: var(--text); }
+.status-option-sub { font-size: 0.72rem; color: var(--text-muted); margin-top: 1px; }
+.cancel-link { text-align: center; font-size: 0.78rem; color: #DC2626; cursor: pointer; font-weight: 500; padding: 0.5rem; margin-top: 0.25rem; }
+.cancel-link:hover { text-decoration: underline; }
+.reason-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 1rem; }
+.reason-btn { border: 1.5px solid var(--border); border-radius: var(--radius); padding: 0.65rem 0.9rem; cursor: pointer; background: var(--white); font-size: 0.82rem; color: var(--text-mid); text-align: left; transition: all 0.15s; font-family: 'DM Sans', sans-serif; }
+.reason-btn:hover { border-color: #FCA5A5; background: #FEF2F2; }
+.reason-btn.selected { border-color: #DC2626; background: #FEF2F2; color: #B91C1C; font-weight: 500; }
+
+/* TOAST */
+.toast {
+  position: fixed;
+  bottom: 1.5rem; right: 1.5rem;
+  background: var(--green-900);
+  color: white;
+  padding: 0.75rem 1.25rem;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  box-shadow: var(--shadow-md);
+  z-index: 300;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.3s;
+  pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+
+/* SHARE BANNER */
+.share-banner {
+  background: var(--green-50);
+  border: 1px solid var(--green-100);
+  border-radius: var(--radius);
+  padding: 0.85rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.75rem;
+  gap: 1rem;
+}
+.share-banner-text { font-size: 0.82rem; color: var(--text-mid); }
+.share-banner-text strong { color: var(--green-700); font-weight: 600; }
+.share-banner-link {
+  font-size: 0.8rem;
+  color: var(--green-500);
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-family: monospace;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* BULK SELECT MODE */
+.order-row { position: relative; }
+.order-checkbox { width: 18px; height: 18px; border-radius: 5px; border: 1.5px solid var(--border); flex-shrink: 0; display: none; cursor: pointer; accent-color: var(--green-500); }
+.order-row.select-mode .order-checkbox { display: block; }
+.order-row.row-selected { background: var(--green-50); }
+
+/* BULK ACTION BAR */
+.bulk-bar { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--green-900); color: white; border-radius: var(--radius-lg); padding: 0.9rem 1.4rem; display: flex; align-items: center; gap: 1rem; box-shadow: 0 12px 48px rgba(15,35,24,0.3); z-index: 150; opacity: 0; pointer-events: none; transition: all 0.3s; }
+.bulk-bar.show { opacity: 1; pointer-events: all; transform: translateX(-50%) translateY(0); }
+.bulk-bar-count { font-size: 0.85rem; font-weight: 500; white-space: nowrap; }
+.bulk-bar-count strong { color: var(--green-400); }
+.bulk-bar-btn { background: var(--green-400); color: white; border: none; border-radius: 8px; padding: 0.55rem 1.1rem; font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 500; cursor: pointer; white-space: nowrap; transition: background 0.2s; }
+.bulk-bar-btn:hover { background: var(--green-500); }
+.bulk-bar-cancel { background: transparent; border: none; color: rgba(255,255,255,0.5); font-size: 0.78rem; cursor: pointer; padding: 0.4rem; }
+.bulk-bar-cancel:hover { color: white; }
+
+/* CANNED MESSAGE MODAL */
+.template-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 1.25rem; max-height: 320px; overflow-y: auto; }
+.template-btn { display: flex; align-items: flex-start; gap: 10px; border: 1.5px solid var(--border); border-radius: var(--radius); padding: 0.8rem 1rem; cursor: pointer; background: var(--white); transition: all 0.15s; text-align: left; font-family: 'DM Sans', sans-serif; }
+.template-btn:hover { border-color: var(--green-400); background: var(--green-50); }
+.template-btn.selected { border-color: var(--green-400); background: var(--green-50); box-shadow: 0 0 0 2px rgba(61,139,101,0.12); }
+.template-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+.template-text { flex: 1; }
+.template-title { font-size: 0.85rem; font-weight: 500; color: var(--text); }
+.template-preview { font-size: 0.74rem; color: var(--text-muted); margin-top: 3px; line-height: 1.5; }
+.custom-template-area { border: 1.5px dashed var(--border); border-radius: var(--radius); padding: 0.85rem; margin-top: 4px; }
+.recipients-list { background: var(--off-white); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.75rem 1rem; margin-bottom: 1.25rem; max-height: 120px; overflow-y: auto; }
+.recipient-chip { display: inline-flex; align-items: center; gap: 5px; background: var(--white); border: 1px solid var(--border); border-radius: 20px; padding: 3px 10px; font-size: 0.75rem; color: var(--text-mid); margin: 3px 4px 3px 0; }
+.send-progress { display: none; text-align: center; padding: 1rem 0; }
+.send-progress.show { display: block; }
+.send-progress-text { font-size: 0.85rem; color: var(--text-mid); margin-bottom: 0.5rem; }
+.send-progress-bar-bg { background: var(--border); height: 6px; border-radius: 3px; overflow: hidden; }
+.send-progress-bar-fill { background: var(--green-400); height: 100%; transition: width 0.3s; width: 0%; }
+
+/* ORDER SUMMARY MODAL */
+.order-summary-section { margin-bottom: 1.1rem; }
+.order-summary-label { font-size: 0.68rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); margin-bottom: 0.5rem; }
+.order-summary-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.83rem; color: var(--text-mid); padding: 4px 0; border-bottom: 1px solid var(--border); }
+.order-summary-row:last-child { border-bottom: none; }
+.order-summary-row .val { font-weight: 500; color: var(--text); text-align: right; max-width: 60%; }
+.order-summary-total { display: flex; justify-content: space-between; background: var(--green-50); border: 1px solid var(--green-100); border-radius: var(--radius); padding: 0.75rem 1rem; margin-top: 0.75rem; }
+.order-summary-total .label { font-size: 0.85rem; font-weight: 600; color: var(--text); }
+.order-summary-total .amount { font-family: 'Instrument Serif', serif; font-size: 1.2rem; color: var(--green-700); }
+/* PRODUCT IMAGE */
+.catalog-item-img { width: 64px; height: 64px; border-radius: 10px; object-fit: cover; border: 1px solid var(--border); flex-shrink: 0; cursor: pointer; transition: opacity 0.2s; }
+.catalog-item-img:hover { opacity: 0.85; }
+.catalog-item-img-placeholder { width: 64px; height: 64px; border-radius: 10px; background: var(--green-50); border: 1.5px dashed var(--border); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden; gap: 2px; }
+.catalog-item-img-placeholder:hover { border-color: var(--green-400); background: var(--green-100); }
+.catalog-item-img-placeholder span { font-size: 0.55rem; color: var(--text-muted); font-weight: 500; }
+.catalog-item-img-placeholder input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+.pro-lock-img { width: 64px; height: 64px; border-radius: 10px; background: var(--off-white); border: 1.5px dashed var(--border); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.7rem; color: var(--text-muted); flex-shrink: 0; cursor: pointer; text-align: center; line-height: 1.4; font-weight: 500; padding: 4px; gap: 2px; }
+
+/* IMAGE LIGHTBOX */
+.img-lightbox { position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 500; display: flex; align-items: center; justify-content: center; padding: 1.5rem; opacity: 0; pointer-events: none; transition: opacity 0.25s; }
+.img-lightbox.open { opacity: 1; pointer-events: all; }
+.img-lightbox img { max-width: 100%; max-height: 85vh; border-radius: 12px; object-fit: contain; box-shadow: 0 24px 80px rgba(0,0,0,0.5); }
+.img-lightbox-close { position: absolute; top: 1.25rem; right: 1.25rem; background: rgba(255,255,255,0.15); border: none; color: white; width: 36px; height: 36px; border-radius: 50%; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+.img-lightbox-close:hover { background: rgba(255,255,255,0.25); }
+.img-lightbox-caption { position: absolute; bottom: 1.5rem; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,0.7); font-size: 0.82rem; text-align: center; }
+
+/* EMOJI PICKER */
+.emoji-picker-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+.emoji-pick-btn { width: 38px; height: 38px; border-radius: 8px; border: 1.5px solid var(--border); background: var(--white); font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+.emoji-pick-btn:hover { border-color: var(--green-400); background: var(--green-50); }
+.emoji-pick-btn.selected { border-color: var(--green-400); background: var(--green-50); box-shadow: 0 0 0 2px rgba(61,139,101,0.15); }
+
+/* TRIAL BANNER */
+.trial-banner { border-radius: var(--radius); padding: 0.85rem 1.25rem; margin-bottom: 1.25rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.trial-banner.trial-active { background: var(--green-50); border: 1px solid var(--green-100); }
+.trial-banner.trial-ending { background: #FFFBEB; border: 1px solid #FCD34D; }
+.trial-banner.trial-expired { background: #FEF2F2; border: 1px solid #FECACA; }
+.trial-banner-text { font-size: 0.82rem; color: var(--text-mid); line-height: 1.5; }
+.trial-banner-text strong { color: var(--text); }
+.trial-banner.trial-ending .trial-banner-text { color: #92400E; }
+.trial-banner.trial-expired .trial-banner-text { color: #B91C1C; }
+.trial-banner-btn { background: var(--green-700); color: white; border: none; border-radius: 8px; padding: 0.45rem 1rem; font-family: 'DM Sans', sans-serif; font-size: 0.78rem; font-weight: 500; cursor: pointer; white-space: nowrap; transition: background 0.2s; }
+.trial-banner-btn:hover { background: var(--green-900); }
+.trial-banner.trial-ending .trial-banner-btn { background: #D97706; }
+.trial-banner.trial-ending .trial-banner-btn:hover { background: #92400E; }
+.trial-banner.trial-expired .trial-banner-btn { background: #DC2626; }
+.trial-banner.trial-expired .trial-banner-btn:hover { background: #B91C1C; }
+
+/* CAP WARNING */
+.cap-warning { background: #FFFBEB; border: 1px solid #FCD34D; border-radius: var(--radius); padding: 0.75rem 1rem; font-size: 0.8rem; color: #92400E; margin-bottom: 0.75rem; display: none; }
+.cap-warning.show { display: block; }
+
+/* FORM ELEMENTS (used by onboarding wizard) */
+.form-group { margin-bottom: 1.1rem; }
+.form-group:last-child { margin-bottom: 0; }
+.form-label { display: block; font-size: 0.78rem; font-weight: 500; color: var(--text-mid); margin-bottom: 5px; }
+.form-input { width: 100%; border: 1.5px solid var(--border); border-radius: var(--radius); padding: 0.72rem 0.9rem; font-family: 'DM Sans', sans-serif; font-size: 0.88rem; color: var(--text); background: var(--white); outline: none; transition: border-color 0.2s, box-shadow 0.2s; -webkit-appearance: none; }
+.form-input:focus { border-color: var(--green-400); box-shadow: 0 0 0 3px rgba(61,139,101,0.1); }
+.form-input::placeholder { color: var(--text-muted); font-weight: 300; }
+textarea.form-input { resize: vertical; line-height: 1.5; }
+
+/* LINK PREVIEW (used by onboarding wizard) */
+.link-preview { background: var(--green-50); border: 1px solid var(--green-100); border-radius: var(--radius); padding: 0.85rem 1rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.link-preview-url { font-family: monospace; font-size: 0.82rem; color: var(--green-700); font-weight: 600; }
+.link-copy-btn { background: var(--green-700); color: white; border: none; border-radius: 6px; padding: 0.35rem 0.8rem; font-size: 0.75rem; font-weight: 500; cursor: pointer; font-family: 'DM Sans', sans-serif; white-space: nowrap; transition: background 0.2s; }
+.link-copy-btn:hover { background: var(--green-900); }
+
+/* ONBOARDING WIZARD */
+.wizard-overlay { position: fixed; inset: 0; background: var(--off-white); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 1.5rem; }
+
+/* GUIDED TOUR */
+.tour-highlight { position: fixed; z-index: 2000; border-radius: 10px; box-shadow: 0 0 0 4px var(--green-400), 0 0 0 9999px rgba(15,35,24,0.6); transition: top 0.25s ease, left 0.25s ease, width 0.25s ease, height 0.25s ease; pointer-events: none; }
+.tour-popup { position: fixed; z-index: 2001; background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow-md); padding: 1.1rem 1.25rem; width: 270px; transition: top 0.25s ease, left 0.25s ease; }
+.tour-popup-title { font-family: 'Fraunces', serif; font-size: 1.05rem; color: var(--text); margin-bottom: 0.4rem; }
+.tour-popup-text { font-size: 0.85rem; color: var(--text-mid); line-height: 1.55; margin-bottom: 1rem; }
+.tour-popup-actions { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.tour-popup-skip { background: none; border: none; color: var(--text-muted); font-size: 0.78rem; cursor: pointer; padding: 0; }
+.tour-popup-skip:hover { color: var(--text-mid); text-decoration: underline; }
+.tour-popup-next { background: var(--green-700); color: white; border: none; border-radius: var(--radius); padding: 0.55rem 1rem; font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 500; cursor: pointer; }
+.tour-popup-next:hover { background: var(--green-900); }
+.wizard-card { background: var(--white); border-radius: var(--radius-lg); width: 100%; max-width: 560px; padding: 2.25rem 2.5rem; box-shadow: var(--shadow-md); max-height: 92vh; overflow-y: auto; }
+.wizard-progress { display: flex; align-items: center; gap: 6px; margin-bottom: 1.25rem; }
+.wizard-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); transition: background 0.2s; }
+.wizard-dot.active { background: var(--green-700); width: 20px; border-radius: 4px; }
+.wizard-dot.done { background: var(--green-400); }
+.wizard-step-label { font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; margin-bottom: 0.5rem; }
+.wizard-title { font-family: 'Instrument Serif', serif; font-size: 1.5rem; color: var(--green-900); letter-spacing: -0.02em; margin-bottom: 0.4rem; }
+.wizard-sub { font-size: 0.85rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 1.5rem; font-weight: 300; }
+.wizard-nav { display: flex; align-items: center; justify-content: space-between; margin-top: 1.75rem; }
+.wizard-skip { font-size: 0.78rem; color: var(--text-muted); text-decoration: underline; cursor: pointer; background: none; border: none; font-family: 'DM Sans', sans-serif; }
+.wizard-skip:hover { color: var(--text-mid); }
+.wizard-added-chip { display: inline-flex; align-items: center; gap: 6px; background: var(--green-50); border: 1px solid var(--green-100); border-radius: 999px; padding: 0.35rem 0.75rem; font-size: 0.78rem; color: var(--green-700); margin: 4px 6px 0 0; }
+.wizard-added-list { margin-top: 0.75rem; }
+.wizard-added-empty { font-size: 0.78rem; color: var(--text-muted); font-style: italic; margin-top: 0.75rem; }
+
+/* LOGO UPLOAD (shared with settings page) */
+.logo-upload-row { display: flex; align-items: center; gap: 1.1rem; margin-bottom: 1.25rem; }
+.logo-preview { width: 68px; height: 68px; border-radius: 14px; background: var(--green-50); border: 1.5px dashed var(--border); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: var(--text-muted); flex-shrink: 0; overflow: hidden; }
+.logo-preview img { width: 100%; height: 100%; object-fit: cover; }
+.logo-upload-actions { display: flex; flex-direction: column; gap: 4px; }
+.logo-upload-btn { background: var(--green-50); color: var(--green-700); border: 1.5px solid var(--green-100); border-radius: 8px; padding: 0.5rem 0.9rem; font-family: 'DM Sans', sans-serif; font-size: 0.8rem; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+.logo-upload-btn:hover { background: var(--green-100); border-color: var(--green-400); }
+.logo-remove-btn { background: none; border: none; color: var(--text-muted); font-size: 0.72rem; cursor: pointer; text-decoration: underline; text-align: left; padding: 0; width: fit-content; }
+.logo-remove-btn:hover { color: #DC2626; }
+.logo-upload-hint { font-size: 0.72rem; color: var(--text-muted); font-weight: 300; }
+
+@media (max-width: 900px) {
+  .sidebar { display: none; }
+  .main { margin-left: 0; max-width: 100%; padding: 1.25rem; }
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+  .grid-2 { grid-template-columns: 1fr; }
+  .wizard-card { padding: 1.5rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- ONBOARDING WIZARD — shown full-screen to new users before the dashboard -->
+<div class="wizard-overlay" id="onboardingWizard">
+  <div class="wizard-card">
+    <div class="wizard-progress">
+      <div class="wizard-dot" id="wizDot1"></div>
+      <div class="wizard-dot" id="wizDot2"></div>
+      <div class="wizard-dot" id="wizDot3"></div>
+      <div class="wizard-dot" id="wizDot4"></div>
+    </div>
+    <div class="wizard-step-label" id="wizStepLabel">Step 1 of 4</div>
+
+    <!-- STEP 1: Branding -->
+    <div class="wizard-step" id="wizStep1">
+      <div class="wizard-title">Welcome to Orderly! 👋</div>
+      <div class="wizard-sub">Let's get your store looking great — this only takes a couple of minutes.</div>
+      <div class="logo-upload-row">
+        <div class="logo-preview" id="wizLogoPreview">🏪</div>
+        <div class="logo-upload-actions">
+          <button type="button" class="logo-upload-btn" onclick="document.getElementById('wizLogoFileInput').click()">Upload logo</button>
+          <input type="file" id="wizLogoFileInput" accept="image/*" style="display:none;" onchange="handleWizardLogoSelect(event)" />
+          <button type="button" class="logo-remove-btn" id="wizLogoRemoveBtn" style="display:none;" onclick="removeWizardLogo()">Remove logo</button>
+          <div class="logo-upload-hint">Square image works best. JPG or PNG.</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Store description</label>
+        <textarea class="form-input" id="wizStoreDescription" placeholder="e.g. Home-baked goods made fresh every week, using only real butter and free-range eggs." style="min-height:80px;"></textarea>
+      </div>
+    </div>
+
+    <!-- STEP 2: Store info -->
+    <div class="wizard-step" id="wizStep2" style="display:none;">
+      <div class="wizard-title">Tell customers about your store</div>
+      <div class="wizard-sub">This shows up when customers land on your order page.</div>
+      <div class="form-group">
+        <label class="form-label">Welcome message</label>
+        <textarea class="form-input" id="wizWelcomeMessage" placeholder="Hi! I'm Fatima and I bake from home every week in Cape Town. Orders close on Thursdays for weekend delivery. Can't wait to bake for you! 🧁" style="min-height:110px;"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Order deadline</label>
+        <input class="form-input" type="text" id="wizOrderDeadline" placeholder="e.g. Orders close every Thursday at 6pm" />
+      </div>
+    </div>
+
+    <!-- STEP 3: Point to Settings for delivery/rush setup -->
+    <div class="wizard-step" id="wizStep3" style="display:none;">
+      <div class="wizard-title">One more thing before you go 📦</div>
+      <div class="wizard-sub">Head to <strong>Settings</strong> to set up your delivery areas, delivery fee, and rush order options — customers will see these when they place an order.</div>
+      <div class="notif-pref-row" style="align-items:flex-start;">
+        <div class="notif-pref-info">
+          <span class="notif-pref-icon">🚚</span>
+          <div>
+            <div class="notif-pref-title">Delivery &amp; rush orders</div>
+            <div class="notif-pref-sub">Not set up yet — do this in Settings whenever you're ready. Your store works fine without it, but customers won't see delivery options until it's configured.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 4: Share link -->
+    <div class="wizard-step" id="wizStep4" style="display:none;">
+      <div class="wizard-title">You're all set! 🎉</div>
+      <div class="wizard-sub">Share this link with customers so they can start ordering from you.</div>
+      <div class="link-preview">
+        <span class="link-preview-url" id="wizOrderLink">—</span>
+        <button class="link-copy-btn" onclick="copyLink()">Copy link</button>
+      </div>
+    </div>
+
+    <div class="wizard-nav">
+      <button class="wizard-skip" onclick="wizSkip()">Skip for now</button>
+      <div style="display:flex;gap:8px;">
+        <button class="modal-btn" id="wizBackBtn" style="display:none;" onclick="wizBack()">← Back</button>
+        <button class="modal-btn primary" id="wizNextBtn" onclick="wizNext()">Continue →</button>
+        <button class="modal-btn primary" id="wizFinishBtn" style="display:none;" onclick="wizFinish()">Finish setup ✓</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">Order<span>ly</span></div>
+  <div class="sidebar-store">
+    <div class="sidebar-store-avatar" id="sidebarAvatar">—</div>
+    <div class="sidebar-store-name" id="sidebarStoreName">Loading...</div>
+    <div class="sidebar-store-link" onclick="copyLink()" id="sidebarStoreLink">Copy my order link ↗</div>
+  </div>
+  <div class="nav-section-label">Menu</div>
+  <a class="nav-item active"><span class="icon">📋</span> Orders</a>
+  <a class="nav-item" id="navMenuItem" href="orderly-menu.html"><span class="icon">🍽️</span> My Menu</a>
+  <a class="nav-item" href="orderly-invoices.html"><span class="icon">🧾</span> Invoices</a>
+  <div class="nav-section-label">Account</div>
+  <a class="nav-item" id="navSettingsItem" href="orderly-settings.html"><span class="icon">⚙️</span> Settings</a>
+  <div class="nav-section-label">Support</div>
+  <a class="nav-item" href="orderly-faq.html"><span class="icon">❓</span> FAQ</a>
+  <a class="nav-item" href="orderly-contact.html"><span class="icon">💬</span> Contact us</a>
+  <a class="nav-item" onclick="signOut()" style="cursor:pointer;"><span class="icon">🚪</span> Sign out</a>
+  <div class="sidebar-bottom">
+    <div class="sidebar-bottom-name" id="sidebarBottomName">—</div>
+    <div class="sidebar-bottom-role" id="sidebarBottomRole">Loading...</div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <h1 id="topbarGreeting">Welcome back 👋</h1>
+      <p id="topbarDate">Loading...</p>
+    </div>
+    <div class="topbar-right">
+      <button class="share-btn" id="beginTourBtn" onclick="startTour()" style="background:var(--white);color:var(--green-700);border:1.5px solid var(--border);">🧭 Begin tour</button>
+      <button class="share-btn" onclick="copyLink()">🔗 Share my order page</button>
+      <div class="notif-wrap">
+        <div class="notif-btn" onclick="toggleNotifPanel(event)">🔔<div class="notif-dot" id="notifDot"></div></div>
+        <div class="notif-panel" id="notifPanel">
+          <div class="notif-panel-header">
+            <span class="notif-panel-title">Notifications</span>
+            <button class="notif-panel-markall" onclick="markAllNotificationsRead()">Mark all read</button>
+          </div>
+          <div class="notif-panel-list" id="notifPanelList">
+            <div class="notif-panel-empty">Loading...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SHARE BANNER -->
+  <div class="share-banner">
+    <div class="share-banner-text">Your order page is <strong>live</strong> — share this link with your customers to start getting orders</div>
+    <div class="share-banner-link" id="shareBannerLink" onclick="copyLink()">Loading...</div>
+  </div>
+
+  <!-- TRIAL / PLAN BANNER -->
+  <div id="trialBanner" style="display:none;"></div>
+
+  <!-- ORDER CAP WARNING — shown to Free plan users approaching limit -->
+  <div class="cap-warning" id="orderCapWarning"></div>
+
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-label">Orders this month</div>
+      <div class="stat-value" id="statOrders">—</div>
+      <div class="stat-change" id="statOrdersChange">Loading...</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Revenue this month</div>
+      <div class="stat-value" id="statRevenue">—</div>
+      <div class="stat-change" id="statRevenueChange">Loading...</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">New today</div>
+      <div class="stat-value" id="statToday">—</div>
+      <div class="stat-change" id="statTodayChange">Loading...</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Avg. order value</div>
+      <div class="stat-value" id="statAvg">—</div>
+      <div class="stat-change" id="statAvgChange">Loading...</div>
+    </div>
+  </div>
+
+  <!-- ORDERS + CATALOG -->
+  <div class="grid-2">
+
+    <!-- ORDERS -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Recent orders</span>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button class="card-action" id="selectModeBtn" onclick="toggleSelectMode()">Select multiple</button>
+          <button class="card-action">View all</button>
+        </div>
+      </div>
+
+      <div id="ordersListContainer">
+        <div id="ordersPlaceholder" style="padding:2.5rem 1.4rem;text-align:center;font-size:0.85rem;color:var(--text-muted);">Loading your orders...</div>
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div style="display:flex;flex-direction:column;gap:1.25rem;">
+
+      <!-- CATALOG -->
+      <div class="card" id="menuCard">
+        <div class="card-header">
+          <span class="card-title">My menu</span>
+        </div>
+        <div id="catalogList">
+          <div style="padding:1rem 1.4rem;font-size:0.82rem;color:var(--text-muted);">Loading your menu...</div>
+        </div>
+        <div class="add-item-row">
+          <input class="add-input" id="newItemName" placeholder="Item name" />
+          <input class="add-input price" id="newItemPrice" placeholder="Price (R)" type="number" />
+          <button class="add-btn" id="addItemBtn" onclick="addItem()">+ Add</button>
+        </div>
+      </div>
+
+      <!-- TOP ITEMS -->
+      <div class="card" id="topSellersCard">
+        <div class="card-header">
+          <span class="card-title">Top sellers this month</span>
+        </div>
+        <div class="side-stat">
+          <span class="side-stat-label" style="color:var(--text-muted);font-size:0.78rem;">Loading...</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<!-- ORDER SUMMARY MODAL -->
+<div class="modal-overlay" id="orderSummaryModal" onclick="if(event.target===this)closeOrderSummary()">
+  <div class="modal">
+    <div class="modal-title" id="osSummaryTitle">Order details</div>
+    <p class="modal-sub" id="osSummaryDate"></p>
+
+    <!-- CUSTOMER -->
+    <div class="order-summary-section">
+      <div class="order-summary-label">Customer</div>
+      <div class="order-summary-row"><span>Name</span><span class="val" id="osName">—</span></div>
+      <div class="order-summary-row"><span>WhatsApp</span><span class="val" id="osPhone">—</span></div>
+    </div>
+
+    <!-- ORDER -->
+    <div class="order-summary-section">
+      <div class="order-summary-label">Order</div>
+      <div id="osItems"></div>
+      <div class="order-summary-total">
+        <span class="label">Total</span>
+        <span class="amount" id="osTotal">R0</span>
+      </div>
+    </div>
+
+    <!-- DELIVERY & NOTES -->
+    <div class="order-summary-section">
+      <div class="order-summary-label">Details</div>
+      <div class="order-summary-row"><span>Type</span><span class="val" id="osDelivery">—</span></div>
+      <div class="order-summary-row" id="osStatusRow"><span>Status</span><span class="val" id="osStatus">—</span></div>
+      <div class="order-summary-row" id="osNotesRow" style="display:none;"><span>Notes</span><span class="val" id="osNotes">—</span></div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="modal-btn" onclick="closeOrderSummary()">Close</button>
+      <button class="modal-btn primary" id="osInvoiceBtn" onclick="closeOrderSummary(); setTimeout(() => openInvoiceFromSummary(), 100)">🧾 View invoice</button>
+    </div>
+  </div>
+</div>
+
+<!-- INVOICE MODAL -->
+<div class="modal-overlay" id="invoiceModal" onclick="handleModalClick(event)">
+  <div class="modal">
+    <div class="modal-title">Invoice ready</div>
+    <p class="modal-sub">Send this to your customer via WhatsApp or download as PDF</p>
+    <div class="invoice-preview">
+      <div class="invoice-head">
+        <div>
+          <div class="invoice-head-logo">Orderly</div>
+          <div id="invoicePoweredBy" style="font-size:0.62rem;color:rgba(255,255,255,0.35);margin-top:2px;display:none;">Powered by Orderly</div>
+        </div>
+        <div class="invoice-head-num" id="invNum">INV-0001</div>
+      </div>
+      <div class="invoice-body">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem;">
+          <div>
+            <div class="invoice-to">Invoice for</div>
+            <div class="invoice-customer" id="invCustomer">—</div>
+            <div style="font-size:0.72rem;color:#7A9A85;margin-top:2px;" id="invPhone"></div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:0.7rem;color:#7A9A85;text-transform:uppercase;letter-spacing:0.06em;">Date</div>
+            <div style="font-size:0.8rem;font-weight:500;" id="invDate"></div>
+            <div style="font-size:0.7rem;margin-top:4px;padding:2px 8px;border-radius:20px;" id="invDeliveryBadge"></div>
+          </div>
+        </div>
+        <div id="invLines"></div>
+      </div>
+      <div class="invoice-total-row">
+        <div class="invoice-total-label">Total due</div>
+        <div class="invoice-total-val" id="invTotal">R0</div>
+      </div>
+      <!-- BANKING DETAILS — shown if owner has them set up -->
+      <div id="invBankingSection" style="display:none;padding:0.85rem 1.25rem;border-top:1px solid var(--border);background:var(--off-white);">
+        <div style="font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:0.5rem;">Payment details (EFT)</div>
+        <div id="invBankingDetails" style="font-size:0.78rem;color:var(--text-mid);line-height:1.8;"></div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn" onclick="closeModal()">Close</button>
+      <button class="modal-btn" id="invWaBtn" onclick="sendInvoiceWhatsApp()">💬 Send on WhatsApp</button>
+      <button class="modal-btn primary" onclick="printInvoice()">⬇️ Download PDF</button>
+    </div>
+  </div>
+</div>
+
+<!-- STATUS MODAL -->
+<div class="modal-overlay" id="statusModal" onclick="handleStatusModalClick(event)">
+  <div class="modal">
+    <div class="modal-title" id="statusModalTitle">Update order status</div>
+    <p class="modal-sub" id="statusModalSub">Choose the next step for this order. The customer will be notified on WhatsApp.</p>
+
+    <div class="status-current">
+      <span class="status-current-label">Current status</span>
+      <span class="order-badge" id="statusCurrentBadge">New</span>
+    </div>
+
+    <!-- Status options view -->
+    <div id="statusOptionsView">
+      <div class="status-option-list" id="statusOptionsList"></div>
+      <div id="statusBankingBtn" style="text-align:center;margin-top:0.5rem;display:none;">
+        <button onclick="sendBankingDetailsFromStatus()" style="background:none;border:1px solid var(--border);border-radius:8px;padding:0.5rem 1rem;font-family:'DM Sans',sans-serif;font-size:0.78rem;color:var(--text-mid);cursor:pointer;width:100%;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--green-400)'" onmouseout="this.style.borderColor='var(--border)'">🏦 Send banking details to customer</button>
+      </div>
+      <div class="cancel-link" onclick="showCancelReasons()">❌ Cancel this order instead</div>
+      <div class="modal-actions" style="margin-top:1rem;">
+        <button class="modal-btn" onclick="closeStatusModal()">Close</button>
+      </div>
+    </div>
+
+    <!-- Cancel reason view -->
+    <div id="cancelReasonView" style="display:none;">
+      <p style="font-size:0.82rem;color:var(--text-mid);margin-bottom:0.75rem;font-weight:500;">Why are you cancelling this order?</p>
+      <div class="reason-list" id="reasonList">
+        <button class="reason-btn" onclick="selectReason(this, 'Too short notice')">⏰ Too short notice</button>
+        <button class="reason-btn" onclick="selectReason(this, 'Ingredient unavailable')">🛒 Ingredient unavailable</button>
+        <button class="reason-btn" onclick="selectReason(this, 'Outside delivery area')">📍 Outside delivery area</button>
+        <button class="reason-btn" onclick="selectReason(this, 'Too many special requests')">📝 Too many special requests</button>
+        <button class="reason-btn" onclick="selectReason(this, 'other')">✏️ Other reason</button>
+      </div>
+      <div class="form-group" id="otherReasonGroup" style="display:none;margin-bottom:1rem;">
+        <input class="add-input" id="otherReasonText" placeholder="Describe the reason..." style="width:100%;" />
+      </div>
+      <div class="modal-actions">
+        <button class="modal-btn" onclick="hideCancelReasons()">← Back</button>
+        <button class="modal-btn primary" style="background:#DC2626;border-color:#DC2626;" onclick="confirmCancel()">Cancel order & notify</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- BULK ACTION BAR -->
+<div class="bulk-bar" id="bulkBar">
+  <span class="bulk-bar-count"><strong id="bulkCount">0</strong> orders selected</span>
+  <button class="bulk-bar-btn" onclick="openCannedModal()">💬 Send message</button>
+  <button class="bulk-bar-cancel" onclick="exitSelectMode()">Cancel</button>
+</div>
+
+<!-- BULK MESSAGE MODAL — redesigned, mobile-first, owner-focused -->
+<div class="modal-overlay" id="cannedModal" onclick="handleCannedModalClick(event)">
+  <div class="modal">
+
+    <!-- VIEW 1: CHOOSE MESSAGE -->
+    <div id="bulkViewChoose">
+      <div class="modal-title" id="bulkModalTitle">Send a message</div>
+      <p class="modal-sub" id="bulkModalSub"></p>
+
+      <!-- WHO'S RECEIVING -->
+      <div class="recipients-list" id="recipientsList"></div>
+
+      <!-- TEMPLATES -->
+      <div class="template-list" id="templateList"></div>
+
+      <!-- CUSTOM MESSAGE -->
+      <div class="custom-template-area" id="customTemplateArea" style="display:none;">
+        <textarea class="add-input" id="customMessageText" placeholder="Write your own message... Use {name} to insert the customer's name and {store} for your store name." style="width:100%;min-height:80px;resize:vertical;font-family:'DM Sans',sans-serif;"></textarea>
+      </div>
+
+      <div class="modal-actions" style="margin-top:1rem;">
+        <button class="modal-btn" onclick="closeCannedModal()">Cancel</button>
+        <button class="modal-btn primary" id="startSendBtn" onclick="startBulkSend()">Start sending →</button>
+      </div>
+    </div>
+
+    <!-- VIEW 2: SENDING FLOW — clean, warm, mobile-first -->
+    <div id="bulkViewSending" style="display:none;text-align:center;padding:0.5rem 0;">
+
+      <!-- REMAINING COUNT — big, clear -->
+      <div id="bulkRemaining" style="font-family:'Instrument Serif',serif;font-size:3rem;color:var(--green-900);line-height:1;margin-bottom:4px;">8</div>
+      <div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:1.5rem;" id="bulkRemainingLabel">customers left to message</div>
+
+      <!-- NEXT CUSTOMER CARD -->
+      <div id="bulkNextCard" style="background:var(--green-50);border:1px solid var(--green-100);border-radius:var(--radius-lg);padding:1.25rem;margin-bottom:1.25rem;">
+        <div style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:6px;">Sending to</div>
+        <div id="bulkNextName" style="font-family:'Instrument Serif',serif;font-size:1.3rem;color:var(--green-900);margin-bottom:4px;">—</div>
+        <div id="bulkNextPhone" style="font-size:0.78rem;color:var(--text-muted);">—</div>
+      </div>
+
+      <!-- MESSAGE PREVIEW -->
+      <div id="bulkMessagePreview" style="background:var(--off-white);border:1px solid var(--border);border-radius:var(--radius);padding:0.85rem 1rem;margin-bottom:1.5rem;font-size:0.8rem;color:var(--text-mid);line-height:1.6;text-align:left;max-height:100px;overflow-y:auto;"></div>
+
+      <!-- THE ONE BIG BUTTON -->
+      <button class="btn-primary" id="bulkSendBtn" onclick="sendNextInQueue()" style="font-size:1rem;padding:1rem;">
+        <span id="bulkSendBtnText">Open WhatsApp →</span>
+      </button>
+
+      <!-- SENT LIST -->
+      <div id="bulkSentList" style="margin-top:1.25rem;text-align:left;"></div>
+
+    </div>
+
+    <!-- VIEW 3: ALL DONE -->
+    <div id="bulkViewDone" style="display:none;text-align:center;padding:1rem 0;">
+      <div style="font-size:2.5rem;margin-bottom:0.75rem;">🎉</div>
+      <div style="font-family:'Instrument Serif',serif;font-size:1.6rem;color:var(--green-900);margin-bottom:0.5rem;">All done!</div>
+      <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:1.5rem;" id="bulkDoneText">All messages sent.</div>
+      <button class="modal-btn primary" onclick="closeCannedModal(); exitSelectMode();">Back to orders</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- EDIT ITEM MODAL -->
+<div class="modal-overlay" id="editItemModal" onclick="handleEditItemModalClick(event)">
+  <div class="modal">
+    <div class="modal-title">Edit item</div>
+    <p class="modal-sub">Update this menu item's details.</p>
+
+    <div class="form-group" style="margin-bottom:1rem;">
+      <label class="form-label" style="display:block;font-size:0.75rem;font-weight:500;color:var(--text-mid);margin-bottom:5px;">Item name</label>
+      <input class="add-input" id="editItemName" style="width:100%;padding:0.7rem 0.9rem;" />
+    </div>
+
+    <div class="form-group" style="margin-bottom:1rem;">
+      <label class="form-label" style="display:block;font-size:0.75rem;font-weight:500;color:var(--text-mid);margin-bottom:5px;">Price (R)</label>
+      <input class="add-input" id="editItemPrice" type="number" style="width:100%;padding:0.7rem 0.9rem;" />
+    </div>
+
+    <div class="form-group" style="margin-bottom:1.25rem;">
+      <label class="form-label" style="display:block;font-size:0.75rem;font-weight:500;color:var(--text-mid);margin-bottom:5px;">Emoji</label>
+      <div class="emoji-picker-row" id="emojiPickerRow"></div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="modal-btn" onclick="closeEditItemModal()">Cancel</button>
+      <button class="modal-btn primary" id="saveEditItemBtn" onclick="saveEditItem()">Save changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- PRO FEATURES MODAL -->
+<div class="modal-overlay" id="proFeaturesModal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal">
+    <div class="modal-title">Free vs Pro</div>
+    <p class="modal-sub">You're currently on your 30-day Pro trial. Here's what you get on each plan.</p>
+    <table style="width:100%;border-collapse:collapse;font-size:0.82rem;margin-bottom:1.25rem;">
+      <thead>
+        <tr>
+          <th style="text-align:left;padding:0.6rem 0.5rem;color:var(--text-muted);font-weight:500;border-bottom:2px solid var(--border);">Feature</th>
+          <th style="text-align:center;padding:0.6rem 0.5rem;color:var(--text-muted);font-weight:500;border-bottom:2px solid var(--border);">Free</th>
+          <th style="text-align:center;padding:0.6rem 0.5rem;color:var(--green-700);font-weight:600;border-bottom:2px solid var(--border);">Pro</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:0.55rem 0.5rem;color:var(--text-mid);">Orders per month</td>
+          <td style="text-align:center;padding:0.55rem 0.5rem;color:var(--text-muted);">50</td>
+          <td style="text-align:center;padding:0.55rem 0.5rem;color:var(--green-500);font-weight:500;">Unlimited</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:0.55rem 0.5rem;color:var(--text-mid);">Menu items</td>
+          <td style="text-align:center;padding:0.55rem 0.5rem;color:var(--text-muted);">20</td>
+          <td style="text-align:center;padding:0.55rem 0.5rem;color:var(--green-500);font-weight:500;">Unlimited</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:0.55rem 0.5rem;color:var(--text-mid);">Order status tracking</td>
+          <td style="text-align:center;padding:0.55rem 0.5rem;">✅</td>
+          <td style="text-align:center;padding:0.55rem 0.5rem;">✅</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:0.55rem 0.5rem;color:var(--text-mid);">WhatsApp notifications</td>
+          <td style="text-align:center;padding:0.55rem 0.5rem;">✅</td>
+          <td style="text-align:center;padding:0.55rem 0.5rem;">✅</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:0.55rem 0.5rem;color:var(--text-mid);">Bulk WhatsApp messaging</td>
+          <td style="text-align:center;padding:0.55rem 0.5rem;">✅</td>
+          <td style="text-align:center;padding:0.55rem 0.5rem;">✅</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:0.55rem 0.5rem;color:var(--text-mid);">Invoice generation</td>
+          <td style="text-align:center;padding:0.55rem 0.5rem;">✅</td>
+          <td style="text-align:center;padding:0.55rem 0.5rem;">✅</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:0.55rem 0.5rem;color:var(--text-mid);">Invoice history</td>
+          <td style="text-align:center;padding:0.55rem 0.5rem;color:var(--text-muted);">Last 3</td>
+          <td style="text-align:center;padding:0.55rem 0.5rem;color:var(--green-500);font-weight:500;">Full history</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:0.55rem 0.5rem;color:var(--text-mid);">Manual invoice creation</td>
+          <td style="text-align:center;padding:0.55rem 0.5rem;">❌</td>
+          <td style="text-align:center;padding:0.55rem 0.5rem;">✅</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:0.55rem 0.5rem;color:var(--text-mid);">Remove Orderly branding</td>
+          <td style="text-align:center;padding:0.55rem 0.5rem;">❌</td>
+          <td style="text-align:center;padding:0.55rem 0.5rem;">✅</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:0.55rem 0.5rem;color:var(--text-mid);">Online payments</td>
+          <td style="text-align:center;padding:0.55rem 0.5rem;color:var(--text-muted);">Soon</td>
+          <td style="text-align:center;padding:0.55rem 0.5rem;color:var(--text-muted);">Soon</td>
+        </tr>
+        <tr>
+          <td style="padding:0.55rem 0.5rem;color:var(--text-mid);">Full analytics</td>
+          <td style="text-align:center;padding:0.55rem 0.5rem;color:var(--text-muted);">Soon</td>
+          <td style="text-align:center;padding:0.55rem 0.5rem;color:var(--text-muted);">Soon</td>
+        </tr>
+      </tbody>
+    </table>
+    <div style="background:var(--green-50);border:1px solid var(--green-100);border-radius:var(--radius);padding:0.85rem 1rem;margin-bottom:1.25rem;font-size:0.8rem;color:var(--text-mid);line-height:1.6;">
+      <strong style="color:var(--green-700);">R199/month</strong> or <strong style="color:var(--green-700);">R2,000/year</strong> — save R388 on the yearly plan. No refunds on yearly cancellations before the year expires.
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn" onclick="document.getElementById('proFeaturesModal').classList.remove('open')">Close</button>
+      <button class="modal-btn primary" onclick="showToast('Payments coming soon! 🚀');document.getElementById('proFeaturesModal').classList.remove('open')">Upgrade to Pro →</button>
+    </div>
+  </div>
+</div>
+
+<!-- TRIAL EXPIRED MODAL — shown once, the first dashboard visit after the trial ends -->
+<div class="modal-overlay" id="trialExpiredModal" onclick="if(event.target===this)closeTrialExpiredModal()">
+  <div class="modal">
+    <div class="modal-title">Your Pro trial has ended</div>
+    <p class="modal-sub">You're now on the Free plan — 50 orders/month, 20 menu items, and Orderly branding on your invoices. Everything you've already added stays exactly as it is; you just can't add more past those limits until you upgrade.</p>
+    <div style="background:var(--green-50);border:1px solid var(--green-100);border-radius:var(--radius);padding:0.85rem 1rem;margin-bottom:1.25rem;font-size:0.8rem;color:var(--text-mid);line-height:1.6;">
+      <strong style="color:var(--green-700);">R199/month</strong> or <strong style="color:var(--green-700);">R2,000/year</strong> to remove all limits and go unlimited.
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn" onclick="closeTrialExpiredModal()">Maybe later</button>
+      <button class="modal-btn primary" onclick="showToast('Payments coming soon! 🚀');closeTrialExpiredModal()">Upgrade to Pro →</button>
+    </div>
+  </div>
+</div>
+
+<!-- IMAGE LIGHTBOX -->
+<div class="img-lightbox" id="dashLightbox" onclick="closeDashboardLightbox()">
+  <button class="img-lightbox-close" onclick="closeDashboardLightbox()">✕</button>
+  <img id="dashLightboxImg" src="" alt="" />
+  <div class="img-lightbox-caption" id="dashLightboxCaption"></div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- GUIDED TOUR -->
+<div class="tour-highlight" id="tourHighlight" style="display:none;"></div>
+<div class="tour-popup" id="tourPopup" style="display:none;">
+  <div class="tour-popup-title" id="tourPopupTitle"></div>
+  <div class="tour-popup-text" id="tourPopupText"></div>
+  <div class="tour-popup-actions">
+    <button class="tour-popup-skip" onclick="endTour()">Skip tour</button>
+    <button class="tour-popup-next" id="tourPopupNextBtn" onclick="nextTourStep()">Next →</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://qhcdlfnsjdspisjkfndq.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoY2RsZm5zamRzcGlzamtmbmRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwNDc3MTAsImV4cCI6MjA5NjYyMzcxMH0.1S4jvY38z-0XI22QwlB0Kkr4ttt-ptvDKRayEbk5Bgo';
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let invoiceCount = 1;
+let currentInvoiceData = {};
+let userProfile = null;
+let notifications = [];
+let notifChannel = null;
+
+// ── INIT ───────────────────────────────────────────────────────────
+async function init() {
+  // Check auth
+  const { data: { session } } = await db.auth.getSession();
+  if (!session) {
+    window.location.href = 'orderly-signin.html';
+    return;
+  }
+
+  // Load profile from Supabase
+  const { data: profile } = await db
+    .from('profiles')
+    .select('*')
+    .eq('id', session.user.id)
+    .maybeSingle();
+
+  if (!profile) {
+    window.location.href = 'orderly-signin.html';
+    return;
+  }
+
+  userProfile = profile;
+
+  // Update UI with real store data
+  updateStoreUI(profile);
+
+  // Show trial/plan banner
+  initTrialBanner(profile);
+  checkTrialExpiredModal(profile);
+
+  // Load real orders and menu (runs in background, hidden behind the wizard if it's shown)
+  const [ordersResult, menuResult] = await Promise.all([loadOrders(profile.id), loadMenu(profile.id)]);
+
+  // Notifications — load existing feed, then subscribe for live updates
+  loadNotifications(profile.id);
+  subscribeToNotifications(profile.id);
+
+  // New users step through the onboarding wizard before seeing the dashboard
+  if (!profile.onboarding_completed) {
+    showOnboardingWizard(profile);
+  }
+}
+
+// ── NOTIFICATIONS ─────────────────────────────────────────────────
+async function loadNotifications(profileId) {
+  const { data, error } = await db
+    .from('notifications')
+    .select('*')
+    .eq('profile_id', profileId)
+    .order('created_at', { ascending: false })
+    .limit(30);
+
+  if (error) { console.error('loadNotifications error', error); return; }
+  notifications = data || [];
+  renderNotifPanel();
+  updateNotifBadge();
+}
+
+function subscribeToNotifications(profileId) {
+  if (notifChannel) db.removeChannel(notifChannel);
+  notifChannel = db
+    .channel('notifications-' + profileId)
+    .on('postgres_changes', {
+      event: 'INSERT',
+      schema: 'public',
+      table: 'notifications',
+      filter: `profile_id=eq.${profileId}`,
+    }, (payload) => {
+      notifications.unshift(payload.new);
+      renderNotifPanel();
+      updateNotifBadge();
+      showToast('🔔 ' + payload.new.title);
+    })
+    .subscribe();
+}
+
+function updateNotifBadge() {
+  const dot = document.getElementById('notifDot');
+  if (!dot) return;
+  const unread = notifications.filter(n => !n.read).length;
+  if (unread > 0) {
+    dot.textContent = unread > 9 ? '9+' : String(unread);
+    dot.classList.add('show');
+  } else {
+    dot.classList.remove('show');
+  }
+}
+
+const NOTIF_ICONS = { new_order: '🎉', order_status: '📦', trial: '⏰', system: 'ℹ️' };
+
+function renderNotifPanel() {
+  const list = document.getElementById('notifPanelList');
+  if (!list) return;
+
+  if (!notifications.length) {
+    list.innerHTML = `<div class="notif-panel-empty">You're all caught up — no notifications yet.</div>`;
+    return;
+  }
+
+  list.innerHTML = notifications.map(n => `
+    <div class="notif-item ${n.read ? '' : 'unread'}" onclick="handleNotifClick('${n.id}', ${n.link ? `'${n.link}'` : 'null'})">
+      <span class="notif-item-icon">${NOTIF_ICONS[n.type] || '🔔'}</span>
+      <div>
+        <div class="notif-item-title">${n.title}</div>
+        ${n.body ? `<div class="notif-item-body">${n.body}</div>` : ''}
+        <div class="notif-item-time">${getTimeAgo(n.created_at)}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function toggleNotifPanel(e) {
+  e.stopPropagation();
+  const panel = document.getElementById('notifPanel');
+  panel.classList.toggle('open');
+  if (panel.classList.contains('open')) {
+    document.addEventListener('click', closeNotifPanelOnOutsideClick);
+  }
+}
+
+function closeNotifPanelOnOutsideClick(e) {
+  const panel = document.getElementById('notifPanel');
+  const wrap = document.querySelector('.notif-wrap');
+  if (panel && wrap && !wrap.contains(e.target)) {
+    panel.classList.remove('open');
+    document.removeEventListener('click', closeNotifPanelOnOutsideClick);
+  }
+}
+
+async function handleNotifClick(id, link) {
+  const n = notifications.find(x => x.id === id);
+  if (n && !n.read) {
+    n.read = true;
+    updateNotifBadge();
+    renderNotifPanel();
+    await db.from('notifications').update({ read: true }).eq('id', id);
+  }
+  if (link) {
+    document.getElementById('notifPanel').classList.remove('open');
+    const target = document.querySelector(link);
+    if (target) target.scrollIntoView({ behavior: 'smooth' });
+  }
+}
+
+async function markAllNotificationsRead() {
+  const unreadIds = notifications.filter(n => !n.read).map(n => n.id);
+  if (!unreadIds.length) return;
+  notifications.forEach(n => n.read = true);
+  updateNotifBadge();
+  renderNotifPanel();
+  await db.from('notifications').update({ read: true }).in('id', unreadIds);
+}
+
+// ── TRIAL & PLAN SYSTEM ────────────────────────────────────────────
+const TRIAL_DAYS = 30;
+
+function getTrialState(profile) {
+  // If already on Pro — no trial logic needed
+  if (profile.plan === 'pro') return { state: 'pro' };
+
+  const trialStart = new Date(profile.trial_start_date || profile.created_at);
+  const now = new Date();
+  const msPerDay = 1000 * 60 * 60 * 24;
+  const daysUsed = Math.floor((now - trialStart) / msPerDay);
+  const daysLeft = TRIAL_DAYS - daysUsed;
+
+  if (daysLeft > 10) return { state: 'trial_active', daysLeft };
+  if (daysLeft > 0)  return { state: 'trial_ending', daysLeft };
+  return { state: 'trial_expired', daysLeft: 0 };
+}
+
+function hasProAccess(profile) {
+  if (!profile) return false;
+  const { state } = getTrialState(profile);
+  return state === 'pro' || state === 'trial_active' || state === 'trial_ending';
+}
+
+function initTrialBanner(profile) {
+  const { state, daysLeft } = getTrialState(profile);
+  const banner = document.getElementById('trialBanner');
+  if (!banner) return;
+
+  if (state === 'pro') {
+    banner.style.display = 'none';
+    return;
+  }
+
+  let cls, text, btnText;
+
+  if (state === 'trial_active') {
+    cls = 'trial-active';
+    text = `🎉 <strong>Pro trial active</strong> — You have <strong>${daysLeft} days</strong> left to explore all Pro features for free. No credit card needed.`;
+    btnText = 'See Pro features';
+  } else if (state === 'trial_ending') {
+    cls = 'trial-ending';
+    text = `⏰ <strong>Your trial ends in ${daysLeft} day${daysLeft === 1 ? '' : 's'}!</strong> Upgrade now and get <strong>15% off for 2 months</strong> — don't lose your Pro features.`;
+    btnText = 'Upgrade to Pro';
+  } else {
+    cls = 'trial-expired';
+    text = `⚠️ <strong>Your free trial has ended.</strong> You're now on the Free plan — 50 orders/month, 20 menu items. Upgrade to Pro to remove all limits and Orderly branding.`;
+    btnText = 'Upgrade to Pro';
+  }
+
+  banner.className = `trial-banner ${cls}`;
+  banner.innerHTML = `
+    <div class="trial-banner-text">${text}</div>
+    <button class="trial-banner-btn" onclick="${state === 'trial_active' ? 'showProFeatures()' : 'showToast(\'Payments coming soon! 🚀\')'}">${btnText}</button>
+  `;
+  banner.style.display = 'flex';
+}
+
+function checkTrialExpiredModal(profile) {
+  const { state } = getTrialState(profile);
+  if (state !== 'trial_expired' || profile.plan === 'pro') return;
+  if (profile.trial_expired_modal_shown) return;
+
+  document.getElementById('trialExpiredModal').classList.add('open');
+
+  // Mark as shown server-side so it doesn't pop up again on their next visit
+  db.from('profiles').update({ trial_expired_modal_shown: true }).eq('id', profile.id)
+    .then(() => { userProfile.trial_expired_modal_shown = true; });
+}
+
+function closeTrialExpiredModal() {
+  document.getElementById('trialExpiredModal').classList.remove('open');
+}
+
+// ── FREE PLAN CAPS ─────────────────────────────────────────────────
+const FREE_ORDER_CAP = 50;
+const FREE_MENU_CAP = 20;
+
+function isOnFreePlan(profile) {
+  const { state } = getTrialState(profile);
+  return state === 'trial_expired' && profile.plan !== 'pro';
+}
+
+function checkMenuCap() {
+  if (!isOnFreePlan(userProfile)) return true; // no cap during trial or on Pro
+  const itemCount = document.querySelectorAll('#catalogList .catalog-item').length;
+  if (itemCount >= FREE_MENU_CAP) {
+    showToast(`Free plan limit — max ${FREE_MENU_CAP} menu items. Upgrade to Pro for unlimited.`);
+    return false;
+  }
+  return true;
+}
+
+function getOrdersThisMonth(orders) {
+  const now = new Date();
+  return orders.filter(o => new Date(o.created_at).getMonth() === now.getMonth() &&
+    new Date(o.created_at).getFullYear() === now.getFullYear()).length;
+}
+
+function showOrderCapWarning(ordersThisMonth) {
+  if (!isOnFreePlan(userProfile)) return;
+  const remaining = FREE_ORDER_CAP - ordersThisMonth;
+  const warningEl = document.getElementById('orderCapWarning');
+  if (!warningEl) return;
+
+  // Get the first day of next month for the reset date
+  const now = new Date();
+  const resetDate = new Date(now.getFullYear(), now.getMonth() + 1, 1)
+    .toLocaleDateString('en-ZA', { day: 'numeric', month: 'long' });
+
+  if (remaining <= 0) {
+    // AT CAP — celebrate success, present upgrade as unlocking waiting business
+    warningEl.innerHTML = `
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+        <div style="flex:1;">
+          <div style="font-weight:600;color:#92400E;margin-bottom:4px;">🎉 You've had ${ordersThisMonth} orders this month — great month!</div>
+          <div style="font-size:0.78rem;color:#92400E;line-height:1.6;">New customers can't place orders until <strong>${resetDate}</strong> on the Free plan. Don't miss out on business that's already coming your way — upgrade to Pro for unlimited orders.</div>
+        </div>
+        <button onclick="showToast('Payments coming soon! 🚀')" style="background:#D97706;color:white;border:none;border-radius:8px;padding:0.55rem 1rem;font-family:'DM Sans',sans-serif;font-size:0.78rem;font-weight:500;cursor:pointer;white-space:nowrap;flex-shrink:0;">Upgrade to Pro →</button>
+      </div>`;
+    warningEl.classList.add('show');
+  } else if (remaining <= 10) {
+    // APPROACHING CAP — heads up with urgency
+    warningEl.innerHTML = `
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+        <div style="flex:1;">
+          <div style="font-weight:600;color:#92400E;margin-bottom:4px;">⚡ You have <strong>${remaining} orders left</strong> this month</div>
+          <div style="font-size:0.78rem;color:#92400E;line-height:1.6;">You've used ${ordersThisMonth} of your ${FREE_ORDER_CAP} free orders. Upgrade to Pro before you hit the limit — don't turn away customers.</div>
+        </div>
+        <button onclick="showProFeatures()" style="background:#D97706;color:white;border:none;border-radius:8px;padding:0.55rem 1rem;font-family:'DM Sans',sans-serif;font-size:0.78rem;font-weight:500;cursor:pointer;white-space:nowrap;flex-shrink:0;">See Pro →</button>
+      </div>`;
+    warningEl.classList.add('show');
+  } else {
+    warningEl.classList.remove('show');
+  }
+}
+
+
+function updateStoreUI(profile) {
+  const initials = profile.store_name.split(' ').map(w => w[0]).join('').substring(0,2).toUpperCase();
+  const firstName = profile.store_name.split(' ')[0];
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+
+  // Sidebar — all via IDs now, no fragile querySelector
+  const avatarEl = document.getElementById('sidebarAvatar');
+  if (profile.logo_url) {
+    avatarEl.innerHTML = `<img src="${profile.logo_url}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;" />`;
+  } else {
+    avatarEl.textContent = initials;
+  }
+  document.getElementById('sidebarStoreName').textContent = profile.store_name;
+  document.getElementById('sidebarBottomName').textContent = profile.store_name;
+  // Sidebar bottom role — must reflect trial state, not just raw plan field
+  const { state: trialState, daysLeft } = getTrialState(profile);
+  let roleHTML;
+  if (profile.plan === 'pro') {
+    roleHTML = '⭐ Pro plan';
+  } else if (trialState === 'trial_active') {
+    roleHTML = `🎉 Pro trial · <span style="color:rgba(255,255,255,0.5);font-size:0.7rem;">${daysLeft} days left</span>`;
+  } else if (trialState === 'trial_ending') {
+    roleHTML = `⏰ Trial ending · <span style="color:#FCD34D;cursor:pointer" onclick="showToast('Upgrade coming soon! 🚀')">Upgrade now</span>`;
+  } else {
+    roleHTML = `Free plan · <span style="color:#3D8B65;cursor:pointer" onclick="showToast('Upgrade coming soon! 🚀')">Upgrade to Pro</span>`;
+  }
+  document.getElementById('sidebarBottomRole').innerHTML = roleHTML;
+
+  // Topbar
+  document.getElementById('topbarGreeting').textContent = `${greeting}, ${firstName} 👋`;
+  const today = new Date().toLocaleDateString('en-ZA', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+  document.getElementById('topbarDate').textContent = today;
+
+  // Share banner
+  const shareLink = document.getElementById('shareBannerLink');
+  if (shareLink) shareLink.textContent = `orderlyapp.co.za/order/${profile.store_slug}`;
+}
+
+// ── LOAD REAL ORDERS ───────────────────────────────────────────────
+async function loadOrders(profileId) {
+  const { data: orders, error } = await db
+    .from('orders')
+    .select('*')
+    .eq('profile_id', profileId)
+    .order('created_at', { ascending: false })
+    .limit(20);
+
+  if (error || !orders || orders.length === 0) {
+    updateStats([], true);
+    return;
+  }
+
+  invoiceCount = orders.length;
+  updateStats(orders, false);
+  renderOrders(orders);
+}
+
+// ── UPDATE STATS ───────────────────────────────────────────────────
+function updateStats(orders, isEmpty) {
+  if (isEmpty) {
+    document.getElementById('statOrders').textContent = '0';
+    document.getElementById('statOrdersChange').textContent = 'No orders yet';
+    document.getElementById('statRevenue').textContent = 'R0';
+    document.getElementById('statRevenueChange').textContent = 'Share your link to get started';
+    document.getElementById('statToday').textContent = '0';
+    document.getElementById('statTodayChange').textContent = 'No orders today';
+    document.getElementById('statAvg').textContent = 'R0';
+    document.getElementById('statAvgChange').textContent = 'No data yet';
+    return;
+  }
+
+  const now = new Date();
+  const thisMonth = orders.filter(o => new Date(o.created_at).getMonth() === now.getMonth());
+  const lastMonth = orders.filter(o => new Date(o.created_at).getMonth() === now.getMonth() - 1);
+  const today = orders.filter(o => new Date(o.created_at).toDateString() === now.toDateString());
+
+  const revenue = thisMonth.reduce((s, o) => s + (o.total || 0), 0);
+  const lastRevenue = lastMonth.reduce((s, o) => s + (o.total || 0), 0);
+  const avgOrder = thisMonth.length ? Math.round(revenue / thisMonth.length) : 0;
+  const orderDiff = Math.abs(thisMonth.length - lastMonth.length);
+  const revDiff = Math.abs(revenue - lastRevenue);
+
+  document.getElementById('statOrders').textContent = thisMonth.length;
+  document.getElementById('statOrdersChange').textContent = `${thisMonth.length >= lastMonth.length ? '↑' : '↓'} ${orderDiff} from last month`;
+  document.getElementById('statOrdersChange').className = `stat-change ${thisMonth.length >= lastMonth.length ? '' : 'down'}`;
+
+  document.getElementById('statRevenue').textContent = `R${revenue.toLocaleString()}`;
+  document.getElementById('statRevenueChange').textContent = `${revenue >= lastRevenue ? '↑' : '↓'} R${revDiff.toLocaleString()} from last month`;
+  document.getElementById('statRevenueChange').className = `stat-change ${revenue >= lastRevenue ? '' : 'down'}`;
+
+  document.getElementById('statToday').textContent = today.length;
+  document.getElementById('statTodayChange').textContent = today.length === 1 ? '1 order today' : `${today.length} orders today`;
+
+  document.getElementById('statAvg').textContent = `R${avgOrder}`;
+  document.getElementById('statAvgChange').textContent = 'This month';
+
+  // Check if Free plan user is approaching or at order cap
+  showOrderCapWarning(thisMonth.length);
+}
+
+// ── STATUS DEFINITIONS ──────────────────────────────────────────────
+const STATUS_INFO = {
+  new:              { label: 'New',               badge: 'badge-new',       dot: 'dot-new' },
+  confirmed:        { label: 'Confirmed',          badge: 'badge-confirmed', dot: 'dot-confirmed' },
+  preparing:        { label: 'Preparing',          badge: 'badge-preparing', dot: 'dot-preparing' },
+  packing:          { label: 'Packing',            badge: 'badge-packing',   dot: 'dot-packing' },
+  ready:            { label: 'Ready for collection', badge: 'badge-ready',   dot: 'dot-ready' },
+  out_for_delivery: { label: 'Out for delivery',   badge: 'badge-outfordelivery', dot: 'dot-outfordelivery' },
+  delivered:        { label: 'Delivered',          badge: 'badge-delivered', dot: 'dot-delivered' },
+  collected:        { label: 'Collected',          badge: 'badge-collected', dot: 'dot-collected' },
+  cancelled:        { label: 'Cancelled',          badge: 'badge-cancelled', dot: 'dot-cancelled' },
+};
+
+// Status flow depends on delivery vs collection
+function getStatusFlow(deliveryType) {
+  if (deliveryType === 'delivery') {
+    return ['new', 'confirmed', 'preparing', 'packing', 'out_for_delivery', 'delivered'];
+  }
+  return ['new', 'confirmed', 'preparing', 'ready', 'collected'];
+}
+
+// Customer-facing WhatsApp messages per status
+function getStatusMessage(status, order, storeName) {
+  const name = order.customer_name.split(' ')[0]; // Use first name only — more personal
+  const messages = {
+    confirmed: `Hi ${name}! 🙌 Your order from ${storeName} is confirmed — we're so excited to be baking for you! We'll keep you updated every step of the way.`,
+    preparing: `Hi ${name}! 👩‍🍳 Good news — we've started preparing your order from ${storeName}. The kitchen is busy! We'll let you know when it's ready.`,
+    packing: `Hi ${name}! 📦 Your order from ${storeName} is all packed up and looking good. Almost with you!`,
+    ready: `Hi ${name}! 🎉 Your order from ${storeName} is ready for collection! Come grab it whenever suits you — we can't wait for you to try it.`,
+    out_for_delivery: `Hi ${name}! 🚗 Your order from ${storeName} is on its way to you right now! Keep an eye out — it should be with you soon.`,
+    delivered: `Hi ${name}! ✅ Your order from ${storeName} has been delivered. We hope you love it as much as we loved making it! Thank you so much for your support. 🙏`,
+    collected: `Hi ${name}! ✅ So lovely seeing you! Your order from ${storeName} has been collected. Enjoy every bite and thank you for your support! 🙏`,
+  };
+  return messages[status] || `Hi ${name}, just a quick update on your order from ${storeName} — the status has been updated to: ${STATUS_INFO[status]?.label || status}. Feel free to reply if you have any questions!`;
+}
+
+// ── ESCAPE HELPER FOR INLINE ONCLICK STRINGS ───────────────────────
+function escJs(str) {
+  return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+}
+function jsArrayLiteral(arr) {
+  return '[' + arr.map(v => `'${escJs(v)}'`).join(',') + ']';
+}
+
+// ── RENDER REAL ORDERS ─────────────────────────────────────────────
+let allOrdersData = [];
+
+function renderOrders(orders) {
+  allOrdersData = orders;
+  const container = document.getElementById('ordersListContainer');
+
+  if (!orders.length) {
+    container.innerHTML = `<div style="padding:2.5rem 1.4rem;text-align:center;font-size:0.85rem;color:var(--text-muted);">No orders yet — share your link to get started!</div>`;
+    return;
+  }
+
+  let html = '';
+  orders.forEach((order, idx) => {
+    const status = order.status || 'new';
+    const info = STATUS_INFO[status] || STATUS_INFO.new;
+
+    const deliveryBadge = order.delivery_type === 'delivery'
+      ? `<span class="order-badge" style="background:#F0FDF4;color:#15803D;font-size:0.65rem;">🚗 Delivery</span>`
+      : `<span class="order-badge" style="background:#E0F2FE;color:#0369A1;font-size:0.65rem;">🏠 Collection</span>`;
+    const rushBadge = order.notes?.includes('RUSH') ? `<span class="order-badge" style="background:#FFFBEB;color:#92400E;font-size:0.65rem;">⚡ Rush</span>` : '';
+
+    const items = Array.isArray(order.items) ? order.items : [];
+    const itemSummary = items.map(i => `${i.qty}× ${i.name}`).join(', ');
+    const itemNames = items.map(i => `${i.qty}× ${i.name}`);
+    const itemPrices = items.map(i => i.price * i.qty);
+
+    const timeAgo = getTimeAgo(order.created_at);
+    const invNum = String(order.invoice_number || idx + 1).padStart(4, '0');
+    const orderDataStr = `'${escJs(order.customer_name)}', ${order.total}, ${jsArrayLiteral(itemNames)}, [${itemPrices.join(',')}], '${order.delivery_type}', '${escJs(order.customer_phone)}', '${invNum}'`;
+
+    html += `
+      <div class="order-row" data-order-idx="${idx}" onclick="handleOrderRowClick(event, ${idx}, ${orderDataStr})">
+        <input type="checkbox" class="order-checkbox" onclick="event.stopPropagation(); toggleOrderSelect(${idx})" id="check-${idx}">
+        <div class="order-status-dot ${info.dot}"></div>
+        <div class="order-info">
+          <div class="order-customer">${order.customer_name} <span class="order-badge ${info.badge}">${info.label}</span> ${deliveryBadge} ${rushBadge}</div>
+          <div class="order-items">${itemSummary || 'No items'}</div>
+        </div>
+        <div class="order-meta">
+          <div class="order-price">R${order.total}</div>
+          <div class="order-time">${timeAgo}</div>
+        </div>
+        <div class="order-actions">
+          ${status !== 'cancelled' && status !== 'delivered' && status !== 'collected' ? `<button class="action-btn confirm" onclick="event.stopPropagation(); openStatusModal('${order.id}', '${order.delivery_type}', '${status}', '${escJs(order.customer_name)}', '${escJs(order.customer_phone)}')">Update status</button>` : ''}
+          <button class="action-btn" onclick="event.stopPropagation(); openInvoice(${orderDataStr})">🧾 Invoice</button>
+        </div>
+      </div>`;
+  });
+
+  container.innerHTML = html;
+  if (orders.length > 0) { /* first order received */ }
+}
+
+// ── BULK SELECT MODE ─────────────────────────────────────────────
+let selectMode = false;
+let selectedOrderIndexes = new Set();
+
+function toggleSelectMode() {
+  selectMode = !selectMode;
+  selectedOrderIndexes.clear();
+  document.querySelectorAll('.order-row').forEach(row => {
+    row.classList.toggle('select-mode', selectMode);
+    row.classList.remove('row-selected');
+  });
+  document.querySelectorAll('.order-checkbox').forEach(cb => cb.checked = false);
+  document.getElementById('selectModeBtn').textContent = selectMode ? 'Done' : 'Select multiple';
+  updateBulkBar();
+}
+
+function exitSelectMode() {
+  selectMode = false;
+  selectedOrderIndexes.clear();
+  document.querySelectorAll('.order-row').forEach(row => {
+    row.classList.remove('select-mode', 'row-selected');
+  });
+  document.getElementById('selectModeBtn').textContent = 'Select multiple';
+  updateBulkBar();
+}
+
+let currentSummaryInvoiceArgs = null;
+
+function handleOrderRowClick(e, idx, ...invoiceArgs) {
+  if (selectMode) {
+    toggleOrderSelect(idx);
+    return;
+  }
+  // Open order summary instead of jumping straight to invoice
+  openOrderSummary(idx, invoiceArgs);
+}
+
+function openOrderSummary(idx, invoiceArgs) {
+  const order = allOrdersData[idx];
+  if (!order) return;
+
+  currentSummaryInvoiceArgs = invoiceArgs;
+
+  // Header
+  const date = new Date(order.created_at).toLocaleDateString('en-ZA', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+  document.getElementById('osSummaryTitle').textContent = `Order from ${order.customer_name.split(' ')[0]}`;
+  document.getElementById('osSummaryDate').textContent = date;
+
+  // Customer
+  document.getElementById('osName').textContent = order.customer_name;
+  document.getElementById('osPhone').textContent = order.customer_phone || '—';
+
+  // Items
+  const items = Array.isArray(order.items) ? order.items : [];
+  document.getElementById('osItems').innerHTML = items.map(i =>
+    `<div class="order-summary-row"><span>${i.qty}× ${i.name}</span><span class="val">R${i.price * i.qty}</span></div>`
+  ).join('') || '<div class="order-summary-row"><span>No items</span></div>';
+  document.getElementById('osTotal').textContent = 'R' + order.total;
+
+  // Delivery & status
+  document.getElementById('osDelivery').textContent = order.delivery_type === 'delivery' ? '🚗 Delivery' : '🏠 Collection';
+  const statusInfo = STATUS_INFO[order.status] || STATUS_INFO.new;
+  document.getElementById('osStatus').innerHTML = `<span class="order-badge ${statusInfo.badge}">${statusInfo.label}</span>`;
+
+  // Notes
+  if (order.notes) {
+    document.getElementById('osNotes').textContent = order.notes;
+    document.getElementById('osNotesRow').style.display = 'flex';
+  } else {
+    document.getElementById('osNotesRow').style.display = 'none';
+  }
+
+  document.getElementById('orderSummaryModal').classList.add('open');
+}
+
+function openInvoiceFromSummary() {
+  if (currentSummaryInvoiceArgs) {
+    openInvoice(...currentSummaryInvoiceArgs);
+  }
+}
+
+function closeOrderSummary() {
+  document.getElementById('orderSummaryModal').classList.remove('open');
+}
+
+function toggleOrderSelect(idx) {
+  const row = document.querySelector(`[data-order-idx="${idx}"]`);
+  const checkbox = document.getElementById('check-' + idx);
+  if (selectedOrderIndexes.has(idx)) {
+    selectedOrderIndexes.delete(idx);
+    row.classList.remove('row-selected');
+    checkbox.checked = false;
+  } else {
+    selectedOrderIndexes.add(idx);
+    row.classList.add('row-selected');
+    checkbox.checked = true;
+  }
+  updateBulkBar();
+}
+
+function updateBulkBar() {
+  const bar = document.getElementById('bulkBar');
+  const count = selectedOrderIndexes.size;
+  document.getElementById('bulkCount').textContent = count;
+  bar.classList.toggle('show', selectMode && count > 0);
+}
+
+// ── LOAD REAL MENU ─────────────────────────────────────────────────
+async function loadMenu(profileId) {
+  const { data: items } = await db
+    .from('menu_items')
+    .select('*')
+    .eq('profile_id', profileId)
+    .order('created_at', { ascending: true });
+
+  const list = document.getElementById('catalogList');
+
+  if (!items || items.length === 0) {
+    list.innerHTML = `<div style="padding:1rem 1.4rem;font-size:0.82rem;color:var(--text-muted);">No items yet — add your first item below.</div>`;
+    return;
+  }
+
+  const isPro = hasProAccess(userProfile);
+
+  list.innerHTML = items.map(item => {
+    // Image column — Pro gets upload, Free gets locked nudge
+    let imgCol;
+    if (isPro) {
+      if (item.image_url) {
+        imgCol = `<div class="catalog-item-img-placeholder" style="border:none;background:none;">
+          <img class="catalog-item-img" src="${item.image_url}" alt="${escJs(item.name)}" onclick="openDashboardLightbox('${escJs(item.image_url)}', '${escJs(item.name)}')" />
+          <input type="file" accept="image/jpeg,image/png,image/webp" onchange="uploadItemImage(event, '${item.id}')" style="position:absolute;inset:0;opacity:0;cursor:pointer;z-index:2;" />
+        </div>`;
+      } else {
+        imgCol = `<div class="catalog-item-img-placeholder" title="Add a square photo for best results (min 500×500px)">
+          <span>📸</span>
+          <span>Add photo</span>
+          <input type="file" accept="image/jpeg,image/png,image/webp" onchange="uploadItemImage(event, '${item.id}')" style="position:absolute;inset:0;opacity:0;cursor:pointer;" />
+        </div>`;
+      }
+    } else {
+      imgCol = `<div class="pro-lock-img" onclick="showProFeatures()" title="Pro feature — add photos to your menu items">📸<span>Pro only</span></div>`;
+    }
+
+    return `
+    <div class="catalog-item" id="catalog-item-${item.id}">
+      ${imgCol}
+      <div class="catalog-name">${item.name}</div>
+      <div class="catalog-price">R${item.price}</div>
+      <button class="catalog-edit" onclick="openEditItemModal('${item.id}', '${escJs(item.name)}', ${item.price}, '${escJs(item.emoji || '🍱')}')">Edit</button>
+      <button class="catalog-edit" onclick="deleteItem('${item.id}', this)">Remove</button>
+    </div>`;
+  }).join('');
+
+  // Update top sellers based on real orders
+  updateTopSellers(items);
+}
+
+// ── TOP SELLERS ────────────────────────────────────────────────────
+async function updateTopSellers(menuItems) {
+  const { data: orders } = await db
+    .from('orders')
+    .select('items')
+    .eq('profile_id', userProfile.id);
+
+  const container = document.getElementById('topSellersCard');
+  if (!container) return;
+
+  if (!orders || !orders.length) {
+    container.innerHTML = `
+      <div class="card-header"><span class="card-title">Top sellers this month</span></div>
+      <div class="side-stat"><span class="side-stat-label" style="color:var(--text-muted);font-size:0.78rem;">No orders yet</span></div>`;
+    return;
+  }
+
+  // Build emoji lookup from the actual menu items the owner has
+  const emojiMap = {};
+  (menuItems || []).forEach(item => { emojiMap[item.name] = item.emoji || '🍱'; });
+
+  const counts = {};
+  orders.forEach(order => {
+    (order.items || []).forEach(item => {
+      counts[item.name] = (counts[item.name] || 0) + (item.qty || 1);
+    });
+  });
+
+  const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 4);
+
+  if (!sorted.length) {
+    container.innerHTML = `
+      <div class="card-header"><span class="card-title">Top sellers this month</span></div>
+      <div class="side-stat"><span class="side-stat-label" style="color:var(--text-muted);font-size:0.78rem;">Not enough data yet</span></div>`;
+    return;
+  }
+
+  const header = container.querySelector('.card-header').outerHTML;
+  container.innerHTML = header + sorted.map(([name, count]) =>
+    `<div class="side-stat">
+      <span class="side-stat-label">${emojiMap[name] || '🍱'} ${name}</span>
+      <span class="side-stat-val">${count} order${count > 1 ? 's' : ''}</span>
+    </div>`
+  ).join('');
+}
+
+// ── ADD MENU ITEM ──────────────────────────────────────────────────
+async function addItem() {
+  const nameEl  = document.getElementById('newItemName');
+  const priceEl = document.getElementById('newItemPrice');
+  const btn     = document.getElementById('addItemBtn');
+  const name  = nameEl.value.trim();
+  const price = priceEl.value.trim();
+  if (!name || !price) return;
+  if (btn.disabled) return;
+
+  // Check Free plan menu item cap
+  if (!checkMenuCap()) return;
+
+  btn.disabled = true;
+  const originalLabel = btn.textContent;
+  btn.textContent = 'Adding...';
+
+  const emojis = ['🍱','🥘','🍲','🧆','🥗','🍰','🧁','🍛','🥙','🧁'];
+  const emoji = emojis[Math.floor(Math.random() * emojis.length)];
+
+  const { data, error } = await db.from('menu_items').insert({
+    profile_id: userProfile.id,
+    name, price: parseFloat(price), emoji,
+  }).select().single();
+
+  btn.disabled = false;
+  btn.textContent = originalLabel;
+
+if (error) {
+  if (error.message?.includes('FREE_PLAN_MENU_CAP')) {
+    showToast(`Free plan limit — max 20 menu items. Upgrade to Pro for unlimited.`);
+  } else {
+    showToast('Could not add item — try again');
+  }
+  return;
+}
+  const list = document.getElementById('catalogList');
+  // Remove empty state message if present
+  const emptyMsg = list.querySelector('div:not(.catalog-item)');
+  if (emptyMsg) emptyMsg.remove();
+
+  const div = document.createElement('div');
+  div.className = 'catalog-item';
+  div.innerHTML = `
+    <div class="catalog-emoji">${emoji}</div>
+    <div class="catalog-name">${name}</div>
+    <div class="catalog-price">R${price}</div>
+    <button class="catalog-edit" onclick="deleteItem('${data.id}', this)">Remove</button>
+  `;
+  list.appendChild(div);
+  nameEl.value = '';
+  priceEl.value = '';
+  showToast(`"${name}" added to your menu ✓`);
+}
+
+// ── DELETE MENU ITEM ───────────────────────────────────────────────
+async function deleteItem(id, btn) {
+  const row = btn.closest('.catalog-item');
+  const name = row.querySelector('.catalog-name').textContent;
+  if (!confirm(`Remove "${name}" from your menu?`)) return;
+  if (btn.disabled) return;
+  btn.disabled = true;
+  btn.textContent = 'Removing...';
+  await db.from('menu_items').delete().eq('id', id);
+  row.remove();
+  showToast(`"${name}" removed ✓`);
+}
+
+// ── EDIT MENU ITEM ──────────────────────────────────────────────────
+const EDIT_EMOJI_OPTIONS = ['🍱','🥘','🍲','🧆','🥗','🍰','🧁','🍛','🥙','🥧','🍢','🍕','🍔','🌮','🥟','🍩'];
+let currentEditItemId = null;
+let currentEditEmoji = null;
+
+function openEditItemModal(id, name, price, emoji) {
+  currentEditItemId = id;
+  currentEditEmoji = emoji;
+
+  document.getElementById('editItemName').value = name;
+  document.getElementById('editItemPrice').value = price;
+
+  const row = document.getElementById('emojiPickerRow');
+  row.innerHTML = EDIT_EMOJI_OPTIONS.map(e =>
+    `<button class="emoji-pick-btn ${e === emoji ? 'selected' : ''}" onclick="selectEditEmoji(this, '${e}')" type="button">${e}</button>`
+  ).join('');
+
+  document.getElementById('editItemModal').classList.add('open');
+}
+
+function selectEditEmoji(btn, emoji) {
+  currentEditEmoji = emoji;
+  document.querySelectorAll('#emojiPickerRow .emoji-pick-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+async function saveEditItem() {
+  const name = document.getElementById('editItemName').value.trim();
+  const price = document.getElementById('editItemPrice').value.trim();
+
+  if (!name || !price) { showToast('Please fill in both fields'); return; }
+  if (!currentEditItemId) return;
+
+  const btn = document.getElementById('saveEditItemBtn');
+  if (btn.disabled) return;
+  btn.disabled = true;
+  btn.textContent = 'Saving...';
+
+  const { error } = await db.from('menu_items')
+    .update({ name, price: parseFloat(price), emoji: currentEditEmoji })
+    .eq('id', currentEditItemId);
+
+  btn.disabled = false;
+  btn.textContent = 'Save changes';
+
+  if (error) { showToast('Could not save changes — try again'); return; }
+
+  closeEditItemModal();
+  showToast(`"${name}" updated ✓`);
+  await loadMenu(userProfile.id);
+}
+
+function closeEditItemModal() {
+  document.getElementById('editItemModal').classList.remove('open');
+  currentEditItemId = null;
+  currentEditEmoji = null;
+}
+
+function handleEditItemModalClick(e) {
+  if (e.target === document.getElementById('editItemModal')) closeEditItemModal();
+}
+
+function openDashboardLightbox(url, name) {
+  document.getElementById('dashLightboxImg').src = url;
+  document.getElementById('dashLightboxCaption').textContent = name + ' — click anywhere to close or hover image to replace photo';
+  document.getElementById('dashLightbox').classList.add('open');
+}
+
+function closeDashboardLightbox() {
+  document.getElementById('dashLightbox').classList.remove('open');
+}
+
+// ── PRODUCT IMAGE UPLOAD ────────────────────────────────────────────
+async function uploadItemImage(event, itemId) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  // Validate file size — max 2MB
+  if (file.size > 2 * 1024 * 1024) {
+    showToast('Image too large — max 2MB please');
+    return;
+  }
+
+  // Show loading state on the item
+  const itemEl = document.getElementById('catalog-item-' + itemId);
+  const placeholder = itemEl?.querySelector('.catalog-item-img-placeholder');
+  if (placeholder) {
+    placeholder.style.opacity = '0.5';
+    placeholder.style.pointerEvents = 'none';
+  }
+  showToast('Uploading photo...');
+
+  try {
+    // Compress the image before uploading using canvas
+    const compressed = await compressImage(file, 800, 0.8);
+
+    // Upload to Supabase Storage
+    const fileName = `${userProfile.id}/${itemId}-${Date.now()}.jpg`;
+    const { data: uploadData, error: uploadError } = await db.storage
+      .from('menu-images')
+      .upload(fileName, compressed, { contentType: 'image/jpeg', upsert: true });
+
+    if (uploadError) throw uploadError;
+
+    // Get the public URL
+    const { data: { publicUrl } } = db.storage
+      .from('menu-images')
+      .getPublicUrl(fileName);
+
+    // Save URL to menu_items table
+    const { error: updateError } = await db
+      .from('menu_items')
+      .update({ image_url: publicUrl })
+      .eq('id', itemId);
+
+    if (updateError) throw updateError;
+
+    // Refresh menu to show the new image
+    await loadMenu(userProfile.id);
+    showToast('Photo added ✓');
+
+  } catch (err) {
+    if (placeholder) {
+      placeholder.style.opacity = '1';
+      placeholder.style.pointerEvents = 'auto';
+    }
+    showToast('Could not upload photo — try again');
+    console.error(err);
+  }
+}
+
+// Compress image using canvas before uploading
+function compressImage(file, maxSize, quality) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        // Scale down if needed
+        if (width > maxSize || height > maxSize) {
+          if (width > height) {
+            height = Math.round(height * maxSize / width);
+            width = maxSize;
+          } else {
+            width = Math.round(width * maxSize / height);
+            height = maxSize;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        canvas.toBlob(resolve, 'image/jpeg', quality);
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function removeItemImage(itemId) {
+  if (!confirm('Remove this photo?')) return;
+  await db.from('menu_items').update({ image_url: null }).eq('id', itemId);
+  await loadMenu(userProfile.id);
+  showToast('Photo removed ✓');
+}
+
+// ── STATUS MODAL ─────────────────────────────────────────────────────
+let currentStatusOrder = null;
+let selectedCancelReason = null;
+
+function openStatusModal(orderId, deliveryType, currentStatus, customerName, customerPhone) {
+  currentStatusOrder = { id: orderId, deliveryType, currentStatus, customerName, customerPhone };
+  selectedCancelReason = null;
+
+  const info = STATUS_INFO[currentStatus] || STATUS_INFO.new;
+  document.getElementById('statusCurrentBadge').className = 'order-badge ' + info.badge;
+  document.getElementById('statusCurrentBadge').textContent = info.label;
+  document.getElementById('statusModalTitle').textContent = `Update status — ${customerName}`;
+
+  const flow = getStatusFlow(deliveryType);
+  const currentIdx = flow.indexOf(currentStatus);
+  const nextStatuses = flow.slice(currentIdx + 1);
+
+  const labels = {
+    confirmed: { icon: '✅', sub: "Let the customer know you've received and confirmed their order" },
+    preparing: { icon: '👩‍🍳', sub: "Customer is notified you've started preparing their order" },
+    packing:   { icon: '📦', sub: "Customer is notified their order is packed and ready" },
+    ready:     { icon: '📦', sub: "Customer is notified their order is ready for collection" },
+    out_for_delivery: { icon: '🚗', sub: "Customer is notified their order is on its way" },
+    delivered: { icon: '✅', sub: "Mark this order as complete — customer is thanked" },
+    collected: { icon: '✅', sub: "Mark this order as complete — customer is thanked" },
+  };
+
+  let optionsHtml = '';
+  nextStatuses.forEach(status => {
+    const l = STATUS_INFO[status];
+    const meta = labels[status] || { icon: '➡️', sub: '' };
+    optionsHtml += `
+      <button class="status-option-btn" onclick="selectStatus('${status}')">
+        <span class="status-option-icon">${meta.icon}</span>
+        <span class="status-option-text">
+          <span class="status-option-title">Mark as "${l.label}"</span>
+          <span class="status-option-sub">${meta.sub}</span>
+        </span>
+      </button>`;
+  });
+
+  if (!nextStatuses.length) {
+    optionsHtml = `<p style="font-size:0.82rem;color:var(--text-muted);text-align:center;padding:1rem 0;">This order is complete. No further updates available.</p>`;
+  }
+
+  document.getElementById('statusOptionsList').innerHTML = optionsHtml;
+  document.getElementById('statusOptionsView').style.display = 'block';
+  document.getElementById('cancelReasonView').style.display = 'none';
+
+  // Show banking details button only if owner has banking set up
+  const bankingBtn = document.getElementById('statusBankingBtn');
+  if (bankingBtn) {
+    bankingBtn.style.display = (userProfile?.bank_name && userProfile?.bank_account_number) ? 'block' : 'none';
+  }
+
+  document.getElementById('statusModal').classList.add('open');
+}
+
+async function selectStatus(newStatus) {
+  const order = currentStatusOrder;
+  if (!order) return;
+
+  // Build and open WhatsApp FIRST — must happen synchronously after click
+  // or browsers may block the popup.
+  const storeName = userProfile?.store_name || 'Orderly';
+  const message = getStatusMessage(newStatus, { customer_name: order.customerName }, storeName);
+  const phone = order.customerPhone?.replace(/\D/g, '') || '';
+  const formatted = phone.startsWith('0') ? '27' + phone.slice(1) : phone;
+
+  let waWindow = null;
+  if (formatted) {
+    waWindow = window.open(`https://wa.me/${formatted}?text=${encodeURIComponent(message)}`, '_blank');
+  }
+
+  closeStatusModal();
+  showToast(`Order marked as "${STATUS_INFO[newStatus].label}" ✓`);
+
+  const { error } = await db.from('orders').update({ status: newStatus }).eq('id', order.id);
+  if (error) {
+    showToast('Status saved locally but database update failed — try refreshing');
+  }
+  await loadOrders(userProfile.id);
+}
+
+function sendBankingDetailsFromStatus() {
+  const order = currentStatusOrder;
+  if (!order) return;
+
+  const b = userProfile;
+  if (!b?.bank_name || !b?.bank_account_number) {
+    showToast('Add your banking details in Settings first');
+    return;
+  }
+
+  const firstName = order.customerName.split(' ')[0];
+  const storeName = b.store_name || 'Orderly';
+  const message = buildBankingMessage(firstName, storeName, b);
+
+  const phone = order.customerPhone?.replace(/\D/g, '') || '';
+  const formatted = phone.startsWith('0') ? '27' + phone.slice(1) : phone;
+
+  if (formatted) window.open(`https://wa.me/${formatted}?text=${encodeURIComponent(message)}`, '_blank');
+  closeStatusModal();
+  showToast('Banking details sent on WhatsApp ✓');
+}
+
+// ── CANCEL FLOW ────────────────────────────────────────────────────
+function showCancelReasons() {
+  document.getElementById('statusOptionsView').style.display = 'none';
+  document.getElementById('cancelReasonView').style.display = 'block';
+}
+
+function hideCancelReasons() {
+  document.getElementById('cancelReasonView').style.display = 'none';
+  document.getElementById('statusOptionsView').style.display = 'block';
+}
+
+function selectReason(btn, reason) {
+  document.querySelectorAll('.reason-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  selectedCancelReason = reason;
+  document.getElementById('otherReasonGroup').style.display = reason === 'other' ? 'block' : 'none';
+}
+
+async function confirmCancel() {
+  const order = currentStatusOrder;
+  if (!order) return;
+
+  let reason = selectedCancelReason;
+  if (!reason) { showToast('Please select a reason'); return; }
+  if (reason === 'other') {
+    reason = document.getElementById('otherReasonText').value.trim();
+    if (!reason) { showToast('Please describe the reason'); return; }
+  }
+
+  // Open WhatsApp FIRST — synchronously after the click, before any await,
+  // so the browser doesn't block the popup.
+  const storeName = userProfile?.store_name || 'Orderly';
+  const message = `Hi ${order.customerName}, unfortunately your order from ${storeName} has been cancelled.\n\nReason: ${reason}\n\nWe're sorry for any inconvenience — please feel free to reach out or place a new order anytime. 🙏`;
+  const phone = order.customerPhone?.replace(/\D/g, '') || '';
+  const formatted = phone.startsWith('0') ? '27' + phone.slice(1) : phone;
+
+  if (formatted) {
+    window.open(`https://wa.me/${formatted}?text=${encodeURIComponent(message)}`, '_blank');
+  }
+
+  closeStatusModal();
+  showToast('Order cancelled and customer notified ✓');
+
+  const { error } = await db.from('orders').update({ status: 'cancelled', cancel_reason: reason }).eq('id', order.id);
+  if (error) {
+    showToast('Cancellation message sent, but saving failed — try refreshing');
+  }
+  await loadOrders(userProfile.id);
+}
+
+function closeStatusModal() {
+  document.getElementById('statusModal').classList.remove('open');
+  document.getElementById('cancelReasonView').style.display = 'none';
+  document.getElementById('statusOptionsView').style.display = 'block';
+  document.getElementById('otherReasonGroup').style.display = 'none';
+  document.querySelectorAll('.reason-btn').forEach(b => b.classList.remove('selected'));
+  currentStatusOrder = null;
+}
+
+function handleStatusModalClick(e) {
+  if (e.target === document.getElementById('statusModal')) closeStatusModal();
+}
+
+// ── INVOICE ────────────────────────────────────────────────────────
+function openInvoice(customer, total, itemNames, itemPrices, deliveryType, phone, invNum) {
+  currentInvoiceData = { customer, total, itemNames, itemPrices, deliveryType, phone, invNum };
+
+  document.getElementById('invCustomer').textContent = customer;
+  document.getElementById('invPhone').textContent = phone || '';
+  document.getElementById('invTotal').textContent = 'R' + total;
+  document.getElementById('invNum').textContent = 'INV-' + (invNum || String(invoiceCount).padStart(4,'0'));
+  document.getElementById('invDate').textContent = new Date().toLocaleDateString('en-ZA', { day:'numeric', month:'short', year:'numeric' });
+
+  const badge = document.getElementById('invDeliveryBadge');
+  badge.textContent = deliveryType === 'delivery' ? '🚗 Delivery' : '🏠 Collection';
+  badge.style.background = deliveryType === 'delivery' ? '#F0FDF4' : '#E0F2FE';
+  badge.style.color = deliveryType === 'delivery' ? '#15803D' : '#0369A1';
+
+  // Branding swap — Free plan shows "Orderly", Pro shows their own store name
+  const isPro = userProfile?.plan === 'pro';
+  const brandName = isPro ? (userProfile?.store_name || 'Orderly') : 'Orderly';
+  document.querySelector('.invoice-head-logo').textContent = brandName;
+  const poweredBy = document.getElementById('invoicePoweredBy');
+  if (poweredBy) poweredBy.style.display = isPro ? 'none' : 'block';
+
+  document.getElementById('invLines').innerHTML = itemNames.map((name, i) =>
+    `<div class="invoice-line"><span>${name}</span><span>R${itemPrices[i]}</span></div>`
+  ).join('');
+
+  // Banking details — show if owner has them set up
+  const b = userProfile;
+  const bankingSection = document.getElementById('invBankingSection');
+  const bankingDetails = document.getElementById('invBankingDetails');
+  if (b?.bank_name && b?.bank_account_number) {
+    bankingDetails.innerHTML =
+      `<div>🏦 <strong>Bank:</strong> ${b.bank_name}</div>` +
+      `<div>👤 <strong>Account holder:</strong> ${b.bank_account_holder || b.store_name}</div>` +
+      `<div>💳 <strong>Account number:</strong> ${b.bank_account_number}</div>` +
+      (b.bank_branch_code ? `<div>🔢 <strong>Branch code:</strong> ${b.bank_branch_code}</div>` : '') +
+      `<div style="margin-top:4px;font-size:0.72rem;color:var(--text-muted);">Reference: Customer name</div>`;
+    bankingSection.style.display = 'block';
+  } else {
+    bankingSection.style.display = 'none';
+  }
+
+  document.getElementById('invoiceModal').classList.add('open');
+}
+
+function sendInvoiceWhatsApp() {
+  const d = currentInvoiceData;
+  const isPro = userProfile?.plan === 'pro';
+  const brandName = isPro ? (userProfile?.store_name || 'Orderly') : 'Orderly';
+  const lines = d.itemNames.map((n, i) => `${n} — R${d.itemPrices[i]}`).join('\n');
+
+  // Build banking details section for WhatsApp if available
+  const b = userProfile;
+  let bankingLine = '';
+  if (b?.bank_name && b?.bank_account_number) {
+    bankingLine = `\n\n💳 *Payment details (EFT)*\n` +
+      `*BANK:* ${b.bank_name}\n` +
+      `*ACCOUNT HOLDER:* ${b.bank_account_holder || b.store_name}\n` +
+      `*ACCOUNT NUMBER:* ${b.bank_account_number}\n` +
+      (b.bank_branch_code ? `*BRANCH CODE:* ${b.bank_branch_code}\n` : '') +
+      `*REFERENCE:* Your name`;
+  }
+
+  const msg = encodeURIComponent(
+    `🧾 *Invoice from ${brandName}*\n` +
+    `INV-${d.invNum} · ${new Date().toLocaleDateString('en-ZA')}\n\n` +
+    `*${d.customer}*\n\n` +
+    lines + `\n\n` +
+    `${d.deliveryType === 'delivery' ? '🚗 Delivery' : '🏠 Collection'}\n` +
+    `*Total: R${d.total}*` +
+    bankingLine +
+    `\n\nThank you for your order! 🙏`
+  );
+  const phone = d.phone?.replace(/\D/g,'') || '';
+  const formatted = phone.startsWith('0') ? '27' + phone.slice(1) : phone;
+  window.open(`https://wa.me/${formatted}?text=${msg}`, '_blank');
+  showToast('Invoice sent on WhatsApp ✓');
+  closeModal();
+}
+
+function printInvoice() {
+  window.print();
+  showToast('Saving as PDF... ✓');
+}
+
+function closeModal() {
+  document.getElementById('invoiceModal').classList.remove('open');
+}
+
+function handleModalClick(e) {
+  if (e.target === document.getElementById('invoiceModal')) closeModal();
+}
+
+// ── ONBOARDING WIZARD ───────────────────────────────────────────────
+let wizStep = 1;
+let wizPendingLogoFile = null;
+let wizExistingLogoUrl = null;
+let wizLogoRemoved = false;
+let wizAddedItems = [];
+let wizSelectedEmoji = '🍱';
+const WIZ_EMOJI_OPTIONS = ['🍱','🥘','🍲','🧆','🥗','🍰','🧁','🍛','🥙','🥧','🍢','🍕','🍔','🌮','🥟','🍩'];
+
+function showOnboardingWizard(profile) {
+  wizExistingLogoUrl = profile.logo_url || null;
+  renderWizardLogoPreview(wizExistingLogoUrl);
+  const descEl = document.getElementById('wizStoreDescription');
+  if (descEl) descEl.value = profile.store_description || '';
+  const welcomeEl = document.getElementById('wizWelcomeMessage');
+  if (welcomeEl) welcomeEl.value = profile.welcome_message || '';
+  const deadlineEl = document.getElementById('wizOrderDeadline');
+  if (deadlineEl) deadlineEl.value = profile.order_deadline || '';
+  wizGoTo(1);
+  document.getElementById('onboardingWizard').style.display = 'flex';
+}
+
+function wizGoTo(n) {
+  wizStep = n;
+  [1,2,3,4].forEach(i => {
+    const el = document.getElementById('wizStep' + i);
+    if (el) el.style.display = (i === n) ? 'block' : 'none';
+    const dot = document.getElementById('wizDot' + i);
+    if (dot) {
+      dot.classList.toggle('active', i === n);
+      dot.classList.toggle('done', i < n);
+    }
+  });
+  document.getElementById('wizStepLabel').textContent = `Step ${n} of 4`;
+  document.getElementById('wizBackBtn').style.display = (n === 1) ? 'none' : 'inline-block';
+  document.getElementById('wizNextBtn').style.display = (n === 4) ? 'none' : 'inline-block';
+  document.getElementById('wizFinishBtn').style.display = (n === 4) ? 'inline-block' : 'none';
+
+  if (n === 4) {
+    const link = `orderlyapp.co.za/order/${userProfile?.store_slug || ''}`;
+    document.getElementById('wizOrderLink').textContent = link;
+  }
+}
+
+function wizBack() { if (wizStep > 1) wizGoTo(wizStep - 1); }
+
+async function wizNext() {
+  const btn = document.getElementById('wizNextBtn');
+  btn.disabled = true;
+
+  if (wizStep === 1) {
+    let logoUrl = wizExistingLogoUrl;
+    if (wizPendingLogoFile) {
+      try {
+        const compressed = await compressImage(wizPendingLogoFile, 400, 0.85);
+        const fileName = `${userProfile.id}/logo-${Date.now()}.jpg`;
+        const { error: uploadError } = await db.storage.from('store-logos').upload(fileName, compressed, { contentType: 'image/jpeg', upsert: true });
+        if (!uploadError) {
+          const { data: { publicUrl } } = db.storage.from('store-logos').getPublicUrl(fileName);
+          logoUrl = publicUrl;
+        }
+      } catch (e) { console.error(e); }
+    } else if (wizLogoRemoved) {
+      logoUrl = null;
+    }
+    const updates = { logo_url: logoUrl, store_description: document.getElementById('wizStoreDescription').value.trim() };
+    await db.from('profiles').update(updates).eq('id', userProfile.id);
+    userProfile = { ...userProfile, ...updates };
+    wizExistingLogoUrl = logoUrl;
+    wizPendingLogoFile = null;
+    wizLogoRemoved = false;
+  } else if (wizStep === 2) {
+    const updates = {
+      welcome_message: document.getElementById('wizWelcomeMessage').value.trim(),
+      order_deadline:  document.getElementById('wizOrderDeadline').value.trim(),
+    };
+    await db.from('profiles').update(updates).eq('id', userProfile.id);
+    userProfile = { ...userProfile, ...updates };
+  }
+
+  btn.disabled = false;
+  wizGoTo(wizStep + 1);
+}
+
+async function wizFinish() {
+  const btn = document.getElementById('wizFinishBtn');
+  btn.disabled = true;
+  btn.textContent = 'Finishing...';
+
+  await db.from('profiles').update({ onboarding_completed: true }).eq('id', userProfile.id);
+  userProfile.onboarding_completed = true;
+
+  document.getElementById('onboardingWizard').style.display = 'none';
+  updateStoreUI(userProfile);
+  await loadMenu(userProfile.id);
+  showToast('Setup complete — your store is ready! 🎉');
+}
+
+async function wizSkip() {
+  if (!confirm('Skip the rest of setup? You can always add these details later in Settings.')) return;
+  await db.from('profiles').update({ onboarding_completed: true }).eq('id', userProfile.id);
+  userProfile.onboarding_completed = true;
+  document.getElementById('onboardingWizard').style.display = 'none';
+  updateStoreUI(userProfile);
+  await loadMenu(userProfile.id);
+}
+
+// Wizard logo upload
+function renderWizardLogoPreview(url) {
+  const preview = document.getElementById('wizLogoPreview');
+  const removeBtn = document.getElementById('wizLogoRemoveBtn');
+  if (!preview) return;
+  if (url) {
+    preview.innerHTML = `<img src="${url}" alt="Store logo" />`;
+    removeBtn.style.display = 'block';
+  } else {
+    preview.innerHTML = '🏪';
+    removeBtn.style.display = 'none';
+  }
+}
+
+function handleWizardLogoSelect(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) { showToast('Please select an image file'); return; }
+  wizPendingLogoFile = file;
+  wizLogoRemoved = false;
+  renderWizardLogoPreview(URL.createObjectURL(file));
+}
+
+function removeWizardLogo() {
+  wizPendingLogoFile = null;
+  wizLogoRemoved = true;
+  wizExistingLogoUrl = null;
+  renderWizardLogoPreview(null);
+}
+
+// Wizard add-item (step 2)
+function renderWizardEmojiPicker() {
+  const row = document.getElementById('wizEmojiPickerRow');
+  if (!row) return;
+  row.innerHTML = WIZ_EMOJI_OPTIONS.map(e =>
+    `<button class="emoji-pick-btn ${e === wizSelectedEmoji ? 'selected' : ''}" onclick="selectWizardEmoji(this, '${e}')" type="button">${e}</button>`
+  ).join('');
+}
+
+function selectWizardEmoji(btn, emoji) {
+  wizSelectedEmoji = emoji;
+  document.querySelectorAll('#wizEmojiPickerRow .emoji-pick-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+async function wizardAddItem() {
+  const nameEl = document.getElementById('wizItemName');
+  const priceEl = document.getElementById('wizItemPrice');
+  const name = nameEl.value.trim();
+  const price = priceEl.value.trim();
+  if (!name || !price) { showToast('Add a name and price first'); return; }
+
+  const btn = document.getElementById('wizAddItemBtn');
+  btn.disabled = true;
+  btn.textContent = 'Adding...';
+
+  const { error } = await db.from('menu_items').insert({
+    profile_id: userProfile.id, name, price: parseFloat(price), emoji: wizSelectedEmoji,
+  });
+
+  btn.disabled = false;
+  btn.textContent = '+ Add item';
+
+  if (error) { showToast('Could not add item — try again'); return; }
+
+  wizAddedItems.push({ name, price, emoji: wizSelectedEmoji });
+  renderWizardAddedItems();
+  nameEl.value = '';
+  priceEl.value = '';
+  showToast(`"${name}" added ✓`);
+}
+
+function renderWizardAddedItems() {
+  const list = document.getElementById('wizAddedItemsList');
+  if (!list) return;
+  if (wizAddedItems.length === 0) {
+    list.innerHTML = `<div class="wizard-added-empty">No items added yet.</div>`;
+    return;
+  }
+  list.innerHTML = wizAddedItems.map(i => `<span class="wizard-added-chip">${i.emoji} ${i.name} · R${i.price}</span>`).join('');
+}
+
+function showProFeatures() {
+  document.getElementById('proFeaturesModal').classList.add('open');
+}
+
+// ── BANKING MESSAGE HELPER ─────────────────────────────────────────
+// Single source of truth for the banking details WhatsApp message.
+// No inline emoji on every line — clean, professional, trustworthy.
+function buildBankingMessage(firstName, storeName, b) {
+  return `Hi ${firstName}!\n\n` +
+    `Please find the banking details for your order from *${storeName}* below.\n\n` +
+    `*BANK:* ${b.bank_name}\n` +
+    `*ACCOUNT HOLDER:* ${b.bank_account_holder || storeName}\n` +
+    `*ACCOUNT NUMBER:* ${b.bank_account_number}\n` +
+    (b.bank_branch_code ? `*BRANCH CODE:* ${b.bank_branch_code}\n` : '') +
+    `*REFERENCE:* Your name\n\n` +
+    `Kindly send proof of payment once done and we will confirm your order. Thank you! 🙏`;
+}
+
+// ── SCROLL TO MENU ─────────────────────────────────────────────────
+function scrollToMenu() {
+  const el = document.getElementById('menuCard');
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  // Also focus the item name input so they can immediately add an item
+  setTimeout(() => document.getElementById('newItemName')?.focus(), 400);
+}
+
+// ── SHARE LINK ─────────────────────────────────────────────────────
+function copyLink() {
+  const slug = userProfile?.store_slug || localStorage.getItem('orderly_slug') || '';
+  const link = `https://orderlyapp.co.za/order/${slug}`;
+  navigator.clipboard.writeText(link).catch(() => {});
+  showToast('Order link copied! 🔗');
+}
+
+// ── GUIDED TOUR ───────────────────────────────────────────────────
+// Point-and-let-them-click: highlights a nav item and explains it, but
+// never navigates for the user — they click through in their own time.
+const TOUR_STEPS = [
+  {
+    target: 'navMenuItem',
+    title: "Let's build your menu",
+    text: "Customers need something to order! Click here whenever you're ready to add your menu items, photos, and categories.",
+  },
+  {
+    target: 'navSettingsItem',
+    title: 'Set up delivery & rush orders',
+    text: "Head into Settings to configure your delivery areas, delivery fee, and rush order options. Your store works without this, but customers won't see delivery choices until it's set up.",
+  },
+];
+let tourStepIndex = 0;
+
+function startTour() {
+  tourStepIndex = 0;
+  showTourStep(0);
+}
+
+function showTourStep(i) {
+  const step = TOUR_STEPS[i];
+  const target = document.getElementById(step.target);
+  if (!target) { endTour(); return; }
+
+  const rect = target.getBoundingClientRect();
+  const pad = 6;
+  const highlight = document.getElementById('tourHighlight');
+  highlight.style.display = 'block';
+  highlight.style.top = `${rect.top - pad}px`;
+  highlight.style.left = `${rect.left - pad}px`;
+  highlight.style.width = `${rect.width + pad * 2}px`;
+  highlight.style.height = `${rect.height + pad * 2}px`;
+
+  const popup = document.getElementById('tourPopup');
+  document.getElementById('tourPopupTitle').textContent = step.title;
+  document.getElementById('tourPopupText').textContent = step.text;
+  document.getElementById('tourPopupNextBtn').textContent = (i === TOUR_STEPS.length - 1) ? 'Got it ✓' : 'Next →';
+  popup.style.display = 'block';
+
+  // Position the popup just to the right of the highlighted item, clamped
+  // so it never runs off the bottom of the viewport.
+  const popupTop = Math.min(rect.top, window.innerHeight - 220);
+  popup.style.top = `${Math.max(popupTop, 16)}px`;
+  popup.style.left = `${rect.right + 20}px`;
+}
+
+function nextTourStep() {
+  if (tourStepIndex < TOUR_STEPS.length - 1) {
+    tourStepIndex++;
+    showTourStep(tourStepIndex);
+  } else {
+    endTour();
+  }
+}
+
+function endTour() {
+  document.getElementById('tourHighlight').style.display = 'none';
+  document.getElementById('tourPopup').style.display = 'none';
+}
+
+// ── SIGN OUT ───────────────────────────────────────────────────────
+async function signOut() {
+  await db.auth.signOut();
+  localStorage.clear();
+  window.location.href = 'orderly-signin.html';
+}
+
+// ── HELPERS ────────────────────────────────────────────────────────
+function getTimeAgo(dateStr) {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  const hrs  = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
+  if (mins < 2)  return 'Just now';
+  if (mins < 60) return `${mins} min ago`;
+  if (hrs < 24)  return `${hrs} hr${hrs > 1 ? 's' : ''} ago`;
+  return `${days} day${days > 1 ? 's' : ''} ago`;
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ── CANNED MESSAGES — redesigned, owner-first ──────────────────────
+const CANNED_TEMPLATES = [
+  { id: 'confirmed',       icon: '✅', title: 'Order confirmed',       text: "Hi {name}! 🙌 Your order from {store} is confirmed — we're so excited to bake for you! We'll keep you updated every step of the way." },
+  { id: 'preparing',       icon: '👩‍🍳', title: 'Now preparing',         text: "Hi {name}! 👩‍🍳 Good news — we've started preparing your order from {store}. The kitchen is busy! We'll let you know when it's ready." },
+  { id: 'ready',           icon: '📦', title: 'Ready for collection',  text: "Hi {name}! 🎉 Your order from {store} is ready for collection! Come grab it whenever suits you — we can't wait for you to try it." },
+  { id: 'outfordelivery',  icon: '🚗', title: 'Out for delivery',      text: "Hi {name}! 🚗 Your order from {store} is on its way to you right now! Keep an eye out — it should be with you soon." },
+  { id: 'delayed',         icon: '⏰', title: 'Small delay',           text: "Hi {name}, just a quick heads up — there's a small delay on your order from {store} due to high demand. We really appreciate your patience and will update you as soon as it's ready. 🙏" },
+  { id: 'delayed-weather', icon: '🌧️', title: 'Delayed — weather',     text: "Hi {name}, due to the weather today your order from {store} may take a little longer than expected. Thank you so much for understanding — we'll get it to you as soon as possible!" },
+  { id: 'delayed-distance',icon: '📍', title: 'Delayed — distance',    text: "Hi {name}, due to the distance for delivery your order from {store} may arrive a little later than planned today. Thank you for your patience!" },
+  { id: 'thankyou',        icon: '🙏', title: 'Thank you',             text: "Hi {name}! Thank you so much for ordering from {store} — we hope you loved it as much as we loved making it. See you again soon! 🙏" },
+  { id: 'banking',         icon: '🏦', title: 'Send banking details',   text: '{banking}' },
+  { id: 'custom',          icon: '✏️', title: 'Write your own message', text: '' },
+];
+
+let selectedTemplateId = null;
+let bulkSendQueue = [];
+let bulkSendIndex = 0;
+let bulkSentCount = 0;
+
+// ── OPEN MODAL ─────────────────────────────────────────────────────
+function openCannedModal() {
+  if (!selectedOrderIndexes.size) return;
+  selectedTemplateId = null;
+
+  const orders = [...selectedOrderIndexes].map(i => allOrdersData[i]);
+  const names = orders.map(o => o.customer_name);
+  const storeName = userProfile?.store_name || 'your store';
+  const firstNameSample = names[0]?.split(' ')[0] || 'Customer';
+
+  // Recipients chips
+  document.getElementById('recipientsList').innerHTML =
+    names.map(n => `<span class="recipient-chip">👤 ${n.split(' ')[0]}</span>`).join('');
+
+  // Header
+  document.getElementById('bulkModalTitle').textContent = `Message ${names.length} customer${names.length > 1 ? 's' : ''}`;
+  document.getElementById('bulkModalSub').textContent = `Choose what to send — each customer gets a personalised message.`;
+
+  // Templates
+  document.getElementById('templateList').innerHTML = CANNED_TEMPLATES.map(t => {
+    let preview = '';
+    if (t.id === 'banking') {
+      preview = userProfile?.bank_name
+        ? `Bank: ${userProfile.bank_name} · Acc: ${userProfile.bank_account_number}`
+        : '⚠️ Add banking details in Settings first';
+    } else if (t.text) {
+      preview = t.text.replace('{name}', firstNameSample).replace('{store}', storeName);
+    }
+    return `
+    <button class="template-btn" id="tmpl-${t.id}" onclick="selectTemplate('${t.id}')">
+      <span class="template-icon">${t.icon}</span>
+      <span class="template-text">
+        <span class="template-title">${t.title}</span>
+        ${preview ? `<span class="template-preview">${preview}</span>` : '<span class="template-preview" style="color:var(--green-400);">Write your own personalised message</span>'}
+      </span>
+    </button>`;
+  }).join('');
+
+  // Reset views
+  document.getElementById('bulkViewChoose').style.display = 'block';
+  document.getElementById('bulkViewSending').style.display = 'none';
+  document.getElementById('bulkViewDone').style.display = 'none';
+  document.getElementById('customTemplateArea').style.display = 'none';
+  document.getElementById('customMessageText').value = '';
+  document.getElementById('cannedModal').classList.add('open');
+}
+
+// ── SELECT TEMPLATE ────────────────────────────────────────────────
+function selectTemplate(id) {
+  selectedTemplateId = id;
+  document.querySelectorAll('.template-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('tmpl-' + id).classList.add('selected');
+  document.getElementById('customTemplateArea').style.display = id === 'custom' ? 'block' : 'none';
+  // Scroll to bottom of modal so they can see the Start button
+  document.querySelector('#cannedModal .modal').scrollTop = 9999;
+}
+
+// ── START BULK SEND ────────────────────────────────────────────────
+function startBulkSend() {
+  if (!selectedTemplateId) { showToast('Please choose a message first'); return; }
+
+  const template = CANNED_TEMPLATES.find(t => t.id === selectedTemplateId);
+  let messageText = template.text;
+
+  if (selectedTemplateId === 'custom') {
+    messageText = document.getElementById('customMessageText').value.trim();
+    if (!messageText) { showToast('Please write your message first'); return; }
+  }
+
+  // Banking details template — build from profile
+  if (selectedTemplateId === 'banking') {
+    const b = userProfile;
+    if (!b?.bank_name || !b?.bank_account_number) {
+      showToast('Please add your banking details in Settings first');
+      closeCannedModal();
+      window.location.href = 'orderly-settings.html';
+      return;
+    }
+    messageText = buildBankingMessage('{name}', '{store}', b);
+  }
+
+  const storeName = userProfile?.store_name || 'your store';
+
+  bulkSendQueue = [...selectedOrderIndexes].map(i => {
+    const order = allOrdersData[i];
+    const firstName = order.customer_name.split(' ')[0];
+    const personalised = messageText
+      .replace(/\{name\}/g, firstName)
+      .replace(/\{store\}/g, storeName);
+    return {
+      name: firstName,
+      fullName: order.customer_name,
+      phone: order.customer_phone,
+      message: personalised,
+    };
+  });
+
+  bulkSendIndex = 0;
+  bulkSentCount = 0;
+
+  // Switch to sending view
+  document.getElementById('bulkViewChoose').style.display = 'none';
+  document.getElementById('bulkViewSending').style.display = 'block';
+  document.getElementById('bulkSentList').innerHTML = '';
+
+  updateSendingView();
+}
+
+// ── UPDATE SENDING VIEW ────────────────────────────────────────────
+function updateSendingView() {
+  const remaining = bulkSendQueue.length - bulkSendIndex;
+  const next = bulkSendQueue[bulkSendIndex];
+
+  document.getElementById('bulkRemaining').textContent = remaining;
+  document.getElementById('bulkRemainingLabel').textContent =
+    remaining === 1 ? 'customer left to message' : 'customers left to message';
+
+  document.getElementById('bulkNextName').textContent = next.name;
+  document.getElementById('bulkNextPhone').textContent = next.phone;
+  document.getElementById('bulkMessagePreview').textContent = next.message;
+
+  const btn = document.getElementById('bulkSendBtn');
+  btn.style.background = 'var(--green-700)';
+  document.getElementById('bulkSendBtnText').textContent =
+    `Send to ${next.name} on WhatsApp →`;
+}
+
+// ── SEND NEXT ─────────────────────────────────────────────────────
+function sendNextInQueue() {
+  if (bulkSendIndex >= bulkSendQueue.length) return;
+
+  const item = bulkSendQueue[bulkSendIndex];
+  const phone = item.phone?.replace(/\D/g, '') || '';
+  const formatted = phone.startsWith('0') ? '27' + phone.slice(1)
+    : phone.startsWith('27') ? phone
+    : '27' + phone;
+
+  // Open WhatsApp — must be synchronous, directly in click handler
+  if (formatted && formatted.length >= 10) {
+    window.open(`https://wa.me/${formatted}?text=${encodeURIComponent(item.message)}`, '_blank');
+  } else {
+    showToast(`⚠️ No valid number for ${item.name} — skipped`);
+  }
+
+  // Mark as sent in the list below
+  const sentList = document.getElementById('bulkSentList');
+  sentList.innerHTML += `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;font-size:0.8rem;color:var(--green-500);border-bottom:1px solid var(--border);">
+    <span>✓</span><span>${item.fullName}</span>
+  </div>`;
+
+  bulkSendIndex++;
+  bulkSentCount++;
+
+  if (bulkSendIndex >= bulkSendQueue.length) {
+    // All done — show celebration view
+    document.getElementById('bulkViewSending').style.display = 'none';
+    document.getElementById('bulkViewDone').style.display = 'block';
+    document.getElementById('bulkDoneText').textContent =
+      `You messaged ${bulkSentCount} customer${bulkSentCount > 1 ? 's' : ''} — great work! 🙌`;
+  } else {
+    // Update for next customer
+    updateSendingView();
+    // Scroll modal back to top so they see the next card
+    document.querySelector('#cannedModal .modal').scrollTop = 0;
+  }
+}
+
+// ── CLOSE ─────────────────────────────────────────────────────────
+function closeCannedModal() {
+  document.getElementById('cannedModal').classList.remove('open');
+  bulkSendQueue = [];
+  bulkSendIndex = 0;
+  bulkSentCount = 0;
+  selectedTemplateId = null;
+}
+
+function handleCannedModalClick(e) {
+  if (e.target === document.getElementById('cannedModal')) closeCannedModal();
+}
+
+// ── START ──────────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
