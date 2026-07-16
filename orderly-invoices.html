@@ -1029,6 +1029,15 @@ async function init() {
   await loadInvoices(profile.id);
   document.getElementById('loadingOverlay').style.display = 'none';
 
+  // Deep link from the dashboard's "🧾 Invoice" button (?order=<id>) — both
+  // pages now share this one invoice system rather than the dashboard
+  // having its own separate, un-themed modal.
+  const deepLinkOrderId = new URLSearchParams(window.location.search).get('order');
+  if (deepLinkOrderId) {
+    openInvoiceFromOrder(deepLinkOrderId);
+    history.replaceState(null, '', 'orderly-invoices.html'); // clean up the URL
+  }
+
   if (!localStorage.getItem('orderly_payment_hint_seen')) {
     document.getElementById('paymentHint').style.display = 'flex';
   }

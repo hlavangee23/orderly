@@ -1863,7 +1863,7 @@ function renderOrders(orders) {
         </div>
         <div class="order-actions">
           ${status !== 'cancelled' && status !== 'delivered' && status !== 'collected' ? `<button class="action-btn confirm" onclick="event.stopPropagation(); openStatusModal('${order.id}', '${order.delivery_type}', '${status}', '${escJs(order.customer_name)}', '${escJs(order.customer_phone)}')">Update status</button>` : ''}
-          <button class="action-btn" onclick="event.stopPropagation(); openInvoice(${orderDataStr})">🧾 Invoice</button>
+          <button class="action-btn" onclick="event.stopPropagation(); window.location.href='orderly-invoices.html?order=${order.id}'">🧾 Invoice</button>
         </div>
       </div>`;
   });
@@ -1899,6 +1899,7 @@ function exitSelectMode() {
 }
 
 let currentSummaryInvoiceArgs = null;
+let currentSummaryOrderId = null;
 
 function handleOrderRowClick(e, idx, ...invoiceArgs) {
   if (selectMode) {
@@ -1914,6 +1915,7 @@ function openOrderSummary(idx, invoiceArgs) {
   if (!order) return;
 
   currentSummaryInvoiceArgs = invoiceArgs;
+  currentSummaryOrderId = order.id;
 
   // Header
   const date = new Date(order.created_at).toLocaleDateString('en-ZA', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
@@ -1948,8 +1950,8 @@ function openOrderSummary(idx, invoiceArgs) {
 }
 
 function openInvoiceFromSummary() {
-  if (currentSummaryInvoiceArgs) {
-    openInvoice(...currentSummaryInvoiceArgs);
+  if (currentSummaryOrderId) {
+    window.location.href = 'orderly-invoices.html?order=' + currentSummaryOrderId;
   }
 }
 
