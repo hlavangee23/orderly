@@ -80,6 +80,8 @@ body { font-family: 'DM Sans', sans-serif; background: var(--off-white); color: 
 .pay-pill.paid { background: #DCFCE7; color: #15803D; }
 .pay-pill.partial { background: #FEF3C7; color: #B45309; }
 .pay-pill.unpaid { background: #FEE2E2; color: #B91C1C; }
+.pay-pill-edit { opacity: 0.55; margin-left: 5px; font-size: 0.7rem; }
+.pay-pill:hover .pay-pill-edit { opacity: 1; }
 .pay-options { display: flex; flex-direction: column; gap: 8px; margin: 1rem 0; }
 .pay-option { display: flex; align-items: center; gap: 10px; padding: 0.75rem 1rem; border: 1.5px solid var(--border); border-radius: 10px; cursor: pointer; transition: all 0.15s; }
 .pay-option:hover { border-color: var(--green-400); background: var(--green-50); }
@@ -267,6 +269,11 @@ textarea.form-input { resize: vertical; min-height: 60px; }
       <span class="search-icon">🔍</span>
       <input class="search-input" id="searchInput" placeholder="Search by customer name..." oninput="handleSearch()" />
     </div>
+  </div>
+
+  <div id="paymentHint" style="display:none;background:var(--green-50);border:1px solid var(--green-100);border-radius:10px;padding:0.65rem 1rem;margin-bottom:0.9rem;align-items:center;justify-content:space-between;gap:1rem;font-size:0.82rem;color:var(--text-mid);">
+    <span>💡 Tap the payment status on any invoice to mark it as paid, partially paid, or unpaid.</span>
+    <button onclick="dismissPaymentHint()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:0.9rem;flex-shrink:0;">✕</button>
   </div>
 
   <div class="card" id="invoicesCard">
@@ -1021,6 +1028,15 @@ async function init() {
   updateSidebar(profile);
   await loadInvoices(profile.id);
   document.getElementById('loadingOverlay').style.display = 'none';
+
+  if (!localStorage.getItem('orderly_payment_hint_seen')) {
+    document.getElementById('paymentHint').style.display = 'flex';
+  }
+}
+
+function dismissPaymentHint() {
+  localStorage.setItem('orderly_payment_hint_seen', '1');
+  document.getElementById('paymentHint').style.display = 'none';
 }
 
 function updateSidebar(p) {
@@ -1137,14 +1153,15 @@ function renderRow(order) {
 // ── PAYMENT STATUS ─────────────────────────────────────────────────
 function paymentStatusBadgeHTML(order) {
   const status = order.payment_status || 'unpaid';
+  const editIcon = `<span class="pay-pill-edit">✎</span>`;
 
   if (status === 'partial') {
-    return `<button type="button" class="pay-pill partial" title="Click to update" onclick="openPaymentStatusModal('${order.id}', event)">½ Partial · R${order.amount_paid || 0} of R${order.total}</button>`;
+    return `<button type="button" class="pay-pill partial" title="Click to update" onclick="openPaymentStatusModal('${order.id}', event)">½ Partial · R${order.amount_paid || 0} of R${order.total}${editIcon}</button>`;
   }
   if (status === 'paid') {
-    return `<button type="button" class="pay-pill paid" title="Click to update" onclick="openPaymentStatusModal('${order.id}', event)">✅ Paid</button>`;
+    return `<button type="button" class="pay-pill paid" title="Click to update" onclick="openPaymentStatusModal('${order.id}', event)">✅ Paid${editIcon}</button>`;
   }
-  return `<button type="button" class="pay-pill unpaid" title="Click to update" onclick="openPaymentStatusModal('${order.id}', event)">❌ Unpaid</button>`;
+  return `<button type="button" class="pay-pill unpaid" title="Click to update" onclick="openPaymentStatusModal('${order.id}', event)">❌ Unpaid${editIcon}</button>`;
 }
 
 let paymentModalOrderId = null;
