@@ -79,6 +79,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--off-white); color: 
 .pay-pill:hover { transform: scale(1.03); }
 .pay-pill.paid { background: #DCFCE7; color: #15803D; }
 .pay-pill.partial { background: #FEF3C7; color: #B45309; }
+.pay-pill.unpaid { background: #FEE2E2; color: #B91C1C; }
 .pay-options { display: flex; flex-direction: column; gap: 8px; margin: 1rem 0; }
 .pay-option { display: flex; align-items: center; gap: 10px; padding: 0.75rem 1rem; border: 1.5px solid var(--border); border-radius: 10px; cursor: pointer; transition: all 0.15s; }
 .pay-option:hover { border-color: var(--green-400); background: var(--green-50); }
@@ -1137,13 +1138,13 @@ function renderRow(order) {
 function paymentStatusBadgeHTML(order) {
   const status = order.payment_status || 'unpaid';
 
-  if (status === 'unpaid') {
-    return `<button type="button" class="pay-cta" onclick="openPaymentStatusModal('${order.id}', event)">Has this been paid?</button>`;
-  }
   if (status === 'partial') {
     return `<button type="button" class="pay-pill partial" title="Click to update" onclick="openPaymentStatusModal('${order.id}', event)">½ Partial · R${order.amount_paid || 0} of R${order.total}</button>`;
   }
-  return `<button type="button" class="pay-pill paid" title="Click to update" onclick="openPaymentStatusModal('${order.id}', event)">✅ Paid</button>`;
+  if (status === 'paid') {
+    return `<button type="button" class="pay-pill paid" title="Click to update" onclick="openPaymentStatusModal('${order.id}', event)">✅ Paid</button>`;
+  }
+  return `<button type="button" class="pay-pill unpaid" title="Click to update" onclick="openPaymentStatusModal('${order.id}', event)">❌ Unpaid</button>`;
 }
 
 let paymentModalOrderId = null;
