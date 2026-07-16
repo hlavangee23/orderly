@@ -541,11 +541,18 @@ body {
 .modal-actions { display: flex; gap: 8px; }
 
 /* PRINT — isolate just the invoice card so "Download PDF" doesn't
-   capture the dashboard/backdrop behind it or clip at the modal's
-   90vh scroll height. */
+   capture the dashboard/backdrop behind it, clip at the modal's 90vh
+   scroll height, or produce extra blank pages.
+   Note: visibility:hidden hides content visually but keeps its layout
+   height, which the print engine still counts when paginating — that's
+   what was producing 2-3 blank trailing pages depending on how many
+   orders were in the (invisible) dashboard list behind the modal.
+   display:none actually collapses that height, so it's used here on the
+   real layout containers instead. */
 @media print {
-  body * { visibility: hidden; }
-  .invoice-preview, .invoice-preview * { visibility: visible; }
+  html, body { height: auto !important; min-height: 0 !important; display: block !important; }
+  .sidebar, .main { display: none !important; }
+  #orderSummaryModal, #statusModal, #cannedModal, #editItemModal, #proFeaturesModal, #trialExpiredModal, .toast { display: none !important; }
   .modal-overlay, .modal {
     position: static !important;
     inset: auto !important;
@@ -557,11 +564,10 @@ body {
     width: auto !important;
     max-width: none !important;
     transform: none !important;
+    display: block !important;
   }
   .modal-title, .modal-sub, .modal-actions { display: none !important; }
   .invoice-preview {
-    position: absolute;
-    top: 0; left: 0;
     width: 100%;
     margin: 0;
     border: none;
