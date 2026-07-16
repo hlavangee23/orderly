@@ -2561,6 +2561,13 @@ function sendInvoiceWhatsApp() {
 }
 
 function printInvoice() {
+  const originalTitle = document.title;
+  document.title = `Invoice-INV-${currentInvoiceData.invNum || '0000'}`;
+
+  const restoreTitle = () => { document.title = originalTitle; };
+  window.addEventListener('afterprint', restoreTitle, { once: true });
+  setTimeout(restoreTitle, 5000);
+
   window.print();
   showToast('Saving as PDF... ✓');
 }

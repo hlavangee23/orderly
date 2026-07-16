@@ -1177,6 +1177,18 @@ function getInvoiceElementForCapture() {
 // preview because it's rendering the exact same DOM through the exact same
 // engine — there's no re-implementation step to go wrong.
 function printInvoice() {
+  const originalTitle = document.title;
+  document.title = `Invoice-INV-${currentInvoiceData.invNum || '0000'}`;
+
+  // Browsers suggest document.title as the filename in the Save-as-PDF
+  // dialog — restore the real page title once the dialog closes (afterprint
+  // fires whether they save, cancel, or print to a physical printer).
+  const restoreTitle = () => { document.title = originalTitle; };
+  window.addEventListener('afterprint', restoreTitle, { once: true });
+  // Safety net: some browsers don't fire afterprint reliably if the dialog
+  // is dismissed in certain ways, so also restore after a short delay.
+  setTimeout(restoreTitle, 5000);
+
   showToast('Opening print dialog — choose "Save as PDF" as the destination');
   window.print();
 }
