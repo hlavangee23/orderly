@@ -103,7 +103,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--off-white); color: 
 .modal-title { font-family: 'Instrument Serif', serif; font-size: 1.3rem; color: var(--green-900); margin-bottom: 0.25rem; }
 .modal-sub { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1.5rem; }
 .invoice-frame-container { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 1.25rem; background: white; }
-.invoice-frame-container iframe { width: 100%; border: none; display: block; }
+.invoice-frame-container { min-height: 60px; }
 .modal-actions { display: flex; gap: 8px; }
 
 /* PRINT — isolate just the invoice preview iframe so the native browser
@@ -135,7 +135,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--off-white); color: 
     margin: 0;
     border: none;
   }
-  .invoice-frame-container iframe { height: auto !important; }
+  .invoice-frame-container { height: auto !important; }
 }
 .modal-btn { flex: 1; padding: 0.75rem; border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: all 0.2s; border: 1.5px solid var(--border); background: var(--white); color: var(--text-mid); }
 .modal-btn:hover { background: var(--off-white); }
@@ -280,7 +280,7 @@ textarea.form-input { resize: vertical; min-height: 60px; }
     <div class="modal-title">Invoice</div>
     <p class="modal-sub">View, send, or download this invoice</p>
     <div class="invoice-frame-container">
-      <iframe id="invoiceFrame" height="700"></iframe>
+      <div id="invoiceFrame"></div>
     </div>
     <div class="modal-actions">
       <button class="modal-btn" onclick="closeModal()">Close</button>
@@ -1094,18 +1094,7 @@ function openInvoiceFromOrder(orderId) {
 
   const html = renderInvoiceHTML(settings, data);
   currentInvoiceHTML = html;
-  const previewFrame = document.getElementById('invoiceFrame');
-  previewFrame.onload = () => {
-    // Size the preview iframe to its actual content height instead of the
-    // fixed height="700" attribute, so what's captured for PDF/share is
-    // exactly what's on screen — no separate hidden copy involved.
-    requestAnimationFrame(() => requestAnimationFrame(() => {
-      const body = previewFrame.contentDocument.body;
-      const fullHeight = Math.max(body.scrollHeight, body.offsetHeight, body.getBoundingClientRect().height);
-      previewFrame.style.height = fullHeight + 'px';
-    }));
-  };
-  previewFrame.srcdoc = `<html><body style="margin:0;">${html}</body></html>`;
+  document.getElementById('invoiceFrame').innerHTML = html;
   document.getElementById('invoiceModal').classList.add('open');
 }
 
@@ -1152,10 +1141,10 @@ async function sendInvoiceWhatsApp() {
   // through the native share sheet instead, which lets WhatsApp attach it directly.
   if (typeof html2pdf !== 'undefined' && navigator.canShare) {
     try {
-      const { body: target, height } = await prepareInvoiceFrameForCapture();
+      const target = getInvoiceElementForCapture();
       const blob = await html2pdf().set({
         margin: 0.3, image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, width: 800, windowWidth: 800, height, windowHeight: height }, jsPDF: { unit: 'in', format: 'a4' },
+        html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' }, jsPDF: { unit: 'in', format: 'a4' },
       }).from(target).outputPdf('blob');
       const file = new File([blob], `Invoice-INV-${d.invNum}.pdf`, { type: 'application/pdf' });
       if (navigator.canShare({ files: [file] })) {
@@ -1172,22 +1161,12 @@ async function sendInvoiceWhatsApp() {
   closeModal();
 }
 
-// Captures directly from the SAME preview iframe the user already sees
-// rendering correctly (#invoiceFrame), instead of reloading a duplicate
-// copy of the invoice into a separate hidden iframe (#pdfFrame). That
-// second-iframe approach is what produced the blank/clipped PDFs — since
-// the on-screen preview is confirmed correct, capturing it directly removes
-// the extra, more fragile moving part entirely.
-function prepareInvoiceFrameForCapture() {
-  return new Promise((resolve) => {
-    const frame = document.getElementById('invoiceFrame');
-    const body = frame.contentDocument.body;
-    const fullHeight = Math.max(body.scrollHeight, body.offsetHeight, body.getBoundingClientRect().height);
-    frame.style.height = fullHeight + 'px';
-    requestAnimationFrame(() => requestAnimationFrame(() => {
-      resolve({ body: frame.contentDocument.body, height: fullHeight });
-    }));
-  });
+// invoiceFrame is a plain div in the main document now (not an iframe) — no
+// separate browsing context/viewport for a capture library to clip against,
+// and no manual height measurement needed since a div is always exactly as
+// tall as its content.
+function getInvoiceElementForCapture() {
+  return document.getElementById('invoiceFrame');
 }
 
 // Uses the browser's own print engine (via the @media print rules above)
