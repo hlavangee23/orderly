@@ -73,6 +73,16 @@ body { font-family: 'DM Sans', sans-serif; background: var(--off-white); color: 
 .inv-amount { font-size: 0.9rem; font-weight: 600; color: var(--green-500); text-align: right; width: 90px; flex-shrink: 0; }
 .inv-date { font-size: 0.74rem; color: var(--text-muted); text-align: right; width: 100px; flex-shrink: 0; }
 .inv-status { width: 100px; flex-shrink: 0; text-align: right; }
+.pay-badge { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; flex-shrink: 0; cursor: pointer; transition: transform 0.15s; border: none; }
+.pay-badge:hover { transform: scale(1.12); }
+.pay-badge.paid { background: #DCFCE7; }
+.pay-badge.unpaid { background: #FEE2E2; }
+.pay-badge.partial { background: #FEF3C7; font-size: 0.6rem; font-weight: 700; color: #B45309; }
+.pay-options { display: flex; flex-direction: column; gap: 8px; margin: 1rem 0; }
+.pay-option { display: flex; align-items: center; gap: 10px; padding: 0.75rem 1rem; border: 1.5px solid var(--border); border-radius: 10px; cursor: pointer; transition: all 0.15s; }
+.pay-option:hover { border-color: var(--green-400); background: var(--green-50); }
+.pay-option.selected { border-color: var(--green-700); background: var(--green-50); }
+.pay-option-icon { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; flex-shrink: 0; }
 .status-pill { display: inline-block; font-size: 0.68rem; padding: 2px 9px; border-radius: 20px; font-weight: 500; }
 
 /* EMPTY STATE */
@@ -290,6 +300,40 @@ textarea.form-input { resize: vertical; min-height: 60px; }
   </div>
 </div>
 
+<!-- PAYMENT STATUS MODAL -->
+<div class="modal-overlay" id="paymentStatusModal" onclick="handlePaymentModalClick(event)">
+  <div class="modal">
+    <div class="modal-title">Payment status</div>
+    <p class="modal-sub" id="paymentModalCustomer">—</p>
+
+    <div class="pay-options">
+      <div class="pay-option" data-status="unpaid" onclick="selectPayOption('unpaid')">
+        <div class="pay-option-icon" style="background:#FEE2E2;">❌</div>
+        <div><div style="font-weight:500;font-size:0.88rem;">Unpaid</div></div>
+      </div>
+      <div class="pay-option" data-status="partial" onclick="selectPayOption('partial')">
+        <div class="pay-option-icon" style="background:#FEF3C7;">½</div>
+        <div><div style="font-weight:500;font-size:0.88rem;">Partially paid</div></div>
+      </div>
+      <div class="pay-option" data-status="paid" onclick="selectPayOption('paid')">
+        <div class="pay-option-icon" style="background:#DCFCE7;">✅</div>
+        <div><div style="font-weight:500;font-size:0.88rem;">Paid in full</div></div>
+      </div>
+    </div>
+
+    <div class="form-group" id="partialAmountGroup" style="display:none;">
+      <label class="form-label">Amount paid so far</label>
+      <input class="form-input" type="number" id="partialAmountInput" min="0" step="0.01" placeholder="e.g. 150" />
+      <div id="partialAmountHint" style="font-size:0.78rem;color:var(--text-muted);margin-top:4px;"></div>
+    </div>
+
+    <div class="modal-actions" style="margin-top:0.5rem;">
+      <button class="modal-btn" onclick="closePaymentStatusModal()">Cancel</button>
+      <button class="modal-btn primary" id="savePaymentStatusBtn" onclick="savePaymentStatus()">Save</button>
+    </div>
+  </div>
+</div>
+
 <!-- CREATE MANUAL INVOICE MODAL -->
 <div class="modal-overlay" id="manualInvoiceModal" onclick="handleManualModalClick(event)">
   <div class="modal">
@@ -424,7 +468,7 @@ let allInvoices = [];
 let currentInvoiceData = {};
 let currentInvoiceHTML = '';
 let manualLines = [];
-const FREE_PLAN_LIMIT = 3;
+const EXPORT_LIMIT = 10; // Free plan: max PDF downloads + WhatsApp sends per calendar month, combined
 const TRIAL_DAYS = 30;
 
 function getTrialState(profile) {
@@ -439,6 +483,45 @@ function getTrialState(profile) {
 function hasProAccess(profile) {
   const { state } = getTrialState(profile);
   return state === 'pro' || state === 'trial_active';
+}
+
+// ── EXPORT LIMIT (Free plan: 10 downloads+sends per calendar month) ──
+function currentMonthKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+}
+
+// Returns the count for the CURRENT month — if the stored month doesn't
+// match, usage effectively resets to 0 (the stale count just isn't counted;
+// actual reset-to-0 write happens in checkAndConsumeExportAllowance).
+function getExportUsageThisMonth(profile) {
+  const isCurrentMonth = profile.invoice_exports_month === currentMonthKey();
+  return { count: isCurrentMonth ? (profile.invoice_exports_count || 0) : 0 };
+}
+
+// Call before every download/WhatsApp-send. Returns true if the export is
+// allowed (and increments the counter); returns false and shows an upsell
+// toast if the Free-plan monthly limit has been hit. Pro/trial users always
+// pass through with no counting.
+async function checkAndConsumeExportAllowance() {
+  if (hasProAccess(userProfile)) return true;
+
+  const month = currentMonthKey();
+  const { count } = getExportUsageThisMonth(userProfile);
+
+  if (count >= EXPORT_LIMIT) {
+    showToast(`Free plan limit reached — ${EXPORT_LIMIT} downloads/sends per month. Upgrade to Pro for unlimited.`);
+    return false;
+  }
+
+  const newCount = count + 1;
+  const { error } = await db.from('profiles').update({ invoice_exports_count: newCount, invoice_exports_month: month }).eq('id', userProfile.id);
+  if (!error) {
+    userProfile.invoice_exports_count = newCount;
+    userProfile.invoice_exports_month = month;
+    updateUpgradeBanner();
+  }
+  return true; // don't block the export just because the counter write failed
 }
 
 // ── INVOICE THEME RENDERING ──────────────────────────────────────────
@@ -565,7 +648,12 @@ function renderInvoiceHTML(settings, data) {
     </div>`;
   };
 
-  const page = (inner) => `<div style="font-family:${font};width:100%;box-sizing:border-box;color:#222;background:white;">${inner}</div>`;
+  const watermarkHTML = data.showWatermark
+    ? `<div style="position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:10;display:flex;align-items:center;justify-content:center;">
+        <div style="transform:rotate(-32deg);font-size:3.2rem;font-weight:700;color:rgba(15,35,24,0.07);white-space:nowrap;letter-spacing:0.05em;">ORDERLY FREE PLAN · ORDERLY FREE PLAN</div>
+      </div>`
+    : '';
+  const page = (inner) => `<div style="font-family:${font};width:100%;box-sizing:border-box;color:#222;background:white;position:relative;">${watermarkHTML}${inner}</div>`;
 
   const themes = {
     classic: () => page(`
@@ -974,7 +1062,6 @@ async function loadInvoices(profileId) {
 function renderInvoices(invoices) {
   const card = document.getElementById('invoicesCard');
   const isPro = hasProAccess(userProfile);
-  const banner = document.getElementById('upgradeBanner');
 
   if (!invoices.length) {
     card.innerHTML = `
@@ -983,22 +1070,37 @@ function renderInvoices(invoices) {
         <div class="empty-state-title">No invoices yet</div>
         <div class="empty-state-sub">Invoices are created automatically from your orders — share your order link to get started.</div>
       </div>`;
-    banner.style.display = 'none';
+    updateUpgradeBanner();
     return;
   }
 
-  const visibleCount = isPro ? invoices.length : Math.min(FREE_PLAN_LIMIT, invoices.length);
-  const visible = invoices.slice(0, visibleCount);
-  const locked = invoices.slice(visibleCount);
-
-  let html = visible.map(o => renderRow(o, false)).join('');
-  html += locked.map(o => renderRow(o, true)).join('');
-
-  card.innerHTML = html;
-  banner.style.display = (!isPro && locked.length > 0) ? 'flex' : 'none';
+  // Full invoice history is shown to everyone now — the Free-plan gate is
+  // the watermark on exported PDFs plus the 10/month download+send limit
+  // (see updateUpgradeBanner / checkAndConsumeExportAllowance), not hiding
+  // rows from the list.
+  card.innerHTML = invoices.map(o => renderRow(o)).join('');
+  updateUpgradeBanner();
 }
 
-function renderRow(order, locked) {
+// Shows remaining Free-plan exports this month instead of the old
+// "unlock full history" message, now that history itself isn't gated.
+function updateUpgradeBanner() {
+  const banner = document.getElementById('upgradeBanner');
+  const isPro = hasProAccess(userProfile);
+  if (isPro) { banner.style.display = 'none'; return; }
+
+  const { count } = getExportUsageThisMonth(userProfile);
+  const remaining = Math.max(0, EXPORT_LIMIT - count);
+  banner.querySelector('h3').textContent = remaining > 0
+    ? `${remaining} of ${EXPORT_LIMIT} free downloads left this month`
+    : `You've used all ${EXPORT_LIMIT} free downloads this month`;
+  banner.querySelector('p').textContent = remaining > 0
+    ? 'Free invoices include an Orderly watermark and a monthly download/send limit. Upgrade to Pro for unlimited, watermark-free invoices with your own branding.'
+    : 'Upgrade to Pro for unlimited downloads and sends, with your own branding and no watermark.';
+  banner.style.display = 'flex';
+}
+
+function renderRow(order) {
   const statusColors = {
     new: ['#DCFCE7', '#15803D'], confirmed: ['#DBEAFE', '#1D4ED8'], preparing: ['#FEF3C7', '#B45309'],
     packing: ['#EDE9FE', '#6D28D9'], ready: ['#CCFBF1', '#0F766E'], out_for_delivery: ['#CCFBF1', '#0F766E'],
@@ -1014,10 +1116,11 @@ function renderRow(order, locked) {
   const items = Array.isArray(order.items) ? order.items : [];
   const itemSummary = items.map(i => `${i.qty}× ${i.name}`).join(', ');
 
-  const onclickAttr = locked ? '' : `onclick="openInvoiceFromOrder('${order.id}')"`;
+  const onclickAttr = `onclick="openInvoiceFromOrder('${order.id}')"`;
 
   return `
-    <div class="invoice-row ${locked ? 'locked-row' : ''}" ${onclickAttr}>
+    <div class="invoice-row" ${onclickAttr}>
+      ${paymentStatusBadgeHTML(order)}
       <div class="inv-number">INV-${invNum}</div>
       <div class="inv-info">
         <div class="inv-customer">${order.customer_name}</div>
@@ -1027,6 +1130,81 @@ function renderRow(order, locked) {
       <div class="inv-date">${date}</div>
       <div class="inv-status"><span class="status-pill" style="background:${bg};color:${fg};">${statusLabel}</span></div>
     </div>`;
+}
+
+// ── PAYMENT STATUS ─────────────────────────────────────────────────
+function paymentStatusBadgeHTML(order) {
+  const status = order.payment_status || 'unpaid';
+  const icons = { paid: '✅', unpaid: '❌', partial: '½' };
+  const titles = { paid: 'Paid in full', unpaid: 'Unpaid', partial: `Partially paid — R${order.amount_paid || 0} of R${order.total}` };
+  return `<button type="button" class="pay-badge ${status}" title="${titles[status]}" onclick="openPaymentStatusModal('${order.id}', event)">${icons[status]}</button>`;
+}
+
+let paymentModalOrderId = null;
+let paymentModalSelected = 'unpaid';
+
+function openPaymentStatusModal(orderId, event) {
+  event.stopPropagation(); // don't also trigger the row's own click (which opens the invoice)
+  const order = allInvoices.find(o => o.id === orderId);
+  if (!order) return;
+  paymentModalOrderId = orderId;
+  paymentModalSelected = order.payment_status || 'unpaid';
+
+  document.getElementById('paymentModalCustomer').textContent = `${order.customer_name} · R${order.total}`;
+  document.getElementById('partialAmountInput').value = order.amount_paid || '';
+  syncPayOptionSelection();
+  document.getElementById('paymentStatusModal').classList.add('open');
+}
+
+function selectPayOption(status) {
+  paymentModalSelected = status;
+  syncPayOptionSelection();
+}
+
+function syncPayOptionSelection() {
+  document.querySelectorAll('.pay-option').forEach(el => el.classList.toggle('selected', el.dataset.status === paymentModalSelected));
+  const group = document.getElementById('partialAmountGroup');
+  group.style.display = paymentModalSelected === 'partial' ? 'block' : 'none';
+  if (paymentModalSelected === 'partial') {
+    const order = allInvoices.find(o => o.id === paymentModalOrderId);
+    document.getElementById('partialAmountHint').textContent = order ? `Total due: R${order.total}` : '';
+  }
+}
+
+async function savePaymentStatus() {
+  const btn = document.getElementById('savePaymentStatusBtn');
+  const order = allInvoices.find(o => o.id === paymentModalOrderId);
+  if (!order) return;
+
+  let amount_paid = 0;
+  if (paymentModalSelected === 'paid') amount_paid = order.total;
+  else if (paymentModalSelected === 'partial') {
+    amount_paid = parseFloat(document.getElementById('partialAmountInput').value) || 0;
+    if (amount_paid <= 0) { showToast('Enter how much has been paid so far'); return; }
+    if (amount_paid >= order.total) { showToast('That covers the full amount — mark as "Paid in full" instead'); return; }
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Saving...';
+  const { error } = await db.from('orders').update({ payment_status: paymentModalSelected, amount_paid }).eq('id', paymentModalOrderId);
+  btn.disabled = false;
+  btn.textContent = 'Save';
+
+  if (error) { showToast('Could not update — try again'); return; }
+
+  order.payment_status = paymentModalSelected;
+  order.amount_paid = amount_paid;
+  renderInvoices(allInvoices);
+  closePaymentStatusModal();
+  showToast('Payment status updated ✓');
+}
+
+function closePaymentStatusModal() {
+  document.getElementById('paymentStatusModal').classList.remove('open');
+}
+
+function handlePaymentModalClick(e) {
+  if (e.target === document.getElementById('paymentStatusModal')) closePaymentStatusModal();
 }
 
 // ── SEARCH ─────────────────────────────────────────────────────────
@@ -1072,6 +1250,7 @@ function openInvoiceFromOrder(orderId) {
     storeName: userProfile.store_name,
     logoUrl: userProfile.logo_url || '',
     poweredByOrderly: !isPro,
+    showWatermark: !isPro,
     invoiceNumber: invNum,
     date: new Date(order.created_at).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' }),
     customerName: order.customer_name,
@@ -1099,6 +1278,8 @@ function openInvoiceFromOrder(orderId) {
 }
 
 async function sendInvoiceWhatsApp() {
+  if (!(await checkAndConsumeExportAllowance())) return;
+
   const d = currentInvoiceData;
   const isPro = hasProAccess(userProfile);
   const brandName = isPro ? (userProfile?.store_name || 'Orderly') : 'Orderly';
@@ -1176,7 +1357,9 @@ function getInvoiceElementForCapture() {
 // on-screen preview being correct). Native print can't diverge from the
 // preview because it's rendering the exact same DOM through the exact same
 // engine — there's no re-implementation step to go wrong.
-function printInvoice() {
+async function printInvoice() {
+  if (!(await checkAndConsumeExportAllowance())) return;
+
   const originalTitle = document.title;
   document.title = `Invoice-INV-${currentInvoiceData.invNum || '0000'}`;
 
