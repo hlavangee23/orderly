@@ -73,11 +73,12 @@ body { font-family: 'DM Sans', sans-serif; background: var(--off-white); color: 
 .inv-amount { font-size: 0.9rem; font-weight: 600; color: var(--green-500); text-align: right; width: 90px; flex-shrink: 0; }
 .inv-date { font-size: 0.74rem; color: var(--text-muted); text-align: right; width: 100px; flex-shrink: 0; }
 .inv-status { width: 100px; flex-shrink: 0; text-align: right; }
-.pay-badge { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; flex-shrink: 0; cursor: pointer; transition: transform 0.15s; border: none; }
-.pay-badge:hover { transform: scale(1.12); }
-.pay-badge.paid { background: #DCFCE7; }
-.pay-badge.unpaid { background: #FEE2E2; }
-.pay-badge.partial { background: #FEF3C7; font-size: 0.6rem; font-weight: 700; color: #B45309; }
+.pay-cta { flex-shrink: 0; white-space: nowrap; background: var(--white); border: 1.5px solid var(--border); color: var(--text-mid); border-radius: 20px; padding: 5px 12px; font-family: 'DM Sans', sans-serif; font-size: 0.74rem; font-weight: 500; cursor: pointer; transition: all 0.15s; }
+.pay-cta:hover { border-color: var(--green-400); color: var(--green-700); background: var(--green-50); }
+.pay-pill { flex-shrink: 0; white-space: nowrap; border: none; border-radius: 20px; padding: 5px 12px; font-family: 'DM Sans', sans-serif; font-size: 0.74rem; font-weight: 500; cursor: pointer; transition: transform 0.15s; }
+.pay-pill:hover { transform: scale(1.03); }
+.pay-pill.paid { background: #DCFCE7; color: #15803D; }
+.pay-pill.partial { background: #FEF3C7; color: #B45309; }
 .pay-options { display: flex; flex-direction: column; gap: 8px; margin: 1rem 0; }
 .pay-option { display: flex; align-items: center; gap: 10px; padding: 0.75rem 1rem; border: 1.5px solid var(--border); border-radius: 10px; cursor: pointer; transition: all 0.15s; }
 .pay-option:hover { border-color: var(--green-400); background: var(--green-50); }
@@ -1135,9 +1136,14 @@ function renderRow(order) {
 // ── PAYMENT STATUS ─────────────────────────────────────────────────
 function paymentStatusBadgeHTML(order) {
   const status = order.payment_status || 'unpaid';
-  const icons = { paid: '✅', unpaid: '❌', partial: '½' };
-  const titles = { paid: 'Paid in full', unpaid: 'Unpaid', partial: `Partially paid — R${order.amount_paid || 0} of R${order.total}` };
-  return `<button type="button" class="pay-badge ${status}" title="${titles[status]}" onclick="openPaymentStatusModal('${order.id}', event)">${icons[status]}</button>`;
+
+  if (status === 'unpaid') {
+    return `<button type="button" class="pay-cta" onclick="openPaymentStatusModal('${order.id}', event)">Has this been paid?</button>`;
+  }
+  if (status === 'partial') {
+    return `<button type="button" class="pay-pill partial" title="Click to update" onclick="openPaymentStatusModal('${order.id}', event)">½ Partial · R${order.amount_paid || 0} of R${order.total}</button>`;
+  }
+  return `<button type="button" class="pay-pill paid" title="Click to update" onclick="openPaymentStatusModal('${order.id}', event)">✅ Paid</button>`;
 }
 
 let paymentModalOrderId = null;
