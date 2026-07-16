@@ -521,7 +521,8 @@ body {
    display:none actually collapses that height, so it's used here on the
    real layout containers instead. */
 @media print {
-  html, body { height: auto !important; min-height: 0 !important; display: block !important; }
+  html, body { height: auto !important; min-height: 0 !important; display: block !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  .invoice-frame-container, .invoice-frame-container * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
   .sidebar, .main { display: none !important; }
   #orderSummaryModal, #statusModal, #cannedModal, #editItemModal, #proFeaturesModal, #trialExpiredModal, .toast { display: none !important; }
   .modal-overlay, .modal {

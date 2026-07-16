@@ -137,195 +137,276 @@ function renderInvoiceHTML(settings, data) {
         <div style="transform:rotate(-32deg);font-size:3.2rem;font-weight:700;color:rgba(15,35,24,0.07);white-space:nowrap;letter-spacing:0.05em;">ORDERLY FREE PLAN · ORDERLY FREE PLAN</div>
       </div>`
     : '';
-  const page = (inner) => `<div style="font-family:${font};width:100%;box-sizing:border-box;color:#222;background:white;position:relative;">${watermarkHTML}${inner}</div>`;
+  // -webkit-print-color-adjust/print-color-adjust inline here (not just in
+  // page CSS) because this HTML string gets dropped into three different
+  // contexts — the dashboard modal, the Invoices tab, and the live preview
+  // iframe's srcdoc — and some of those don't share the parent page's
+  // stylesheet. Several of the newer themes rely on full-bleed dark/gradient
+  // backgrounds; without this, browsers that default to "no background
+  // graphics" in the print dialog silently drop them to white.
+  // ── ORDERLY'S TOUCH ──────────────────────────────────────────────────
+  // Every theme is store-branded (their logo, colour, font, footer) — but
+  // the "INVOICE" wordmark itself always renders in Instrument Serif, the
+  // same serif used across the Orderly dashboard/sidebar. It's a quiet
+  // consistency thread across all 4 designs, not a loud logo stamp.
+  // Imported inline (not just relying on the parent page's <link>) because
+  // this HTML also renders inside the customize-look preview iframe's
+  // srcdoc, which doesn't inherit the parent document's stylesheet.
+  const fontImport = `<style>@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif&display=swap');</style>`;
+  const wordmarkFont = "'Instrument Serif', Georgia, serif";
+
+  const page = (inner) => `<div style="font-family:${font};width:100%;box-sizing:border-box;color:#222;background:white;position:relative;-webkit-print-color-adjust:exact;print-color-adjust:exact;">${fontImport}${watermarkHTML}${inner}</div>`;
+
+  // Row renderer used by the light-background themes (Sharp, Gradient).
+  const rowsStyled = (items, { border = '#eee', color = '#222' } = {}) => items.map(i => {
+    const amount = i.price * i.qty;
+    return `<tr><td style="padding:0.65rem 0;border-bottom:1px solid ${border};color:${color};">${i.name}</td><td style="padding:0.65rem 0;border-bottom:1px solid ${border};text-align:right;color:${color};">R${i.price}</td><td style="padding:0.65rem 0;border-bottom:1px solid ${border};text-align:right;color:${color};">${i.qty}</td><td style="padding:0.65rem 0;border-bottom:1px solid ${border};text-align:right;font-weight:600;color:${color};">R${amount}</td></tr>`;
+  }).join('');
+
+  // Row renderer for the numbered-index table used by Studio.
+  const rowsNumbered = (items, { border = '#eee', color = '#222', numColor = '#999' } = {}) => items.map((i, idx) => {
+    const amount = i.price * i.qty;
+    const n = String(idx + 1).padStart(2, '0');
+    return `<tr><td style="padding:0.65rem 0.5rem 0.65rem 0;border-bottom:1px solid ${border};color:${numColor};font-size:0.8rem;">${n}</td><td style="padding:0.65rem 0;border-bottom:1px solid ${border};color:${color};">${i.name}</td><td style="padding:0.65rem 0;border-bottom:1px solid ${border};text-align:right;color:${color};">R${i.price}</td><td style="padding:0.65rem 0;border-bottom:1px solid ${border};text-align:right;color:${color};">${i.qty}</td><td style="padding:0.65rem 0;border-bottom:1px solid ${border};text-align:right;font-weight:600;color:${color};">R${amount}</td></tr>`;
+  }).join('');
 
   const themes = {
+    // "Sharp" — clean minimal black/white design, generous spacing,
+    // no overlapping decorative shapes (reference: JHON COMPANY)
     classic: () => page(`
-      <div style="background:${accent};padding:2.5rem 3rem;display:flex;justify-content:space-between;align-items:center;">
-        <div style="display:flex;align-items:center;gap:12px;">
-          ${logoBlock}
-          <div style="font-size:1.4rem;color:${onAccent};">${brandName}</div>
-        </div>
-        <div style="text-align:right;">
-          <div style="font-size:1.6rem;letter-spacing:0.1em;color:${onAccentSoft};">INVOICE</div>
-          <div style="font-size:0.8rem;color:${onAccentSofter};">INV-${data.invoiceNumber}</div>
-        </div>
-      </div>
-      ${data.poweredByOrderly ? `<div style="font-size:0.68rem;color:${onAccentSofter};padding:0.4rem 3rem;background:${accent};">Powered by Orderly</div>` : ''}
-      <div style="padding:2.5rem 3rem 1rem;">
-        <div style="display:flex;justify-content:space-between;margin-bottom:2rem;">
-          <div>
-            <div style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.06em;color:#7A9A85;">Invoice to</div>
-            <div style="font-size:1.15rem;font-weight:600;">${data.customerName}</div>
-            <div style="font-size:0.85rem;color:#7A9A85;margin-top:2px;">${data.customerPhone || ''}</div>
-            ${addressBlockFn('#7A9A85')}
+      <div style="padding:2.75rem 3rem 0;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            ${logoBlock || `<div style="width:32px;height:32px;background:#1A1A1A;display:flex;align-items:center;justify-content:center;font-size:0.85rem;color:white;">${(brandName || 'O')[0]}</div>`}
+            <div style="font-size:0.95rem;font-weight:700;letter-spacing:0.04em;color:#1A1A1A;">${brandName.toUpperCase()}</div>
           </div>
           <div style="text-align:right;">
-            <div style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.06em;color:#7A9A85;">Date</div>
-            <div style="font-size:0.95rem;font-weight:500;">${data.date}</div>
-            <div style="font-size:0.75rem;margin-top:8px;padding:4px 12px;border-radius:20px;display:inline-block;background:#E8F4ED;color:${accentText};">${data.deliveryLabel}</div>
+            <div style="font-family:${wordmarkFont};font-size:1.9rem;font-weight:600;color:#1A1A1A;line-height:1;">Invoice</div>
+            <div style="font-size:0.72rem;color:#999;margin-top:8px;letter-spacing:0.04em;">DATE ${data.date.toUpperCase()}</div>
           </div>
         </div>
+        ${data.poweredByOrderly ? `<div style="font-size:0.68rem;color:#bbb;margin-top:0.5rem;">Powered by Orderly</div>` : ''}
+        <div style="height:1px;background:#eee;margin:1.75rem 0;"></div>
+        <div style="display:flex;justify-content:space-between;">
+          <div>
+            <div style="font-size:0.68rem;text-transform:uppercase;letter-spacing:0.1em;color:#999;font-weight:600;">Invoice To</div>
+            <div style="font-size:1rem;font-weight:700;margin-top:6px;color:#1A1A1A;">${data.customerName}</div>
+            <div style="font-size:0.8rem;color:#999;margin-top:2px;">${data.customerPhone || ''}</div>
+            ${addressBlockFn('#999')}
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:0.68rem;text-transform:uppercase;letter-spacing:0.1em;color:#999;font-weight:600;">Invoice No.</div>
+            <div style="font-size:0.85rem;color:#1A1A1A;margin-top:6px;">${data.invoiceNumber}</div>
+            <div style="margin-top:8px;display:inline-block;background:${accent}14;color:${accentText};padding:3px 11px;border-radius:20px;font-size:0.72rem;font-weight:600;">${data.deliveryLabel}</div>
+          </div>
+        </div>
+      </div>
+      <div style="padding:2rem 3rem 0;">
         <table style="width:100%;border-collapse:collapse;">
           <thead><tr>
-            <th style="background:#F2FAF5;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.04em;color:${accentText};text-align:left;padding:0.75rem 1rem;">Description</th>
-            <th style="background:#F2FAF5;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.04em;color:${accentText};text-align:right;padding:0.75rem 1rem;">Price</th>
-            <th style="background:#F2FAF5;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.04em;color:${accentText};text-align:right;padding:0.75rem 1rem;">Qty</th>
-            <th style="background:#F2FAF5;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.04em;color:${accentText};text-align:right;padding:0.75rem 1rem;">Amount</th>
+            <th style="text-align:left;padding:0 0 0.7rem;font-size:0.68rem;text-transform:uppercase;letter-spacing:0.08em;color:#999;border-bottom:1.5px solid #1A1A1A;">Item Description</th>
+            <th style="text-align:right;padding:0 0 0.7rem;font-size:0.68rem;text-transform:uppercase;letter-spacing:0.08em;color:#999;border-bottom:1.5px solid #1A1A1A;">Price</th>
+            <th style="text-align:right;padding:0 0 0.7rem;font-size:0.68rem;text-transform:uppercase;letter-spacing:0.08em;color:#999;border-bottom:1.5px solid #1A1A1A;">Qty</th>
+            <th style="text-align:right;padding:0 0 0.7rem;font-size:0.68rem;text-transform:uppercase;letter-spacing:0.08em;color:#999;border-bottom:1.5px solid #1A1A1A;">Total</th>
           </tr></thead>
-          <tbody style="font-size:0.92rem;">${rows.replace(/<td/g, '<td style="padding-left:1rem;padding-right:1rem;"')}</tbody>
+          <tbody style="font-size:0.9rem;">${rowsStyled(data.items, { border: '#f0f0f0', color: '#333' })}</tbody>
         </table>
-        <div style="max-width:320px;margin-left:auto;padding:1rem 0 0;">
-          <div style="display:flex;justify-content:space-between;font-size:0.9rem;padding:0.25rem 0;"><span>Subtotal</span><span>R${data.subtotal}</span></div>
+        <div style="max-width:280px;margin-left:auto;padding-top:1rem;">
+          <div style="display:flex;justify-content:space-between;font-size:0.85rem;color:#999;padding:0.25rem 0;"><span>Subtotal</span><span>R${data.subtotal}</span></div>
           ${feeLines}
-          <div style="display:flex;justify-content:space-between;font-size:1.15rem;font-weight:700;border-top:2px solid #222;margin-top:0.5rem;padding-top:0.75rem;"><span>Total due</span><span>R${data.total}</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:1.2rem;font-weight:800;color:#1A1A1A;border-top:2px solid #1A1A1A;margin-top:0.6rem;padding-top:0.7rem;"><span>Total Due</span><span style="color:${accentText};">R${data.total}</span></div>
         </div>
-        ${(showNotes && data.notes) ? `<div style="margin-top:2rem;"><div style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.06em;color:#7A9A85;margin-bottom:4px;">Notes</div><div style="font-size:0.88rem;background:#F8FAF7;border-radius:8px;padding:0.85rem 1rem;">${data.notes}</div></div>` : ''}
-        ${bankingBlockFn({ bg: '#F8FAF7', labelColor: '#7A9A85', textColor: '#3D5A47' })}
       </div>
-      <div style="background:#F2FAF5;padding:1.5rem 3rem;text-align:center;border-top:1px solid #e5e5e5;margin-top:1rem;">
-        <div style="font-size:0.95rem;font-weight:500;">${footerMsg}</div>
-        <div style="font-size:0.78rem;color:#7A9A85;margin-top:2px;">${data.contactLine}</div>
+      ${(showNotes && data.notes) ? `<div style="padding:1.75rem 3rem 0;"><div style="font-size:0.68rem;text-transform:uppercase;letter-spacing:0.08em;color:#999;font-weight:600;">Terms &amp; Notes</div><div style="font-size:0.84rem;color:#666;margin-top:5px;">${data.notes}</div></div>` : ''}
+      <div style="padding:2rem 3rem 0;display:flex;justify-content:space-between;align-items:flex-end;gap:2rem;flex-wrap:wrap;">
+        <div style="flex:1;min-width:200px;">${bankingBlockFn({ bg: '#FAFAFA', labelColor: '#999', textColor: '#444', radius: '6px' })}</div>
+        <div style="text-align:right;">
+          <div style="font-family:'Brush Script MT',cursive;font-size:1.35rem;color:#333;">${footerMsg}</div>
+          <div style="font-size:0.7rem;color:#aaa;margin-top:3px;">${brandName}</div>
+        </div>
+      </div>
+      <div style="margin-top:2.25rem;padding:1.1rem 3rem;border-top:1px solid #eee;text-align:center;">
+        <div style="font-size:0.76rem;color:#999;letter-spacing:0.02em;">${data.contactLine}</div>
       </div>`),
 
+    // "Executive" — clean white corporate design (reference: image 2, inverted)
     bold: () => page(`
-      <div style="background:#1A1A1A;padding:2.5rem 3rem;display:flex;justify-content:space-between;align-items:flex-start;">
-        <div style="display:flex;align-items:center;gap:12px;">
-          ${logoBlock}
-          <div style="color:white;font-size:1.1rem;font-weight:600;">${brandName}</div>
-        </div>
-        <div style="font-size:2.2rem;font-weight:800;letter-spacing:0.04em;color:white;">INVOICE</div>
-      </div>
-      <div style="background:${accent};height:5px;"></div>
-      <div style="padding:2rem 3rem 0;display:flex;justify-content:space-between;">
-        <div>
-          <div style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;color:#999;">Invoice to</div>
-          <div style="font-size:1.1rem;font-weight:700;">${data.customerName}</div>
-          <div style="font-size:0.85rem;color:#999;">${data.customerPhone || ''}</div>
-          ${addressBlockFn('#999')}
-        </div>
-        <div style="text-align:right;">
-          <div style="font-size:0.78rem;color:#999;">Invoice No: <b>${data.invoiceNumber}</b></div>
-          <div style="font-size:0.78rem;color:#999;">Invoice Date: <b>${data.date}</b></div>
-          <div style="font-size:0.78rem;color:${accentText};font-weight:600;margin-top:2px;">${data.deliveryLabel}</div>
-        </div>
-      </div>
-      <div style="padding:1.5rem 3rem;">
-        <table style="width:100%;border-collapse:collapse;">
-          <thead><tr style="background:#1A1A1A;">
-            <th style="padding:0.8rem 1rem;color:white;font-size:0.78rem;text-align:left;">DESCRIPTION</th>
-            <th style="padding:0.8rem 1rem;color:white;font-size:0.78rem;text-align:right;">PRICE</th>
-            <th style="padding:0.8rem 1rem;color:white;font-size:0.78rem;text-align:right;">QTY</th>
-            <th style="padding:0.8rem 1rem;color:white;font-size:0.78rem;text-align:right;">AMOUNT</th>
-          </tr></thead>
-          <tbody style="font-size:0.92rem;">${rows.replace(/<td/g, '<td style="padding-left:1rem;padding-right:1rem;"')}</tbody>
-        </table>
-        <div style="max-width:320px;margin-left:auto;padding-top:0.75rem;">
-          <div style="display:flex;justify-content:space-between;font-size:0.88rem;color:#999;padding:0.25rem 0;"><span>Subtotal</span><span>R${data.subtotal}</span></div>
-          ${feeLines}
-        </div>
-      </div>
-      <div style="background:${accent};margin:0 3rem;padding:1rem 1.5rem;display:flex;justify-content:space-between;align-items:center;">
-        <span style="color:${onAccent};font-weight:600;font-size:1rem;">TOTAL</span>
-        <span style="color:${onAccent};font-weight:800;font-size:1.3rem;">R${data.total}</span>
-      </div>
-      ${(showNotes && data.notes) ? `<div style="padding:1.5rem 3rem 0;"><div style="font-size:0.75rem;font-weight:700;">TERMS & NOTES</div><div style="font-size:0.85rem;color:#666;margin-top:4px;">${data.notes}</div></div>` : ''}
-      <div style="padding:1.5rem 3rem 0;">${bankingBlockFn({ bg: '#F5F5F5', labelColor: '#999', textColor: '#333', radius: '4px' })}</div>
-      <div style="padding:2rem 3rem 2.5rem;text-align:center;">
-        <div style="font-size:0.95rem;font-weight:600;">${footerMsg}</div>
-        <div style="font-size:0.78rem;color:#999;margin-top:2px;">${data.contactLine}</div>
-      </div>`),
-
-    minimal: () => page(`
-      <div style="padding:3rem;">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:2.5rem;">
+      <div style="background:white;padding:2.5rem 3rem;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
           <div style="display:flex;align-items:center;gap:12px;">
-            ${logoBlock}
-            <div style="font-size:1.3rem;">${brandName}</div>
+            ${logoBlock || `<div style="width:38px;height:38px;border-radius:8px;background:#F0F0F0;display:flex;align-items:center;justify-content:center;font-size:1rem;color:#1A1A1A;">${(brandName || 'O')[0]}</div>`}
+            <div>
+              <div style="color:#1A1A1A;font-size:1.05rem;font-weight:600;">${brandName}</div>
+              <div style="color:#999;font-size:0.68rem;letter-spacing:0.06em;text-transform:uppercase;">Idea for invoice</div>
+            </div>
           </div>
           <div style="text-align:right;">
-            <div style="font-size:1.05rem;letter-spacing:0.15em;color:${accentText};">INVOICE</div>
-            <div style="font-size:0.78rem;color:#999;margin-top:2px;">No. ${data.invoiceNumber}</div>
+            <div style="font-family:${wordmarkFont};font-size:2rem;color:#1A1A1A;font-weight:600;">Invoice</div>
+            <div style="font-size:0.76rem;color:#999;margin-top:2px;">No. ${data.invoiceNumber}</div>
           </div>
         </div>
-        <div style="display:flex;justify-content:space-between;margin-bottom:2rem;">
+        ${data.poweredByOrderly ? `<div style="font-size:0.68rem;color:#bbb;margin-top:0.75rem;">Powered by Orderly</div>` : ''}
+        <div style="height:1px;background:#eee;margin:1.75rem 0;"></div>
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
           <div>
-            <div style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;color:#aaa;">Billed to</div>
-            <div style="font-size:1rem;margin-top:3px;">${data.customerName}</div>
-            <div style="font-size:0.8rem;color:#aaa;">${data.customerPhone || ''}</div>
-            ${addressBlockFn('#aaa')}
+            <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em;color:#aaa;">Invoice To</div>
+            <div style="font-size:1.05rem;font-weight:600;color:#1A1A1A;margin-top:4px;">${data.customerName}</div>
+            <div style="font-size:0.82rem;color:#888;margin-top:2px;">${data.customerPhone || ''}</div>
+            ${addressBlockFn('#888')}
           </div>
           <div style="text-align:right;">
-            <div style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;color:#aaa;">Date</div>
-            <div style="font-size:0.9rem;margin-top:3px;">${data.date}</div>
-            <div style="font-size:0.78rem;color:${accentText};margin-top:5px;">${data.deliveryLabel}</div>
+            <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em;color:#aaa;">Due Date</div>
+            <div style="font-size:0.9rem;color:#1A1A1A;margin-top:4px;">${data.date}</div>
+            <div style="margin-top:0.6rem;display:inline-block;background:${accent};color:${onAccent};padding:5px 14px;border-radius:20px;font-size:0.8rem;font-weight:600;">${data.deliveryLabel}</div>
           </div>
         </div>
-        <table style="width:100%;border-collapse:collapse;border-top:1.5px solid #222;">
+      </div>
+      <div style="background:#FAFAFA;padding:2rem 3rem;">
+        <table style="width:100%;border-collapse:collapse;">
           <thead><tr>
-            <th style="text-align:left;padding:10px 0;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;color:#999;border-bottom:1.5px solid #222;">Item</th>
-            <th style="text-align:right;padding:10px 0;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;color:#999;border-bottom:1.5px solid #222;">Price</th>
-            <th style="text-align:right;padding:10px 0;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;color:#999;border-bottom:1.5px solid #222;">Qty</th>
-            <th style="text-align:right;padding:10px 0;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;color:#999;border-bottom:1.5px solid #222;">Amount</th>
+            <th style="text-align:left;padding:0 0 0.6rem;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.06em;color:#999;border-bottom:1px solid #e5e5e5;">Description</th>
+            <th style="text-align:right;padding:0 0 0.6rem;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.06em;color:#999;border-bottom:1px solid #e5e5e5;">Price</th>
+            <th style="text-align:right;padding:0 0 0.6rem;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.06em;color:#999;border-bottom:1px solid #e5e5e5;">Qty</th>
+            <th style="text-align:right;padding:0 0 0.6rem;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.06em;color:#999;border-bottom:1px solid #e5e5e5;">Total</th>
           </tr></thead>
-          <tbody style="font-size:0.92rem;">${rows}</tbody>
+          <tbody style="font-size:0.9rem;">${rowsStyled(data.items, { border: '#e5e5e5', color: '#333' })}</tbody>
         </table>
-        <div style="max-width:320px;margin-left:auto;margin-top:0.5rem;">
-          <div style="display:flex;justify-content:space-between;font-size:0.88rem;color:#666;padding:4px 0;"><span>Subtotal</span><span>R${data.subtotal}</span></div>
+        <div style="max-width:300px;margin-left:auto;padding-top:1rem;">
+          <div style="display:flex;justify-content:space-between;font-size:0.85rem;color:#999;padding:0.25rem 0;"><span>Sub Total</span><span>R${data.subtotal}</span></div>
           ${feeLines}
-          <div style="display:flex;justify-content:space-between;font-size:1.15rem;color:${accentText};padding:10px 0;margin-top:4px;border-top:1px solid #eee;"><span>Total due</span><span>R${data.total}</span></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;background:${accent};border-radius:6px;padding:0.7rem 1rem;margin-top:0.6rem;">
+            <span style="color:${onAccent};font-weight:600;font-size:0.85rem;letter-spacing:0.04em;">GRAND TOTAL</span>
+            <span style="color:${onAccent};font-weight:800;font-size:1.15rem;">R${data.total}</span>
+          </div>
         </div>
-        ${(showNotes && data.notes) ? `<div style="margin-top:1.5rem;"><div style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.06em;color:#aaa;">Notes</div><div style="font-size:0.85rem;color:#666;margin-top:3px;">${data.notes}</div></div>` : ''}
-        ${bankingBlockFn({ bg: '#FAFAFA', labelColor: '#aaa', textColor: '#444', radius: '0' })}
-        <div style="text-align:center;margin-top:3rem;padding-top:1.5rem;border-top:1px solid #eee;">
-          <div style="font-size:0.9rem;">${footerMsg}</div>
-          <div style="font-size:0.78rem;color:#aaa;margin-top:2px;">${data.contactLine}</div>
-        </div>
+      </div>
+      <div style="background:white;padding:1.75rem 3rem;display:flex;gap:2.5rem;">
+        <div style="flex:1;">${bankingBlockFn({ bg: '#FAFAFA', labelColor: '#999', textColor: '#444', radius: '6px' })}</div>
+        ${(showNotes && data.notes) ? `<div style="flex:1;"><div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#999;">Terms</div><div style="font-size:0.82rem;color:#555;margin-top:6px;line-height:1.6;">${data.notes}</div></div>` : ''}
+      </div>
+      <div style="background:white;padding:0 3rem 2.25rem;text-align:center;border-top:1px solid #eee;">
+        <div style="padding-top:1.5rem;font-size:0.78rem;letter-spacing:0.1em;text-transform:uppercase;color:#666;font-weight:600;">Thank You For Your Business</div>
+        <div style="font-size:0.76rem;color:#aaa;margin-top:4px;">${data.contactLine}</div>
       </div>`),
 
-    warm: () => page(`
-      <div style="background:#FBF6F0;padding:2.5rem 3rem;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem;">
-          <div style="display:flex;align-items:center;gap:12px;">
-            ${logoBlock}
-            <div style="font-size:1.3rem;color:#5C4033;">${brandName}</div>
+    // "Gradient" — soft gradient-wave header, card body (reference: image 3)
+    minimal: () => page(`
+      <div style="background:linear-gradient(135deg, ${accent} 0%, ${accentText} 100%);padding:2.25rem 3rem 3rem;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            ${logoBlock || `<div style="width:32px;height:32px;border-radius:8px;background:rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;font-size:0.9rem;color:${onAccent};">${(brandName || 'O')[0]}</div>`}
+            <div style="color:${onAccent};font-size:0.68rem;text-transform:uppercase;letter-spacing:0.1em;">${brandName}<br><span style="opacity:0.65;font-size:0.62rem;letter-spacing:0.06em;">Idea for invoice</span></div>
           </div>
-          <div style="background:${accent};color:${onAccent};padding:8px 18px;border-radius:20px;font-size:0.85rem;font-weight:600;">Invoice #${data.invoiceNumber}</div>
+          <div style="text-align:right;">
+            <div style="font-family:${wordmarkFont};font-size:1.7rem;font-weight:600;color:${onAccent};">Invoice</div>
+            <div style="font-size:0.72rem;color:${onAccentSoft};margin-top:2px;">No. ${data.invoiceNumber} &nbsp;·&nbsp; ${data.date}</div>
+          </div>
         </div>
-        <div style="background:white;border-radius:16px;padding:2rem 2.25rem;">
+      </div>
+      <div style="padding:2rem 3rem 0;margin-top:-1.5rem;">
+        <div style="background:white;border-radius:14px;box-shadow:0 2px 12px rgba(0,0,0,0.06);padding:1.75rem 2rem;">
           <div style="display:flex;justify-content:space-between;margin-bottom:1.5rem;">
             <div>
-              <div style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.05em;color:${accentText};">For</div>
-              <div style="font-size:1.05rem;font-weight:600;color:#5C4033;">${data.customerName}</div>
-              <div style="font-size:0.8rem;color:#A08670;">${data.customerPhone || ''}</div>
-              ${addressBlockFn('#A08670')}
+              <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.06em;color:#aaa;">Invoice To</div>
+              <div style="font-size:1rem;font-weight:600;margin-top:3px;">${data.customerName}</div>
+              <div style="font-size:0.8rem;color:#aaa;">${data.customerPhone || ''}</div>
+              ${addressBlockFn('#aaa')}
             </div>
             <div style="text-align:right;">
-              <div style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.05em;color:${accentText};">Date</div>
-              <div style="font-size:0.88rem;color:#5C4033;">${data.date}</div>
-              <div style="font-size:0.78rem;color:${accentText};margin-top:4px;">${data.deliveryLabel}</div>
+              <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.06em;color:#aaa;">Due Date</div>
+              <div style="font-size:0.85rem;margin-top:3px;">${data.date}</div>
+              <div style="margin-top:6px;display:inline-block;background:${accent}18;color:${accentText};padding:3px 10px;border-radius:12px;font-size:0.74rem;font-weight:600;">${data.deliveryLabel}</div>
             </div>
           </div>
           <table style="width:100%;border-collapse:collapse;">
             <thead><tr>
-              <th style="text-align:left;padding:8px 0;font-size:0.72rem;text-transform:uppercase;color:#A08670;border-bottom:1px solid #EDE0D3;">Item</th>
-              <th style="text-align:right;padding:8px 0;font-size:0.72rem;text-transform:uppercase;color:#A08670;border-bottom:1px solid #EDE0D3;">Price</th>
-              <th style="text-align:right;padding:8px 0;font-size:0.72rem;text-transform:uppercase;color:#A08670;border-bottom:1px solid #EDE0D3;">Qty</th>
-              <th style="text-align:right;padding:8px 0;font-size:0.72rem;text-transform:uppercase;color:#A08670;border-bottom:1px solid #EDE0D3;">Amt</th>
+              <th style="text-align:left;padding:8px 0;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.05em;color:#aaa;border-bottom:1.5px solid #eee;">Description</th>
+              <th style="text-align:right;padding:8px 0;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.05em;color:#aaa;border-bottom:1.5px solid #eee;">Price</th>
+              <th style="text-align:right;padding:8px 0;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.05em;color:#aaa;border-bottom:1.5px solid #eee;">Qty</th>
+              <th style="text-align:right;padding:8px 0;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.05em;color:#aaa;border-bottom:1.5px solid #eee;">Total</th>
             </tr></thead>
-            <tbody style="font-size:0.9rem;color:#6B5344;">${rows.replace(/#eee/g, '#EDE0D3')}</tbody>
+            <tbody style="font-size:0.9rem;">${rowsStyled(data.items, { border: '#f0f0f0', color: '#333' })}</tbody>
           </table>
-          <div style="max-width:300px;margin-left:auto;padding:1rem 0 0;">
-            <div style="display:flex;justify-content:space-between;font-size:0.88rem;color:#6B5344;padding:3px 0;"><span>Subtotal</span><span>R${data.subtotal}</span></div>
+          <div style="max-width:280px;margin-left:auto;padding-top:0.75rem;">
+            <div style="display:flex;justify-content:space-between;font-size:0.85rem;color:#999;padding:3px 0;"><span>Subtotal</span><span>R${data.subtotal}</span></div>
             ${feeLines}
-            <div style="display:flex;justify-content:space-between;font-size:1.1rem;font-weight:700;color:${accentText};border-top:1.5px solid ${accent};margin-top:8px;padding-top:10px;"><span>Total due</span><span>R${data.total}</span></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;background:${accent};border-radius:8px;padding:0.65rem 1rem;margin-top:8px;">
+              <span style="color:${onAccent};font-weight:600;font-size:0.85rem;">TOTAL DUE</span>
+              <span style="color:${onAccent};font-weight:800;font-size:1.1rem;">R${data.total}</span>
+            </div>
           </div>
-          ${(showNotes && data.notes) ? `<div style="margin-top:1.25rem;"><div style="font-size:0.72rem;text-transform:uppercase;color:#A08670;">Notes</div><div style="font-size:0.85rem;color:#6B5344;background:#FBF6F0;border-radius:8px;padding:0.75rem 1rem;margin-top:4px;">${data.notes}</div></div>` : ''}
-          ${bankingBlockFn({ bg: '#FBF6F0', labelColor: '#A08670', textColor: '#6B5344' })}
         </div>
-        <div style="text-align:center;padding:1.5rem 0 0;">
-          <div style="font-size:0.92rem;color:#5C4033;font-weight:500;">${footerMsg}</div>
-          <div style="font-size:0.78rem;color:#A08670;">${data.contactLine}</div>
+      </div>
+      ${(showNotes && data.notes) ? `<div style="padding:1.5rem 3rem 0;"><div style="background:${accent}0d;border-radius:8px;padding:0.85rem 1rem;font-size:0.85rem;color:#666;"><b style="color:${accentText};">Note:</b> ${data.notes}</div></div>` : ''}
+      <div style="padding:1.75rem 3rem 2.25rem;">
+        <div style="font-size:0.9rem;font-weight:700;margin-bottom:1rem;">${footerMsg}</div>
+        <div style="display:flex;gap:2rem;flex-wrap:wrap;">
+          <div style="flex:1;min-width:140px;">
+            <div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#aaa;">Questions?</div>
+            <div style="font-size:0.8rem;color:#666;margin-top:4px;">${data.contactLine}</div>
+          </div>
+          <div style="flex:1;min-width:180px;">${bankingBlockFn({ bg: '#FAFAFA', labelColor: '#aaa', textColor: '#555', radius: '8px' }) || `<div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#aaa;">Payment</div><div style="font-size:0.8rem;color:#666;margin-top:4px;">Cash on delivery / collection</div>`}</div>
+        </div>
+      </div>`),
+
+    // "Studio" — soft pastel design with hero total-due, tinted to the
+    // store's own accent colour (reference: Brand Name)
+    warm: () => page(`
+      <div style="background:${accent}0d;padding:2.25rem 3rem 1.75rem;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            ${logoBlock || `<div style="width:34px;height:34px;border-radius:10px;background:${accent};display:flex;align-items:center;justify-content:center;font-size:0.95rem;color:${onAccent};">${(brandName || 'O')[0]}</div>`}
+            <div>
+              <div style="font-size:1rem;font-weight:700;color:#1A1A1A;">${brandName}</div>
+              <div style="font-size:0.66rem;color:#999;letter-spacing:0.05em;text-transform:uppercase;">Idea for invoice</div>
+            </div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-family:${wordmarkFont};font-size:1.9rem;font-weight:600;color:#1A1A1A;">Invoice</div>
+            <div style="font-size:0.76rem;color:#999;margin-top:2px;">${data.date}</div>
+          </div>
+        </div>
+        ${data.poweredByOrderly ? `<div style="font-size:0.68rem;color:#bbb;margin-top:0.5rem;">Powered by Orderly</div>` : ''}
+        <div style="height:1px;background:${accent}22;margin:1.5rem 0;"></div>
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div>
+            <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.06em;color:#999;">Invoice Number</div>
+            <div style="font-size:0.88rem;color:#333;margin-top:3px;">${data.invoiceNumber}</div>
+            <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.06em;color:#999;margin-top:0.9rem;">To</div>
+            <div style="font-size:0.95rem;font-weight:600;color:#1A1A1A;margin-top:2px;">${data.customerName}</div>
+            <div style="font-size:0.8rem;color:#999;">${data.customerPhone || ''}</div>
+            ${addressBlockFn('#999')}
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.06em;color:#999;">Total Due</div>
+            <div style="font-size:1.7rem;font-weight:800;color:${accentText};margin-top:2px;">R${data.total}</div>
+            <div style="margin-top:6px;display:inline-block;background:white;color:${accentText};padding:3px 12px;border-radius:12px;font-size:0.74rem;font-weight:600;">${data.deliveryLabel}</div>
+          </div>
+        </div>
+      </div>
+      <div style="padding:1.75rem 3rem 0;">
+        <table style="width:100%;border-collapse:collapse;">
+          <thead><tr>
+            <th style="text-align:left;padding:8px 0;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.05em;color:#aaa;border-bottom:1.5px solid #eee;">Item Description</th>
+            <th style="text-align:right;padding:8px 0;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.05em;color:#aaa;border-bottom:1.5px solid #eee;">Unit Price</th>
+            <th style="text-align:right;padding:8px 0;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.05em;color:#aaa;border-bottom:1.5px solid #eee;">Qty</th>
+            <th style="text-align:right;padding:8px 0;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.05em;color:#aaa;border-bottom:1.5px solid #eee;">Total</th>
+          </tr></thead>
+          <tbody style="font-size:0.9rem;">${rowsStyled(data.items, { border: '#f2f2f2', color: '#333' })}</tbody>
+        </table>
+        <div style="max-width:280px;margin-left:auto;padding-top:0.75rem;">
+          <div style="display:flex;justify-content:space-between;font-size:0.85rem;color:#999;padding:3px 0;"><span>Subtotal</span><span>R${data.subtotal}</span></div>
+          ${feeLines}
+          <div style="display:flex;justify-content:space-between;font-size:1.05rem;font-weight:800;color:#1A1A1A;border-top:2px solid ${accent}33;margin-top:6px;padding-top:8px;"><span>Total Due</span><span>R${data.total}</span></div>
+        </div>
+      </div>
+      ${(showNotes && data.notes) ? `<div style="padding:1.5rem 3rem 0;"><div style="background:${accent}0d;border-radius:8px;padding:0.8rem 1rem;font-size:0.84rem;color:#666;"><b style="color:${accentText};">Note:</b> ${data.notes}</div></div>` : ''}
+      <div style="padding:1.75rem 3rem 2rem;margin-top:0.5rem;display:flex;gap:2.5rem;flex-wrap:wrap;border-top:1px solid #f0f0f0;">
+        <div style="flex:1;min-width:160px;padding-top:1.5rem;">${bankingBlockFn({ bg: `${accent}0d`, labelColor: '#aaa', textColor: '#555', radius: '8px' }) || `<div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#aaa;">Payment Method</div><div style="font-size:0.8rem;color:#666;margin-top:4px;">Cash on delivery / collection</div>`}</div>
+        <div style="flex:1;min-width:160px;padding-top:1.5rem;">
+          <div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#aaa;">Terms &amp; Conditions</div>
+          <div style="font-size:0.8rem;color:#666;margin-top:4px;">${footerMsg}</div>
+          <div style="font-size:0.78rem;color:#aaa;margin-top:6px;">${data.contactLine}</div>
         </div>
       </div>`),
   };

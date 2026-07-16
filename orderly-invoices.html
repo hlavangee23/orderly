@@ -126,8 +126,9 @@ body { font-family: 'DM Sans', sans-serif; background: var(--off-white); color: 
    the preview faithfully; the browser's own print engine can't diverge
    from what it's already rendering). */
 @media print {
+  body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
   body * { visibility: hidden; }
-  .invoice-frame-container, .invoice-frame-container * { visibility: visible; }
+  .invoice-frame-container, .invoice-frame-container * { visibility: visible; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
   .modal-overlay, .modal {
     position: static !important;
     inset: auto !important;
@@ -402,20 +403,20 @@ textarea.form-input { resize: vertical; min-height: 60px; }
           <label class="form-label">Style</label>
           <div class="theme-gallery">
             <div class="theme-card" data-theme="classic" onclick="selectInvoiceTheme('classic')">
-              <div class="theme-swatch" style="background:#0F2318;"><div class="theme-swatch-lines"></div></div>
-              <div class="theme-card-name">Classic</div>
+              <div class="theme-swatch" style="background:#fff;border-bottom:5px solid #B3352B;"><div class="theme-swatch-lines light"></div></div>
+              <div class="theme-card-name">Sharp</div>
             </div>
             <div class="theme-card" data-theme="bold" onclick="selectInvoiceTheme('bold')">
-              <div class="theme-swatch" style="background:#1A1A1A;"><div class="theme-swatch-lines"></div></div>
-              <div class="theme-card-name">Bold</div>
+              <div class="theme-swatch" style="background:#fff;border-bottom:2px solid #eee;"><div class="theme-swatch-lines light"></div></div>
+              <div class="theme-card-name">Executive</div>
             </div>
             <div class="theme-card" data-theme="minimal" onclick="selectInvoiceTheme('minimal')">
-              <div class="theme-swatch" style="background:#fff;border-bottom:2px solid #222;"><div class="theme-swatch-lines light"></div></div>
-              <div class="theme-card-name">Minimal</div>
+              <div class="theme-swatch" style="background:linear-gradient(135deg,#6D28D9,#3B1F73);"><div class="theme-swatch-lines"></div></div>
+              <div class="theme-card-name">Gradient</div>
             </div>
             <div class="theme-card" data-theme="warm" onclick="selectInvoiceTheme('warm')">
-              <div class="theme-swatch" style="background:#FBF6F0;"><div class="theme-swatch-lines warm"></div></div>
-              <div class="theme-card-name">Warm</div>
+              <div class="theme-swatch" style="background:#1D1D1D;"><div class="theme-swatch-lines"></div></div>
+              <div class="theme-card-name">Studio</div>
             </div>
           </div>
 
@@ -540,7 +541,7 @@ let selectedTheme = 'classic';
 let selectedColor = '#2D6A4F';
 let selectedFont = 'modern';
 
-const THEME_DEFAULT_COLORS = { classic: '#2D6A4F', bold: '#B45309', minimal: '#1A1A1A', warm: '#C17A5A' };
+const THEME_DEFAULT_COLORS = { classic: '#B3352B', bold: '#C0392B', minimal: '#6D28D9', warm: '#C94F6D' };
 const COLOR_PRESETS = ['#2D6A4F', '#1D4ED8', '#B45309', '#6D28D9', '#C17A5A', '#0F172A', '#BE123C'];
 
 function openCustomizeModal() {
