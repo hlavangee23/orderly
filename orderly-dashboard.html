@@ -507,37 +507,8 @@ body {
   margin-bottom: 0.25rem;
 }
 .modal-sub { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1.5rem; }
-.invoice-preview {
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  overflow: hidden;
-  margin-bottom: 1.25rem;
-}
-.invoice-head {
-  background: var(--green-900);
-  padding: 1rem 1.25rem;
-  display: flex; justify-content: space-between; align-items: center;
-}
-.invoice-head-logo { font-family: 'Instrument Serif', serif; font-size: 1.1rem; color: white; }
-.invoice-head-num { font-size: 0.75rem; color: rgba(255,255,255,0.5); }
-.invoice-body { padding: 1rem 1.25rem; }
-.invoice-to { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.06em; }
-.invoice-customer { font-size: 0.9rem; font-weight: 500; color: var(--text); margin-bottom: 1rem; }
-.invoice-line {
-  display: flex; justify-content: space-between;
-  font-size: 0.8rem; color: var(--text-mid);
-  padding: 4px 0;
-  border-bottom: 1px solid var(--border);
-}
-.invoice-line:last-child { border-bottom: none; }
-.invoice-total-row {
-  display: flex; justify-content: space-between;
-  padding: 0.75rem 1.25rem;
-  background: var(--green-50);
-  border-top: 1px solid var(--border);
-}
-.invoice-total-label { font-size: 0.82rem; font-weight: 600; color: var(--text-mid); }
-.invoice-total-val { font-family: 'Instrument Serif', serif; font-size: 1.2rem; color: var(--green-700); font-weight: 600; }
+.modal.wide { max-width: 820px; }
+.invoice-frame-container { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 1.25rem; background: white; min-height: 60px; }
 .modal-actions { display: flex; gap: 8px; }
 
 /* PRINT — isolate just the invoice card so "Download PDF" doesn't
@@ -567,7 +538,7 @@ body {
     display: block !important;
   }
   .modal-title, .modal-sub, .modal-actions { display: none !important; }
-  .invoice-preview {
+  .invoice-frame-container {
     width: 100%;
     margin: 0;
     border: none;
@@ -1064,46 +1035,15 @@ textarea.form-input { resize: vertical; line-height: 1.5; }
 
 <!-- INVOICE MODAL -->
 <div class="modal-overlay" id="invoiceModal" onclick="handleModalClick(event)">
-  <div class="modal">
-    <div class="modal-title">Invoice ready</div>
-    <p class="modal-sub">Send this to your customer via WhatsApp or download as PDF</p>
-    <div class="invoice-preview">
-      <div class="invoice-head">
-        <div>
-          <div class="invoice-head-logo">Orderly</div>
-          <div id="invoicePoweredBy" style="font-size:0.62rem;color:rgba(255,255,255,0.35);margin-top:2px;display:none;">Powered by Orderly</div>
-        </div>
-        <div class="invoice-head-num" id="invNum">INV-0001</div>
-      </div>
-      <div class="invoice-body">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem;">
-          <div>
-            <div class="invoice-to">Invoice for</div>
-            <div class="invoice-customer" id="invCustomer">—</div>
-            <div style="font-size:0.72rem;color:#7A9A85;margin-top:2px;" id="invPhone"></div>
-          </div>
-          <div style="text-align:right;">
-            <div style="font-size:0.7rem;color:#7A9A85;text-transform:uppercase;letter-spacing:0.06em;">Date</div>
-            <div style="font-size:0.8rem;font-weight:500;" id="invDate"></div>
-            <div style="font-size:0.7rem;margin-top:4px;padding:2px 8px;border-radius:20px;" id="invDeliveryBadge"></div>
-          </div>
-        </div>
-        <div id="invLines"></div>
-      </div>
-      <div class="invoice-total-row">
-        <div class="invoice-total-label">Total due</div>
-        <div class="invoice-total-val" id="invTotal">R0</div>
-      </div>
-      <!-- BANKING DETAILS — shown if owner has them set up -->
-      <div id="invBankingSection" style="display:none;padding:0.85rem 1.25rem;border-top:1px solid var(--border);background:var(--off-white);">
-        <div style="font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:0.5rem;">Payment details (EFT)</div>
-        <div id="invBankingDetails" style="font-size:0.78rem;color:var(--text-mid);line-height:1.8;"></div>
-      </div>
+  <div class="modal wide">
+    <div class="modal-title">Invoice</div>
+    <p class="modal-sub">Preview and download this invoice</p>
+    <div class="invoice-frame-container">
+      <div id="invoiceFrame"></div>
     </div>
     <div class="modal-actions">
       <button class="modal-btn" onclick="closeModal()">Close</button>
-      <button class="modal-btn" id="invWaBtn" onclick="sendInvoiceWhatsApp()">💬 Send on WhatsApp</button>
-      <button class="modal-btn primary" onclick="printInvoice()">⬇️ Download PDF</button>
+      <button class="modal-btn primary" onclick="printInvoice()">⬇️ Download Invoice</button>
     </div>
   </div>
 </div>
@@ -1370,6 +1310,7 @@ textarea.form-input { resize: vertical; line-height: 1.5; }
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="invoice-renderer.js"></script>
 <script>
 const SUPABASE_URL = 'https://qhcdlfnsjdspisjkfndq.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoY2RsZm5zamRzcGlzamtmbmRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwNDc3MTAsImV4cCI6MjA5NjYyMzcxMH0.1S4jvY38z-0XI22QwlB0Kkr4ttt-ptvDKRayEbk5Bgo';
@@ -1557,6 +1498,36 @@ function hasProAccess(profile) {
   if (!profile) return false;
   const { state } = getTrialState(profile);
   return state === 'pro' || state === 'trial_active' || state === 'trial_ending';
+}
+
+// ── EXPORT LIMIT (Free plan: 10 invoice downloads per calendar month,
+// shared counter with the Invoices tab's downloads + WhatsApp sends) ──
+const EXPORT_LIMIT = 10;
+
+function currentMonthKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+}
+
+async function checkAndConsumeExportAllowance() {
+  if (hasProAccess(userProfile)) return true;
+
+  const month = currentMonthKey();
+  const isCurrentMonth = userProfile.invoice_exports_month === month;
+  const count = isCurrentMonth ? (userProfile.invoice_exports_count || 0) : 0;
+
+  if (count >= EXPORT_LIMIT) {
+    showToast(`Free plan limit reached — ${EXPORT_LIMIT} downloads/sends per month. Upgrade to Pro for unlimited.`);
+    return false;
+  }
+
+  const newCount = count + 1;
+  const { error } = await db.from('profiles').update({ invoice_exports_count: newCount, invoice_exports_month: month }).eq('id', userProfile.id);
+  if (!error) {
+    userProfile.invoice_exports_count = newCount;
+    userProfile.invoice_exports_month = month;
+  }
+  return true;
 }
 
 function initTrialBanner(profile) {
@@ -1863,7 +1834,7 @@ function renderOrders(orders) {
         </div>
         <div class="order-actions">
           ${status !== 'cancelled' && status !== 'delivered' && status !== 'collected' ? `<button class="action-btn confirm" onclick="event.stopPropagation(); openStatusModal('${order.id}', '${order.delivery_type}', '${status}', '${escJs(order.customer_name)}', '${escJs(order.customer_phone)}')">Update status</button>` : ''}
-          <button class="action-btn" onclick="event.stopPropagation(); window.location.href='orderly-invoices.html?order=${order.id}'">🧾 Invoice</button>
+          <button class="action-btn" onclick="event.stopPropagation(); openInvoice('${order.id}')">🧾 Invoice</button>
         </div>
       </div>`;
   });
@@ -1951,7 +1922,7 @@ function openOrderSummary(idx, invoiceArgs) {
 
 function openInvoiceFromSummary() {
   if (currentSummaryOrderId) {
-    window.location.href = 'orderly-invoices.html?order=' + currentSummaryOrderId;
+    openInvoice(currentSummaryOrderId);
   }
 }
 
@@ -2489,86 +2460,63 @@ function handleStatusModalClick(e) {
 }
 
 // ── INVOICE ────────────────────────────────────────────────────────
-function openInvoice(customer, total, itemNames, itemPrices, deliveryType, phone, invNum) {
-  currentInvoiceData = { customer, total, itemNames, itemPrices, deliveryType, phone, invNum };
+function openInvoice(orderId) {
+  const order = allOrdersData.find(o => o.id === orderId);
+  if (!order) return;
 
-  document.getElementById('invCustomer').textContent = customer;
-  document.getElementById('invPhone').textContent = phone || '';
-  document.getElementById('invTotal').textContent = 'R' + total;
-  document.getElementById('invNum').textContent = 'INV-' + (invNum || String(invoiceCount).padStart(4,'0'));
-  document.getElementById('invDate').textContent = new Date().toLocaleDateString('en-ZA', { day:'numeric', month:'short', year:'numeric' });
+  const items = Array.isArray(order.items) ? order.items : [];
+  const invNum = String(order.invoice_number || 0).padStart(4, '0');
+  const isPro = hasProAccess(userProfile);
 
-  const badge = document.getElementById('invDeliveryBadge');
-  badge.textContent = deliveryType === 'delivery' ? '🚗 Delivery' : '🏠 Collection';
-  badge.style.background = deliveryType === 'delivery' ? '#F0FDF4' : '#E0F2FE';
-  badge.style.color = deliveryType === 'delivery' ? '#15803D' : '#0369A1';
+  currentInvoiceData = { invNum };
 
-  // Branding swap — Free plan shows "Orderly", Pro shows their own store name
-  const isPro = userProfile?.plan === 'pro';
-  const brandName = isPro ? (userProfile?.store_name || 'Orderly') : 'Orderly';
-  document.querySelector('.invoice-head-logo').textContent = brandName;
-  const poweredBy = document.getElementById('invoicePoweredBy');
-  if (poweredBy) poweredBy.style.display = isPro ? 'none' : 'block';
+  const deliveryLabels = { delivery: 'Delivery', collection: 'Collection', manual: 'Manual sale' };
+  const deliveryLabel = deliveryLabels[order.delivery_type] || 'Collection';
+  const subtotal = items.reduce((s, i) => s + (i.price * i.qty), 0);
+  const contactParts = [userProfile?.whatsapp, userProfile?.city].filter(Boolean);
 
-  document.getElementById('invLines').innerHTML = itemNames.map((name, i) =>
-    `<div class="invoice-line"><span>${name}</span><span>R${itemPrices[i]}</span></div>`
-  ).join('');
+  // Free plan always gets the plain Orderly-branded classic look — same
+  // rule as the Invoices tab, since this now renders through the exact
+  // same shared function (see invoice-renderer.js).
+  const settings = isPro && userProfile.invoice_settings
+    ? userProfile.invoice_settings
+    : { theme: 'classic', accent_color: '#2D6A4F', font: 'modern', footer_message: 'Thank you for your business!', show_notes: true };
 
-  // Banking details — show if owner has them set up
-  const b = userProfile;
-  const bankingSection = document.getElementById('invBankingSection');
-  const bankingDetails = document.getElementById('invBankingDetails');
-  if (b?.bank_name && b?.bank_account_number) {
-    bankingDetails.innerHTML =
-      `<div>🏦 <strong>Bank:</strong> ${b.bank_name}</div>` +
-      `<div>👤 <strong>Account holder:</strong> ${b.bank_account_holder || b.store_name}</div>` +
-      `<div>💳 <strong>Account number:</strong> ${b.bank_account_number}</div>` +
-      (b.bank_branch_code ? `<div>🔢 <strong>Branch code:</strong> ${b.bank_branch_code}</div>` : '') +
-      `<div style="margin-top:4px;font-size:0.72rem;color:var(--text-muted);">Reference: Customer name</div>`;
-    bankingSection.style.display = 'block';
-  } else {
-    bankingSection.style.display = 'none';
-  }
+  const { cleanNotes, legacyAddress, legacyRush } = extractLegacyNotesInfo(order.notes || '');
 
+  const data = {
+    storeName: userProfile.store_name,
+    logoUrl: userProfile.logo_url || '',
+    poweredByOrderly: !isPro,
+    showWatermark: !isPro,
+    invoiceNumber: invNum,
+    date: new Date(order.created_at).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' }),
+    customerName: order.customer_name,
+    customerPhone: order.customer_phone || '',
+    deliveryAddress: order.delivery_address || legacyAddress,
+    items,
+    subtotal,
+    extra: order.total - subtotal,
+    deliveryFeeCharged: order.delivery_fee_charged || 0,
+    rushFeeCharged: order.rush_fee_charged || 0,
+    total: order.total,
+    notes: cleanNotes,
+    deliveryLabel: legacyRush ? `${deliveryLabel} · ⚡ Rush` : deliveryLabel,
+    contactLine: contactParts.join(' · '),
+    bankName: userProfile?.bank_name || '',
+    bankAccountHolder: userProfile?.bank_account_holder || '',
+    bankAccountNumber: userProfile?.bank_account_number || '',
+    bankBranchCode: userProfile?.bank_branch_code || '',
+  };
+
+  const html = renderInvoiceHTML(settings, data);
+  document.getElementById('invoiceFrame').innerHTML = html;
   document.getElementById('invoiceModal').classList.add('open');
 }
 
-function sendInvoiceWhatsApp() {
-  const d = currentInvoiceData;
-  const isPro = userProfile?.plan === 'pro';
-  const brandName = isPro ? (userProfile?.store_name || 'Orderly') : 'Orderly';
-  const lines = d.itemNames.map((n, i) => `${n} — R${d.itemPrices[i]}`).join('\n');
+async function printInvoice() {
+  if (!(await checkAndConsumeExportAllowance())) return;
 
-  // Build banking details section for WhatsApp if available
-  const b = userProfile;
-  let bankingLine = '';
-  if (b?.bank_name && b?.bank_account_number) {
-    bankingLine = `\n\n💳 *Payment details (EFT)*\n` +
-      `*BANK:* ${b.bank_name}\n` +
-      `*ACCOUNT HOLDER:* ${b.bank_account_holder || b.store_name}\n` +
-      `*ACCOUNT NUMBER:* ${b.bank_account_number}\n` +
-      (b.bank_branch_code ? `*BRANCH CODE:* ${b.bank_branch_code}\n` : '') +
-      `*REFERENCE:* Your name`;
-  }
-
-  const msg = encodeURIComponent(
-    `🧾 *Invoice from ${brandName}*\n` +
-    `INV-${d.invNum} · ${new Date().toLocaleDateString('en-ZA')}\n\n` +
-    `*${d.customer}*\n\n` +
-    lines + `\n\n` +
-    `${d.deliveryType === 'delivery' ? '🚗 Delivery' : '🏠 Collection'}\n` +
-    `*Total: R${d.total}*` +
-    bankingLine +
-    `\n\nThank you for your order! 🙏`
-  );
-  const phone = d.phone?.replace(/\D/g,'') || '';
-  const formatted = phone.startsWith('0') ? '27' + phone.slice(1) : phone;
-  window.open(`https://wa.me/${formatted}?text=${msg}`, '_blank');
-  showToast('Invoice sent on WhatsApp ✓');
-  closeModal();
-}
-
-function printInvoice() {
   const originalTitle = document.title;
   document.title = `Invoice-INV-${currentInvoiceData.invNum || '0000'}`;
 
@@ -2576,8 +2524,8 @@ function printInvoice() {
   window.addEventListener('afterprint', restoreTitle, { once: true });
   setTimeout(restoreTitle, 5000);
 
+  showToast('Opening print dialog — choose "Save as PDF" as the destination');
   window.print();
-  showToast('Saving as PDF... ✓');
 }
 
 function closeModal() {
