@@ -461,15 +461,16 @@ a.btn-primary { text-decoration: none; display: inline-flex; align-items: center
   color: var(--text-mid);
   padding: 0.4rem 0;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
   border-bottom: 1px solid var(--border);
 }
+.price-features li > span { flex: 1; line-height: 1.5; }
 .price-card.featured .price-features li {
   color: rgba(255,255,255,0.75);
   border-bottom-color: rgba(255,255,255,0.1);
 }
-.price-features li::before { content: '✓'; color: var(--green-400); font-weight: 600; font-size: 0.8rem; }
+.price-features li::before { content: '✓'; color: var(--green-400); font-weight: 600; font-size: 0.8rem; line-height: 1.5; }
 .price-features li.off::before { content: '—'; color: var(--border); }
 .price-features li.off { color: var(--text-muted) !important; }
 .btn-outline {
@@ -1180,15 +1181,15 @@ footer {
         <div class="price-amount">R0</div>
         <div class="price-period">forever · perfect to get started</div>
         <ul class="price-features">
-          <li>Up to <strong>50 orders</strong> per month</li>
-          <li>Up to <strong>20 menu items</strong></li>
-          <li>Full invoice history · <strong>10</strong> downloads/month</li>
-          <li>Your own Orderly link</li>
-          <li>Order dashboard & tracking</li>
-          <li>WhatsApp notifications</li>
-          <li>Basic stats</li>
-          <li class="off">Online payments <span class="coming-tag">Soon</span></li>
-          <li class="off">Full analytics <span class="coming-tag">Soon</span></li>
+          <li><span>Up to <strong>50 orders</strong> per month</span></li>
+          <li><span>Up to <strong>20 menu items</strong></span></li>
+          <li><span>Full invoice history · <strong>30</strong> downloads/month</span></li>
+          <li><span>Your own Orderly link</span></li>
+          <li><span>Order dashboard & tracking</span></li>
+          <li><span>WhatsApp notifications</span></li>
+          <li><span>Basic stats</span></li>
+          <li class="off"><span>Online payments <span class="coming-tag">Soon</span></span></li>
+          <li class="off"><span>Full analytics <span class="coming-tag">Soon</span></span></li>
 
         </ul>
         <a class="btn-outline" style="text-decoration:none; display:flex; align-items:center; justify-content:center;" href="orderly-signup.html">Get started free</a>
@@ -1203,16 +1204,16 @@ footer {
         <div class="price-period" id="proPeriod">per month · for growing businesses</div>
         <div class="price-save" id="proSave" style="display:none;">Save R388 vs. paying monthly</div>
         <ul class="price-features">
-          <li><strong>Unlimited</strong> orders</li>
-          <li><strong>Unlimited</strong> menu items</li>
-          <li><strong>Unlimited</strong> invoices</li>
-          <li>4 invoice themes, your branding</li>
-          <li>Unlimited downloads, no watermark</li>
-          <li>Images on your menu</li>
-          <li>Everything in Free</li>
-          <li>Online payments <span class="coming-tag-light">Soon</span></li>
-          <li>Full analytics & insights <span class="coming-tag-light">Soon</span></li>
-          <li>Remove Orderly branding</li>
+          <li><span><strong>Unlimited</strong> orders</span></li>
+          <li><span><strong>Unlimited</strong> menu items</span></li>
+          <li><span><strong>Unlimited</strong> invoices</span></li>
+          <li><span>4 invoice themes, your branding</span></li>
+          <li><span>Unlimited downloads, no watermark</span></li>
+          <li><span>Images on your menu</span></li>
+          <li><span>Everything in Free</span></li>
+          <li><span>Online payments <span class="coming-tag-light">Soon</span></span></li>
+          <li><span>Full analytics & insights <span class="coming-tag-light">Soon</span></span></li>
+          <li><span>Remove Orderly branding</span></li>
         </ul>
         <a class="btn-white" style="text-decoration:none; display:flex; align-items:center; justify-content:center;" href="orderly-signup.html">Start 30-day free trial</a>
         <p class="price-trial">No credit card required</p>
