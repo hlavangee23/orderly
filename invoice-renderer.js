@@ -428,7 +428,7 @@ function renderInvoiceHTML(settings, data) {
       <div style="padding:1.75rem 3rem 0;display:flex;justify-content:space-between;align-items:flex-end;gap:1.5rem;flex-wrap:wrap;">
         <div>
           <div style="font-size:0.78rem;font-weight:700;color:#1A1A1A;margin-bottom:0.4rem;">Payment Method</div>
-          ${data.bankName ? `<div style="font-size:0.8rem;color:#666;line-height:1.7;">${data.bankName}<br>Account No: ${data.bankAccountNumber}</div>` : ''}
+          ${data.bankName ? `<div style="font-size:0.8rem;color:#666;line-height:1.7;">${data.bankName}<br>Account Holder: ${data.bankAccountHolder || data.storeName}<br>Account No: ${data.bankAccountNumber}${data.bankBranchCode ? `<br>Branch Code: ${data.bankBranchCode}` : ''}</div>` : ''}
         </div>
         <div style="background:#1A1A1A;padding:0.7rem 1.5rem;display:flex;gap:1.5rem;align-items:center;border-radius:2px;">
           <span style="color:white;font-weight:600;font-size:0.9rem;">Total:</span>
