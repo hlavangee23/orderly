@@ -2508,6 +2508,10 @@ function openInvoice(orderId) {
     bankAccountHolder: userProfile?.bank_account_holder || '',
     bankAccountNumber: userProfile?.bank_account_number || '',
     bankBranchCode: userProfile?.bank_branch_code || '',
+    // VAT / Tax Invoice — Pro-only, same rule as the Invoices tab.
+    vatRegistered: isPro && !!userProfile?.vat_registered,
+    vatNumber: userProfile?.vat_number || '',
+    vatRate: userProfile?.vat_rate || 15,
   };
 
   const html = renderInvoiceHTML(settings, data);

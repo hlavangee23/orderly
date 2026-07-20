@@ -68,6 +68,12 @@ body { font-family: 'DM Sans', sans-serif; background: var(--off-white); color: 
 .section-title { font-size: 0.9rem; font-weight: 600; color: var(--green-900); }
 .section-sub { font-size: 0.75rem; color: var(--text-muted); margin-top: 1px; }
 .section-body { padding: 1.25rem 1.4rem; }
+.pro-badge { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; background: var(--green-700); color: white; padding: 2px 8px; border-radius: 20px; margin-left: 8px; vertical-align: middle; }
+.locked-overlay { opacity: 0.45; pointer-events: none; }
+.locked-upgrade-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; background: var(--green-50); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.75rem 1rem; margin-top: 1rem; }
+.locked-upgrade-row p { font-size: 0.78rem; color: var(--text-mid); font-weight: 300; }
+.locked-upgrade-btn { background: var(--green-700); color: white; border: none; border-radius: 20px; padding: 0.5rem 1rem; font-family: 'DM Sans', sans-serif; font-size: 0.78rem; font-weight: 500; cursor: pointer; white-space: nowrap; transition: background 0.2s; }
+.locked-upgrade-btn:hover { background: var(--green-900); }
 
 /* FORM ELEMENTS */
 .form-group { margin-bottom: 1.1rem; }
@@ -502,6 +508,50 @@ select.form-input { cursor: pointer; }
     </div>
   </div>
 
+  <!-- TAX INVOICE / VAT — Pro only -->
+  <div class="settings-grid full" style="margin-bottom:1.25rem;">
+    <div class="section-card">
+      <div class="section-header">
+        <div class="section-icon">🧾</div>
+        <div>
+          <div class="section-title">Tax invoice (VAT)<span class="pro-badge">Pro</span></div>
+          <div class="section-sub">For SARS-registered stores — switches your invoices to Tax Invoice format</div>
+        </div>
+      </div>
+      <div class="section-body">
+        <div id="vatEditor">
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <div class="toggle-label">I'm VAT registered</div>
+              <div class="toggle-desc">Adds your VAT number to invoices and labels them "Tax Invoice"</div>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="vatRegistered" onchange="toggleVatFields()" />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="form-group" style="margin-top:1rem;" id="vatNumberGroup">
+            <label class="form-label">VAT number</label>
+            <input class="form-input" type="text" id="vatNumber" placeholder="e.g. 4123456789" />
+            <p class="form-hint">Required for a document to legally count as a tax invoice — shown on every invoice once set.</p>
+          </div>
+          <div class="form-group" id="vatRateGroup">
+            <label class="form-label">VAT rate</label>
+            <div class="input-prefix-wrap">
+              <input type="number" id="vatRate" placeholder="15" min="0" max="100" step="0.01" />
+              <span class="input-prefix" style="border-right:none;border-left:1.5px solid var(--border);">%</span>
+            </div>
+            <p class="form-hint">South Africa's standard VAT rate is currently 15%. Only change this if SARS updates the rate.</p>
+          </div>
+        </div>
+        <div class="locked-upgrade-row" id="vatLockedRow" style="display:none;">
+          <p>Tax invoices with your VAT number are a Pro feature.</p>
+          <button class="locked-upgrade-btn" onclick="showToast('Upgrade coming soon! 🚀')">Upgrade to Pro</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- DANGER ZONE -->
   <div class="settings-grid full">
     <div class="section-card danger-section">
@@ -599,6 +649,11 @@ function populateForm(p) {
   setValue('bankAccountHolder', p.bank_account_holder || '');
   setValue('bankAccountNumber', p.bank_account_number || '');
   setValue('bankBranchCode', p.bank_branch_code || '');
+  setChecked('vatRegistered', !!p.vat_registered);
+  setValue('vatNumber', p.vat_number || '');
+  setValue('vatRate', p.vat_rate || 15);
+  applyVatProGate();
+  toggleVatFields();
 
   // Order link
   const link = `orderlyapp.co.za/order-page.html?store=${p.store_slug}`;
@@ -723,6 +778,15 @@ async function saveAll() {
     bank_account_holder: getValue('bankAccountHolder'),
     bank_account_number: getValue('bankAccountNumber'),
     bank_branch_code:   getValue('bankBranchCode'),
+    // VAT is Pro-only — only include these in the write if the store
+    // actually has Pro access, so a disabled/overlaid form on Free can
+    // never push a stray value through (belt-and-braces alongside the
+    // disabled inputs and pointer-events:none overlay).
+    ...(hasProAccess(userProfile) ? {
+      vat_registered: getChecked('vatRegistered'),
+      vat_number:     getValue('vatNumber'),
+      vat_rate:       parseFloat(getValue('vatRate')) || 15,
+    } : {}),
   };
 
   const { error } = await db.from('profiles')
@@ -758,6 +822,28 @@ function toggleDeliveryFee() {
 function toggleRushFee() {
   const enabled = document.getElementById('rushEnabled').checked;
   document.getElementById('rushFeeGroup').style.opacity = enabled ? '1' : '0.4';
+}
+
+function toggleVatFields() {
+  const enabled = document.getElementById('vatRegistered').checked;
+  document.getElementById('vatNumberGroup').style.opacity = enabled ? '1' : '0.4';
+  document.getElementById('vatRateGroup').style.opacity = enabled ? '1' : '0.4';
+}
+
+// Free plan sees the same section, but dimmed/disabled with an upgrade
+// prompt instead of hidden entirely — same "visible but blocked" pattern
+// as Customize Look on the Invoices page. Whatever they had saved while
+// on Pro (or during a trial) stays visible, just not editable, so a
+// downgraded store isn't left confused about why fields look empty.
+function applyVatProGate() {
+  const isPro = hasProAccess(userProfile);
+  const editor = document.getElementById('vatEditor');
+  const lockedRow = document.getElementById('vatLockedRow');
+  editor.classList.toggle('locked-overlay', !isPro);
+  lockedRow.style.display = isPro ? 'none' : 'flex';
+  document.getElementById('vatRegistered').disabled = !isPro;
+  document.getElementById('vatNumber').disabled = !isPro;
+  document.getElementById('vatRate').disabled = !isPro;
 }
 
 // ── DANGER ZONE ────────────────────────────────────────────────────

@@ -65,6 +65,19 @@ function invoiceFeeLinesHTML(data, color) {
   return html;
 }
 
+// VAT-inclusive info line — Orderly stores/displays item prices and the
+// order total as VAT-inclusive (matches how SA sellers actually price
+// things), so this doesn't add anything on top of the total. It just
+// extracts and displays how much of the existing total is VAT, using the
+// standard SARS rate/(100+rate) formula. Muted styling, sits directly
+// below the fee lines and above the Total — same treatment in all 4 themes.
+function invoiceVatLineHTML(data, mutedColor) {
+  if (!data.vatRegistered) return '';
+  const rate = data.vatRate || 15;
+  const vatAmount = (Number(data.total || 0) * rate / (100 + rate)).toFixed(2);
+  return `<div style="display:flex;justify-content:space-between;padding:0.25rem 0;font-size:0.78rem;color:${mutedColor};"><span>VAT included (${rate}%)</span><span>R${vatAmount}</span></div>`;
+}
+
 // ── COLOR SAFETY ─────────────────────────────────────────────────────
 // Stores can pick any accent color. Without a safeguard, a light pick
 // (yellow, pale pink, mint) makes white text on that color unreadable,
@@ -108,6 +121,11 @@ function renderInvoiceHTML(settings, data) {
   const showNotes = settings.show_notes !== false;
   const rows = invoiceItemRowsHTML(data.items);
   const feeLines = invoiceFeeLinesHTML(data, accent);
+  // A store only shows as a Tax Invoice if it's both VAT-registered AND has
+  // entered a VAT number — half-set-up VAT data shouldn't silently claim
+  // tax-invoice status on a legal document.
+  const isTaxInvoice = !!(data.vatRegistered && data.vatNumber);
+  const invoiceTitleWord = isTaxInvoice ? 'Tax Invoice' : 'Invoice';
   const brandName = data.poweredByOrderly ? 'Orderly' : data.storeName;
   // Takes a size (and optional radius) so the real logo always matches
   // the placeholder circle it's replacing — previously this was a fixed
@@ -226,7 +244,7 @@ function renderInvoiceHTML(settings, data) {
     // (reference: client's Canva design, INV_1)
     classic: () => page(`
       <div style="background:#1A1A1A;padding:2.75rem 3rem;display:flex;justify-content:space-between;align-items:center;">
-        <div style="font-family:${wordmarkFont};font-size:2.6rem;font-weight:600;color:white;line-height:1;">Invoice</div>
+        <div style="font-family:${wordmarkFont};font-size:${isTaxInvoice ? '2.1rem' : '2.6rem'};font-weight:600;color:white;line-height:1;">${invoiceTitleWord}</div>
         ${logoBlock(58, '50%') || `<div style="width:58px;height:58px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.8);display:flex;align-items:center;justify-content:center;font-size:1.3rem;color:white;">${(brandName || 'O')[0]}</div>`}
       </div>
       ${data.poweredByOrderly ? `<div style="font-size:0.68rem;color:rgba(255,255,255,0.4);padding:0.4rem 3rem;background:#1A1A1A;">Powered by Orderly</div>` : ''}
@@ -241,6 +259,7 @@ function renderInvoiceHTML(settings, data) {
           <div style="text-align:right;">
             <div style="font-size:0.85rem;color:#444;">Date: ${data.date}</div>
             <div style="font-size:0.85rem;color:#444;margin-top:4px;">Invoice Number: ${data.invoiceNumber}</div>
+            ${isTaxInvoice ? `<div style="font-size:0.85rem;color:#444;margin-top:4px;">VAT No: ${data.vatNumber}</div>` : ''}
             <div style="margin-top:8px;display:inline-block;background:white;color:${accentText};padding:3px 11px;border-radius:20px;font-size:0.72rem;font-weight:600;">${data.deliveryLabel}</div>
           </div>
         </div>
@@ -259,6 +278,7 @@ function renderInvoiceHTML(settings, data) {
         <div style="max-width:280px;margin-left:auto;padding-top:1rem;">
           <div style="display:flex;justify-content:space-between;font-size:0.85rem;color:#555;padding:0.2rem 0;"><span>Sub-Total</span><span>R${data.subtotal}</span></div>
           ${feeLines}
+          ${invoiceVatLineHTML(data, '#777')}
         </div>
         <div style="background:#1A1A1A;margin:1rem 0 0;padding:0.85rem 1.5rem;display:flex;justify-content:space-between;align-items:center;">
           <span style="color:white;font-weight:600;font-size:0.9rem;">Total Amount:</span>
@@ -297,7 +317,8 @@ function renderInvoiceHTML(settings, data) {
           </div>
         </div>
         ${data.poweredByOrderly ? `<div style="font-size:0.68rem;color:#bbb;margin-top:0.75rem;">Powered by Orderly</div>` : ''}
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-top:2.5rem;">
+        ${isTaxInvoice ? `<div style="font-family:${wordmarkFont};font-size:1.5rem;color:#1A1A1A;margin-top:1.75rem;">Tax Invoice</div>` : ''}
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-top:${isTaxInvoice ? '0.75rem' : '2.5rem'};">
           <div>
             <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.12em;color:#1A1A1A;">ISSUED TO:</div>
             <div style="font-size:0.85rem;color:#555;margin-top:6px;line-height:1.7;">${data.customerName}<br>${data.customerPhone || ''}${addressBlockFn('#555')}</div>
@@ -305,6 +326,7 @@ function renderInvoiceHTML(settings, data) {
           <div style="text-align:right;font-size:0.78rem;color:#555;line-height:1.9;">
             <div><span style="font-weight:700;letter-spacing:0.1em;color:#1A1A1A;">INVOICE NO:</span> &nbsp;${data.invoiceNumber}</div>
             <div><span style="font-weight:700;letter-spacing:0.1em;color:#1A1A1A;">DATE:</span> &nbsp;${data.date}</div>
+            ${isTaxInvoice ? `<div><span style="font-weight:700;letter-spacing:0.1em;color:#1A1A1A;">VAT NO:</span> &nbsp;${data.vatNumber}</div>` : ''}
           </div>
         </div>
       </div>
@@ -320,7 +342,7 @@ function renderInvoiceHTML(settings, data) {
         </table>
         <div style="max-width:300px;margin-left:auto;padding-top:0.5rem;">
           <div style="display:flex;justify-content:space-between;font-size:0.82rem;font-weight:700;color:#1A1A1A;padding:0.5rem 0.9rem;"><span>SUBTOTAL</span><span>R${data.subtotal}</span></div>
-          <div style="padding:0 0.9rem;">${feeLines}</div>
+          <div style="padding:0 0.9rem;">${feeLines}${invoiceVatLineHTML(data, '#777')}</div>
           <div style="display:flex;justify-content:space-between;font-size:0.85rem;font-weight:700;letter-spacing:0.06em;color:#1A1A1A;background:${accent}1f;padding:0.65rem 0.9rem;margin-top:0.25rem;"><span>TOTAL</span><span>R${data.total}</span></div>
         </div>
       </div>
@@ -340,7 +362,7 @@ function renderInvoiceHTML(settings, data) {
     // (reference: client's Canva design, INV_3)
     minimal: () => page(`
       <div style="padding:2.75rem 3rem 0;">
-        <div style="font-size:2.4rem;font-weight:800;letter-spacing:0.45em;color:#1A1A1A;text-align:center;text-indent:0.45em;">Invoice</div>
+        <div style="font-size:${isTaxInvoice ? '1.7rem' : '2.4rem'};font-weight:800;letter-spacing:${isTaxInvoice ? '0.2em' : '0.45em'};color:#1A1A1A;text-align:center;text-indent:${isTaxInvoice ? '0.2em' : '0.45em'};">${invoiceTitleWord}</div>
         ${data.poweredByOrderly ? `<div style="font-size:0.68rem;color:#bbb;text-align:center;margin-top:0.5rem;">Powered by Orderly</div>` : ''}
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-top:2.25rem;">
           <div>
@@ -352,6 +374,7 @@ function renderInvoiceHTML(settings, data) {
           <div style="text-align:right;font-size:0.78rem;color:#555;line-height:1.9;">
             <div><span style="font-weight:700;letter-spacing:0.08em;color:#1A1A1A;">INVOICE NO:</span> &nbsp;${data.invoiceNumber}</div>
             <div><span style="font-weight:700;letter-spacing:0.08em;color:#1A1A1A;">DATE:</span> &nbsp;${data.date}</div>
+            ${isTaxInvoice ? `<div><span style="font-weight:700;letter-spacing:0.08em;color:#1A1A1A;">VAT NO:</span> &nbsp;${data.vatNumber}</div>` : ''}
             <div style="margin-top:6px;display:inline-block;background:${accent}18;color:${accentText};padding:3px 10px;border-radius:12px;font-size:0.72rem;font-weight:600;">${data.deliveryLabel}</div>
           </div>
         </div>
@@ -369,6 +392,7 @@ function renderInvoiceHTML(settings, data) {
         <div style="max-width:280px;margin-left:auto;padding-top:1rem;">
           <div style="display:flex;justify-content:space-between;font-size:0.85rem;font-weight:700;color:#1A1A1A;padding:0.2rem 0;"><span>SUBTOTAL</span><span>R${data.subtotal}</span></div>
           ${feeLines}
+          ${invoiceVatLineHTML(data, '#999')}
           <div style="display:flex;justify-content:space-between;font-size:0.95rem;font-weight:800;color:${accentText};padding:0.4rem 0 0;margin-top:0.3rem;border-top:1px solid #eee;"><span>TOTAL</span><span>R${data.total}</span></div>
         </div>
       </div>
@@ -389,7 +413,7 @@ function renderInvoiceHTML(settings, data) {
     // footer graphic (reference: client's Canva design, INV_4)
     warm: () => page(`
       <div style="padding:2.75rem 3rem 0;display:flex;justify-content:space-between;align-items:flex-start;">
-        <div style="font-size:2.2rem;font-weight:800;letter-spacing:0.35em;text-indent:0.35em;color:${accentText};">Invoice</div>
+        <div style="font-size:${isTaxInvoice ? '1.6rem' : '2.2rem'};font-weight:800;letter-spacing:${isTaxInvoice ? '0.15em' : '0.35em'};text-indent:${isTaxInvoice ? '0.15em' : '0.35em'};color:${accentText};">${invoiceTitleWord}</div>
         ${logoBlock(60, '50%') || `<div style="width:60px;height:60px;border-radius:50%;background:#2A2A2A;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:white;font-style:italic;">${(brandName || 'O')[0]}</div>`}
       </div>
       ${data.poweredByOrderly ? `<div style="font-size:0.68rem;color:#bbb;padding:0.4rem 3rem 0;">Powered by Orderly</div>` : ''}
@@ -403,6 +427,7 @@ function renderInvoiceHTML(settings, data) {
         <div style="text-align:center;font-size:0.78rem;color:#666;">
           <div>Date: ${data.date}</div>
           <div style="margin-top:3px;">Invoice No: ${data.invoiceNumber}</div>
+          ${isTaxInvoice ? `<div style="margin-top:3px;">VAT No: ${data.vatNumber}</div>` : ''}
         </div>
         <div style="text-align:right;">
           <div style="${label('#999')}">total due:</div>
@@ -422,6 +447,7 @@ function renderInvoiceHTML(settings, data) {
         <div style="max-width:280px;margin-left:auto;padding-top:1rem;">
           <div style="display:flex;justify-content:space-between;font-size:0.85rem;color:#999;padding:2px 0;"><span>Sub-total</span><span>R${data.subtotal}</span></div>
           ${feeLines}
+          ${invoiceVatLineHTML(data, '#999')}
         </div>
       </div>
       ${(showNotes && data.notes) ? `<div style="padding:1.5rem 3rem 0;"><div style="${label('#999')}">Notes</div><div style="font-size:0.84rem;color:#666;margin-top:5px;">${data.notes}</div></div>` : ''}

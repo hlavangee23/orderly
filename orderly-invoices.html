@@ -651,6 +651,9 @@ function updateInvoiceLivePreview() {
     bankAccountHolder: userProfile?.bank_account_holder || userProfile?.store_name || 'Your Store',
     bankAccountNumber: userProfile?.bank_account_number || '1234567890',
     bankBranchCode: userProfile?.bank_branch_code || '250655',
+    vatRegistered: !!userProfile?.vat_registered,
+    vatNumber: userProfile?.vat_number || '4123456789',
+    vatRate: userProfile?.vat_rate || 15,
   };
   const html = renderInvoiceHTML(settings, sampleData);
   const frame = document.getElementById('invoiceLivePreviewFrame');
@@ -991,6 +994,12 @@ function openInvoiceFromOrder(orderId) {
     bankAccountHolder: userProfile?.bank_account_holder || '',
     bankAccountNumber: userProfile?.bank_account_number || '',
     bankBranchCode: userProfile?.bank_branch_code || '',
+    // VAT / Tax Invoice — Pro-only. Gated here as well as in the settings UI,
+    // so a store that downgrades from Pro can't keep issuing "Tax Invoice"
+    // documents just because vat_registered is still true on their profile.
+    vatRegistered: isPro && !!userProfile?.vat_registered,
+    vatNumber: userProfile?.vat_number || '',
+    vatRate: userProfile?.vat_rate || 15,
   };
 
   const html = renderInvoiceHTML(settings, data);
