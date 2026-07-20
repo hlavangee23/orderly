@@ -65,17 +65,21 @@ function invoiceFeeLinesHTML(data, color) {
   return html;
 }
 
-// VAT-inclusive info line — Orderly stores/displays item prices and the
-// order total as VAT-inclusive (matches how SA sellers actually price
-// things), so this doesn't add anything on top of the total. It just
-// extracts and displays how much of the existing total is VAT, using the
-// standard SARS rate/(100+rate) formula. Muted styling, sits directly
-// below the fee lines and above the Total — same treatment in all 4 themes.
+// VAT breakdown — shown in standard SARS tax-invoice form: subtotal
+// EXCLUDING VAT, then VAT, positioned directly above Total. These two
+// lines add up exactly to Total (unlike a single "VAT included" line,
+// which reads ambiguously — people expect a Subtotal/VAT stack to sum to
+// the Total below it, the way real till slips and tax invoices do).
+// The order total itself never changes — Orderly prices are already
+// VAT-inclusive — this only affects how it's broken down on the page.
 function invoiceVatLineHTML(data, mutedColor) {
   if (!data.vatRegistered) return '';
   const rate = data.vatRate || 15;
-  const vatAmount = (Number(data.total || 0) * rate / (100 + rate)).toFixed(2);
-  return `<div style="display:flex;justify-content:space-between;padding:0.25rem 0;font-size:0.78rem;color:${mutedColor};"><span>VAT included (${rate}%)</span><span>R${vatAmount}</span></div>`;
+  const total = Number(data.total || 0);
+  const vatAmount = total * rate / (100 + rate);
+  const exVatAmount = total - vatAmount;
+  const row = (label, amount) => `<div style="display:flex;justify-content:space-between;padding:0.25rem 0;font-size:0.78rem;color:${mutedColor};"><span>${label}</span><span>R${amount.toFixed(2)}</span></div>`;
+  return row('Subtotal (excl. VAT)', exVatAmount) + row(`VAT (${rate}%)`, vatAmount);
 }
 
 // ── COLOR SAFETY ─────────────────────────────────────────────────────
