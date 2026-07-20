@@ -6,6 +6,10 @@
 // Uses the same env vars as send-trial-emails.js — no new setup needed:
 //   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, RESEND_API_KEY,
 //   RESEND_FROM (e.g. "Orderly <hello@orderlyapp.co.za>")
+// Plus one new one, added as part of this fix:
+//   ORDERLY_WEBHOOK_SECRET — a random string only this file and the
+//   Postgres trigger know. See the accompanying SQL migration for how
+//   it's sent.
 //
 // Talks to Supabase via plain REST fetch calls, same as send-trial-emails.js
 // — deliberately NOT using the @supabase/supabase-js package, since this
@@ -17,10 +21,30 @@
 // logged so you can see intent, but nothing is sent — that's blocked on
 // Meta Business verification + approved message templates (Phase 3).
 // When that's ready, this is the only file that needs a new branch added.
+//
+// ── SECURITY: this endpoint is only meant to be called by the Postgres
+// trigger, never directly by a browser or anyone else. Two checks
+// enforce that:
+//   1. A shared-secret header, checked before anything else runs.
+//   2. Cross-validation that the order actually belongs to the given
+//      store — without this, someone could pair a real order_id from
+//      one store with a different store's profile_id and trigger a
+//      false "new order" notification for a store that never received
+//      that order.
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  // ── SHARED-SECRET CHECK ──────────────────────────────────────────
+  // Must match the header the Postgres trigger sends. Without this,
+  // this endpoint (and the service-role-backed data it fetches) is
+  // reachable by anyone on the internet who finds the URL.
+  const providedSecret = req.headers['x-orderly-webhook-secret'];
+  if (!providedSecret || providedSecret !== process.env.ORDERLY_WEBHOOK_SECRET) {
+    console.error('notify-new-order: rejected request with invalid/missing webhook secret');
+    return res.status(401).json({ error: 'Unauthorized' });
   }
 
   const { order_id, profile_id } = req.body || {};
@@ -55,6 +79,16 @@ export default async function handler(req, res) {
     if (!order) {
       console.error('notify-new-order: order not found', order_id);
       return res.status(404).json({ error: 'Order not found' });
+    }
+
+    // ── CROSS-VALIDATION ────────────────────────────────────────────
+    // The order and profile were fetched independently by id — confirm
+    // they actually belong together before notifying anyone. Without
+    // this, a real order_id could be paired with an unrelated store's
+    // profile_id to send that store a false "new order" alert.
+    if (order.profile_id !== profile.id) {
+      console.error('notify-new-order: order/profile mismatch', { order_id, profile_id });
+      return res.status(400).json({ error: 'Order does not belong to this store' });
     }
 
     const results = { email: 'skipped', whatsapp: 'skipped', customer_receipt: 'skipped' };
