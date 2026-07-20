@@ -75,6 +75,24 @@ body { font-family: 'DM Sans', sans-serif; background: var(--off-white); color: 
 .locked-upgrade-btn { background: var(--green-700); color: white; border: none; border-radius: 20px; padding: 0.5rem 1rem; font-family: 'DM Sans', sans-serif; font-size: 0.78rem; font-weight: 500; cursor: pointer; white-space: nowrap; transition: background 0.2s; }
 .locked-upgrade-btn:hover { background: var(--green-900); }
 
+/* UNSAVED CHANGES BAR */
+.unsaved-bar {
+  position: fixed; left: var(--sidebar-w); right: 0; bottom: 0; z-index: 60;
+  background: var(--green-900); color: white;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.9rem 2rem; box-shadow: 0 -4px 20px rgba(15,35,24,0.18);
+  transform: translateY(100%); transition: transform 0.25s ease;
+}
+.unsaved-bar.show { transform: translateY(0); }
+.unsaved-bar-text { font-size: 0.85rem; display: flex; align-items: center; gap: 8px; }
+.unsaved-bar-actions { display: flex; gap: 0.6rem; }
+.unsaved-bar-btn { border: none; border-radius: var(--radius); padding: 0.55rem 1.1rem; font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 500; cursor: pointer; transition: background 0.2s, opacity 0.2s; }
+.unsaved-bar-btn.discard { background: transparent; color: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.25); }
+.unsaved-bar-btn.discard:hover { color: white; border-color: rgba(255,255,255,0.5); }
+.unsaved-bar-btn.save { background: var(--green-400); color: white; }
+.unsaved-bar-btn.save:hover { background: var(--green-500); }
+.unsaved-bar-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
 /* FORM ELEMENTS */
 .form-group { margin-bottom: 1.1rem; }
 .form-group:last-child { margin-bottom: 0; }
@@ -577,6 +595,14 @@ select.form-input { cursor: pointer; }
 
 </main>
 
+<div class="unsaved-bar" id="unsavedBar">
+  <div class="unsaved-bar-text">⚠️ You have unsaved changes</div>
+  <div class="unsaved-bar-actions">
+    <button class="unsaved-bar-btn discard" onclick="discardChanges()">Discard</button>
+    <button class="unsaved-bar-btn save" id="unsavedBarSaveBtn" onclick="saveAll()">Save changes</button>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -590,6 +616,7 @@ let userProfile = null;
 let pendingLogoFile = null;
 let existingLogoUrl = null;
 let logoRemoved = false;
+let isDirty = false;
 
 const TRIAL_DAYS = 30;
 function hasProAccess(profile) {
@@ -614,8 +641,45 @@ async function init() {
   userProfile = profile;
   populateForm(profile);
   updateSidebar(profile);
+  attachDirtyTracking();
 
   document.getElementById('loadingOverlay').style.display = 'none';
+}
+
+// ── UNSAVED CHANGES TRACKING ─────────────────────────────────────────
+// Delegated listener on .main catches every real user edit (typed input,
+// checkbox/toggle flip, select change) without needing to wire each field
+// individually. Programmatic value-setting during populateForm() doesn't
+// fire input/change events, so this only ever reacts to actual edits —
+// loading/discarding never falsely marks the form dirty.
+function attachDirtyTracking() {
+  const main = document.querySelector('.main');
+  main.addEventListener('input', markDirty);
+  main.addEventListener('change', markDirty);
+  window.addEventListener('beforeunload', (e) => {
+    if (!isDirty) return;
+    e.preventDefault();
+    e.returnValue = '';
+  });
+}
+
+function markDirty() {
+  if (isDirty) return;
+  isDirty = true;
+  document.getElementById('unsavedBar').classList.add('show');
+}
+
+function clearDirty() {
+  isDirty = false;
+  document.getElementById('unsavedBar').classList.remove('show');
+}
+
+function discardChanges() {
+  pendingLogoFile = null;
+  logoRemoved = false;
+  populateForm(userProfile);
+  clearDirty();
+  showToast('Changes discarded');
 }
 
 // ── POPULATE FORM ──────────────────────────────────────────────────
@@ -730,8 +794,11 @@ function compressImage(file, maxSize, quality) {
 // ── SAVE ALL ───────────────────────────────────────────────────────
 async function saveAll() {
   const btn = document.getElementById('saveBtn');
+  const barBtn = document.getElementById('unsavedBarSaveBtn');
   btn.disabled = true;
   btn.textContent = 'Saving...';
+  barBtn.disabled = true;
+  barBtn.textContent = 'Saving...';
 
   let logoUrl = existingLogoUrl;
 
@@ -795,6 +862,8 @@ async function saveAll() {
 
   btn.disabled = false;
   btn.textContent = 'Save changes';
+  barBtn.disabled = false;
+  barBtn.textContent = 'Save changes';
 
   if (error) {
     showToast('Could not save — please try again');
@@ -806,6 +875,7 @@ async function saveAll() {
   pendingLogoFile = null;
   logoRemoved = false;
   updateSidebar(userProfile);
+  clearDirty();
 
   const indicator = document.getElementById('saveIndicator');
   indicator.classList.add('show');
