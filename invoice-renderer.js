@@ -18,12 +18,33 @@ const FONT_STACKS = {
   clean: "Verdana, Geneva, sans-serif",
 };
 
+// ── XSS SAFETY ────────────────────────────────────────────────────────
+// Every value in `data` ultimately comes from the `orders` table, which
+// is written by anonymous customers on the public order page — including
+// via direct API calls that never touch order-page.html's own validation.
+// A crafted customer_name/notes/delivery_address/item.name containing
+// HTML gets interpolated into this file's template strings and rendered
+// via innerHTML in the STORE OWNER's authenticated dashboard/invoices
+// session — a stored XSS reaching a different, logged-in user. Every
+// customer-controlled field below is passed through this before being
+// placed in the HTML.
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function invoiceItemRowsHTML(items) {
   return items.map(i => {
     const amount = i.price * i.qty;
-    return `<tr><td style="padding:0.65rem 0;border-bottom:1px solid #eee;">${i.name}</td><td style="padding:0.65rem 0;border-bottom:1px solid #eee;text-align:right;">R${i.price}</td><td style="padding:0.65rem 0;border-bottom:1px solid #eee;text-align:right;">${i.qty}</td><td style="padding:0.65rem 0;border-bottom:1px solid #eee;text-align:right;font-weight:600;">R${amount}</td></tr>`;
+    return `<tr><td style="padding:0.65rem 0;border-bottom:1px solid #eee;">${escapeHtml(i.name)}</td><td style="padding:0.65rem 0;border-bottom:1px solid #eee;text-align:right;">R${i.price}</td><td style="padding:0.65rem 0;border-bottom:1px solid #eee;text-align:right;">${i.qty}</td><td style="padding:0.65rem 0;border-bottom:1px solid #eee;text-align:right;font-weight:600;">R${amount}</td></tr>`;
   }).join('');
 }
+
 
 // Orders placed before delivery_address/rush columns existed stored the
 // address and rush flag as plain text stuffed into notes, e.g.
@@ -123,6 +144,15 @@ function renderInvoiceHTML(settings, data) {
   const showNotes = settings.show_notes !== false;
   const rows = invoiceItemRowsHTML(data.items);
   const feeLines = invoiceFeeLinesHTML(data, accent);
+  // Escaped once, here, rather than at each of the dozen places these get
+  // interpolated below — every customer_name/phone/address/notes value on
+  // this invoice came from the public order page (including anyone
+  // calling the API directly, bypassing that page's own JS validation),
+  // so all of it is untrusted input as far as this renderer is concerned.
+  const customerNameSafe = escapeHtml(data.customerName);
+  const customerPhoneSafe = escapeHtml(data.customerPhone || '');
+  const deliveryAddressSafe = escapeHtml(data.deliveryAddress || '');
+  const notesSafe = escapeHtml(data.notes || '');
   // A store only shows as a Tax Invoice if it's both VAT-registered AND has
   // entered a VAT number — half-set-up VAT data shouldn't silently claim
   // tax-invoice status on a legal document.
@@ -140,7 +170,7 @@ function renderInvoiceHTML(settings, data) {
   // Each theme has its own muted-text tone — the address line now matches
   // whichever theme it's rendered in instead of one hardcoded green.
   const addressBlockFn = (mutedColor) => (data.deliveryAddress)
-    ? `<div style="margin-top:3px;font-size:0.78rem;color:${mutedColor};">Deliver to: ${data.deliveryAddress}</div>` : '';
+    ? `<div style="margin-top:3px;font-size:0.78rem;color:${mutedColor};">Deliver to: ${deliveryAddressSafe}</div>` : '';
 
   // Payment/EFT details — only rendered if the store has bank details set up.
   // Mirrors the wording/icons used in the dashboard's per-order invoice modal.
@@ -185,7 +215,7 @@ function renderInvoiceHTML(settings, data) {
   // Row renderer used by the light-background themes (Sharp, Gradient).
   const rowsStyled = (items, { border = '#eee', color = '#222' } = {}) => items.map(i => {
     const amount = i.price * i.qty;
-    return `<tr><td style="padding:0.65rem 0;border-bottom:1px solid ${border};color:${color};">${i.name}</td><td style="padding:0.65rem 0;border-bottom:1px solid ${border};text-align:right;color:${color};">R${i.price}</td><td style="padding:0.65rem 0;border-bottom:1px solid ${border};text-align:right;color:${color};">${i.qty}</td><td style="padding:0.65rem 0;border-bottom:1px solid ${border};text-align:right;font-weight:600;color:${color};">R${amount}</td></tr>`;
+    return `<tr><td style="padding:0.65rem 0;border-bottom:1px solid ${border};color:${color};">${escapeHtml(i.name)}</td><td style="padding:0.65rem 0;border-bottom:1px solid ${border};text-align:right;color:${color};">R${i.price}</td><td style="padding:0.65rem 0;border-bottom:1px solid ${border};text-align:right;color:${color};">${i.qty}</td><td style="padding:0.65rem 0;border-bottom:1px solid ${border};text-align:right;font-weight:600;color:${color};">R${amount}</td></tr>`;
   }).join('');
 
   // Row renderer for the numbered-index table used by Studio.
@@ -193,7 +223,7 @@ function renderInvoiceHTML(settings, data) {
   const rowsZebra = (items, { stripe = '#f5f5f5', color = '#222', padX = '1rem' } = {}) => items.map((i, idx) => {
     const amount = i.price * i.qty;
     const bg = idx % 2 === 1 ? stripe : 'transparent';
-    return `<tr style="background:${bg};"><td style="padding:0.75rem ${padX};color:${color};">${i.name}</td><td style="padding:0.75rem ${padX};text-align:right;color:${color};">${i.qty}</td><td style="padding:0.75rem ${padX};text-align:right;color:${color};">R${i.price}</td><td style="padding:0.75rem ${padX};text-align:right;font-weight:600;color:${color};">R${amount}</td></tr>`;
+    return `<tr style="background:${bg};"><td style="padding:0.75rem ${padX};color:${color};">${escapeHtml(i.name)}</td><td style="padding:0.75rem ${padX};text-align:right;color:${color};">${i.qty}</td><td style="padding:0.75rem ${padX};text-align:right;color:${color};">R${i.price}</td><td style="padding:0.75rem ${padX};text-align:right;font-weight:600;color:${color};">R${amount}</td></tr>`;
   }).join('');
 
   // No-border row renderer — generous vertical rhythm, no per-row divider
@@ -201,7 +231,7 @@ function renderInvoiceHTML(settings, data) {
   // INV_1 style).
   const rowsOpen = (items, { color = '#222' } = {}) => items.map(i => {
     const amount = i.price * i.qty;
-    return `<tr><td style="padding:0.55rem 0;color:${color};">${i.name}</td><td style="padding:0.55rem 0;text-align:right;color:${color};">${i.qty}</td><td style="padding:0.55rem 0;text-align:right;color:${color};">R${i.price}</td><td style="padding:0.55rem 0;text-align:right;font-weight:600;color:${color};">R${amount}</td></tr>`;
+    return `<tr><td style="padding:0.55rem 0;color:${color};">${escapeHtml(i.name)}</td><td style="padding:0.55rem 0;text-align:right;color:${color};">${i.qty}</td><td style="padding:0.55rem 0;text-align:right;color:${color};">R${i.price}</td><td style="padding:0.55rem 0;text-align:right;font-weight:600;color:${color};">R${amount}</td></tr>`;
   }).join('');
 
   // Bullet-style payment method list (INV_1's look) as an alternative to
@@ -254,8 +284,8 @@ function renderInvoiceHTML(settings, data) {
         <div style="display:flex;justify-content:space-between;align-items:flex-start;">
           <div>
             <div style="font-size:0.85rem;font-weight:700;color:#1A1A1A;">Bill To:</div>
-            <div style="font-size:0.85rem;color:#444;margin-top:6px;">${data.customerName}</div>
-            <div style="font-size:0.85rem;color:#444;">${data.customerPhone || ''}</div>
+            <div style="font-size:0.85rem;color:#444;margin-top:6px;">${customerNameSafe}</div>
+            <div style="font-size:0.85rem;color:#444;">${customerPhoneSafe}</div>
             ${addressBlockFn('#444')}
           </div>
           <div style="text-align:right;">
@@ -297,7 +327,7 @@ function renderInvoiceHTML(settings, data) {
           <div style="font-size:2rem;font-weight:800;color:#1A1A1A;margin-top:2px;">R${data.total}</div>
         </div>
       </div>
-      ${(showNotes && data.notes) ? `<div style="background:${accent}12;padding:1.25rem 3rem 0;"><div style="${label('#666')}">Notes</div><div style="font-size:0.84rem;color:#555;margin-top:5px;">${data.notes}</div></div>` : ''}
+      ${(showNotes && notesSafe) ? `<div style="background:${accent}12;padding:1.25rem 3rem 0;"><div style="${label('#666')}">Notes</div><div style="font-size:0.84rem;color:#555;margin-top:5px;">${notesSafe}</div></div>` : ''}
       <div style="background:${accent}12;padding:1.75rem 3rem 2.25rem;margin-top:0.5rem;">
         <div style="border-top:1px solid rgba(26,26,26,0.15);padding-top:1.5rem;display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:1rem;">
           <div style="font-family:${wordmarkFont};font-size:1.9rem;color:#1A1A1A;">Thank You</div>
@@ -323,7 +353,7 @@ function renderInvoiceHTML(settings, data) {
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-top:${isTaxInvoice ? '0.75rem' : '2.5rem'};">
           <div>
             <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.12em;color:#1A1A1A;">ISSUED TO:</div>
-            <div style="font-size:0.85rem;color:#555;margin-top:6px;line-height:1.7;">${data.customerName}<br>${data.customerPhone || ''}${addressBlockFn('#555')}</div>
+            <div style="font-size:0.85rem;color:#555;margin-top:6px;line-height:1.7;">${customerNameSafe}<br>${customerPhoneSafe}${addressBlockFn('#555')}</div>
           </div>
           <div style="text-align:right;font-size:0.78rem;color:#555;line-height:1.9;">
             <div><span style="font-weight:700;letter-spacing:0.1em;color:#1A1A1A;">INVOICE NO:</span> &nbsp;${data.invoiceNumber}</div>
@@ -348,7 +378,7 @@ function renderInvoiceHTML(settings, data) {
           <div style="display:flex;justify-content:space-between;font-size:0.85rem;font-weight:700;letter-spacing:0.06em;color:#1A1A1A;background:${accent}1f;padding:0.65rem 0.9rem;margin-top:0.25rem;"><span>TOTAL</span><span>R${data.total}</span></div>
         </div>
       </div>
-      ${(showNotes && data.notes) ? `<div style="padding:2rem 3rem 0;"><div style="font-size:0.72rem;font-weight:700;letter-spacing:0.1em;color:#1A1A1A;">NOTES</div><div style="font-size:0.84rem;color:#666;margin-top:6px;">${data.notes}</div></div>` : ''}
+      ${(showNotes && notesSafe) ? `<div style="padding:2rem 3rem 0;"><div style="font-size:0.72rem;font-weight:700;letter-spacing:0.1em;color:#1A1A1A;">NOTES</div><div style="font-size:0.84rem;color:#666;margin-top:6px;">${notesSafe}</div></div>` : ''}
       <div style="padding:2.5rem 3rem 2.5rem;display:flex;justify-content:space-between;align-items:flex-start;gap:2rem;flex-wrap:wrap;">
         <div>
           <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.12em;color:#1A1A1A;margin-bottom:0.5rem;">BANK DETAILS</div>
@@ -369,8 +399,8 @@ function renderInvoiceHTML(settings, data) {
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-top:2.25rem;">
           <div>
             <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.1em;color:#1A1A1A;">ISSUED TO:</div>
-            <div style="font-size:0.85rem;color:#555;margin-top:6px;">${data.customerName}</div>
-            <div style="font-size:0.85rem;color:#555;">${data.customerPhone || ''}</div>
+            <div style="font-size:0.85rem;color:#555;margin-top:6px;">${customerNameSafe}</div>
+            <div style="font-size:0.85rem;color:#555;">${customerPhoneSafe}</div>
             ${addressBlockFn('#555')}
           </div>
           <div style="text-align:right;font-size:0.78rem;color:#555;line-height:1.9;">
@@ -398,7 +428,7 @@ function renderInvoiceHTML(settings, data) {
           <div style="display:flex;justify-content:space-between;font-size:0.95rem;font-weight:800;color:${accentText};padding:0.4rem 0 0;margin-top:0.3rem;border-top:1px solid #eee;"><span>TOTAL</span><span>R${data.total}</span></div>
         </div>
       </div>
-      ${(showNotes && data.notes) ? `<div style="padding:1.75rem 3rem 0;"><div style="font-size:0.72rem;font-weight:700;letter-spacing:0.1em;color:#1A1A1A;">NOTES</div><div style="font-size:0.84rem;color:#666;margin-top:6px;">${data.notes}</div></div>` : ''}
+      ${(showNotes && notesSafe) ? `<div style="padding:1.75rem 3rem 0;"><div style="font-size:0.72rem;font-weight:700;letter-spacing:0.1em;color:#1A1A1A;">NOTES</div><div style="font-size:0.84rem;color:#666;margin-top:6px;">${notesSafe}</div></div>` : ''}
       <div style="padding:2.25rem 3rem 0;display:flex;justify-content:space-between;align-items:flex-start;gap:1.5rem;flex-wrap:wrap;">
         <div>
           <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.1em;color:#1A1A1A;">PAY TO:</div>
@@ -422,8 +452,8 @@ function renderInvoiceHTML(settings, data) {
       <div style="padding:1.75rem 3rem 0;display:flex;justify-content:space-between;align-items:flex-start;">
         <div>
           <div style="font-size:0.7rem;text-transform:lowercase;letter-spacing:0.06em;color:#999;">invoice to:</div>
-          <div style="font-size:1.05rem;font-weight:700;color:#1A1A1A;margin-top:4px;display:inline-block;border-bottom:2px solid ${accent};padding-bottom:2px;">${data.customerName}</div>
-          <div style="font-size:0.8rem;color:#999;margin-top:6px;">${data.customerPhone || ''}</div>
+          <div style="font-size:1.05rem;font-weight:700;color:#1A1A1A;margin-top:4px;display:inline-block;border-bottom:2px solid ${accent};padding-bottom:2px;">${customerNameSafe}</div>
+          <div style="font-size:0.8rem;color:#999;margin-top:6px;">${customerPhoneSafe}</div>
           ${addressBlockFn('#999')}
         </div>
         <div style="text-align:center;font-size:0.78rem;color:#666;">
@@ -452,7 +482,7 @@ function renderInvoiceHTML(settings, data) {
           ${invoiceVatLineHTML(data, '#999')}
         </div>
       </div>
-      ${(showNotes && data.notes) ? `<div style="padding:1.5rem 3rem 0;"><div style="${label('#999')}">Notes</div><div style="font-size:0.84rem;color:#666;margin-top:5px;">${data.notes}</div></div>` : ''}
+      ${(showNotes && notesSafe) ? `<div style="padding:1.5rem 3rem 0;"><div style="${label('#999')}">Notes</div><div style="font-size:0.84rem;color:#666;margin-top:5px;">${notesSafe}</div></div>` : ''}
       <div style="padding:1.75rem 3rem 0;display:flex;justify-content:space-between;align-items:flex-end;gap:1.5rem;flex-wrap:wrap;">
         <div>
           <div style="font-size:0.78rem;font-weight:700;color:#1A1A1A;margin-bottom:0.4rem;">Payment Method</div>

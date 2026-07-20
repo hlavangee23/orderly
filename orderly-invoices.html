@@ -483,6 +483,19 @@ let manualLines = [];
 const EXPORT_LIMIT = 30; // Free plan: max PDF downloads + WhatsApp sends per calendar month, combined
 const TRIAL_DAYS = 30;
 
+// Safe for plain HTML body text (template strings assigned to innerHTML).
+// order.customer_name / item.name come from the public order page,
+// including anyone hitting the API directly — untrusted input.
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function getTrialState(profile) {
   if (profile.plan === 'pro') return { state: 'pro' };
   const trialStart = new Date(profile.trial_start_date || profile.created_at);
@@ -833,7 +846,7 @@ function renderRow(order) {
   const invNum = String(order.invoice_number || 0).padStart(4, '0');
   const date = new Date(order.created_at).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' });
   const items = Array.isArray(order.items) ? order.items : [];
-  const itemSummary = items.map(i => `${i.qty}× ${i.name}`).join(', ');
+  const itemSummary = items.map(i => `${i.qty}× ${escapeHtml(i.name)}`).join(', ');
 
   const onclickAttr = `onclick="openInvoiceFromOrder('${order.id}')"`;
 
@@ -842,7 +855,7 @@ function renderRow(order) {
       ${paymentStatusBadgeHTML(order)}
       <div class="inv-number">INV-${invNum}</div>
       <div class="inv-info">
-        <div class="inv-customer">${order.customer_name}</div>
+        <div class="inv-customer">${escapeHtml(order.customer_name)}</div>
         <div class="inv-meta">${itemSummary || 'No items'}</div>
       </div>
       <div class="inv-amount">R${order.total}</div>

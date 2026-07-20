@@ -1786,8 +1786,29 @@ function getStatusMessage(status, order, storeName) {
 function escJs(str) {
   return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 }
+// Safe for plain HTML body text (e.g. inside a <div>...</div> built via
+// a template string that gets assigned to innerHTML).
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+// Safe for a value embedded inside a single-quoted JS string literal
+// that itself sits inside a double-quoted HTML attribute, e.g.
+// onclick="doThing('${escAttr(order.customer_name)}')". escJs alone
+// only protects the JS-string boundary (backslash/single-quote) — a
+// literal double-quote in the source value would still break out of the
+// onclick="..." attribute itself. This escapes the HTML-attribute layer
+// first, then the JS-string layer, so both boundaries hold.
+function escAttr(str) {
+  return escJs(escapeHtml(str));
+}
 function jsArrayLiteral(arr) {
-  return '[' + arr.map(v => `'${escJs(v)}'`).join(',') + ']';
+  return '[' + arr.map(v => `'${escAttr(v)}'`).join(',') + ']';
 }
 
 // ── RENDER REAL ORDERS ─────────────────────────────────────────────
@@ -1813,20 +1834,20 @@ function renderOrders(orders) {
     const rushBadge = order.notes?.includes('RUSH') ? `<span class="order-badge" style="background:#FFFBEB;color:#92400E;font-size:0.65rem;">⚡ Rush</span>` : '';
 
     const items = Array.isArray(order.items) ? order.items : [];
-    const itemSummary = items.map(i => `${i.qty}× ${i.name}`).join(', ');
+    const itemSummary = items.map(i => `${i.qty}× ${escapeHtml(i.name)}`).join(', ');
     const itemNames = items.map(i => `${i.qty}× ${i.name}`);
     const itemPrices = items.map(i => i.price * i.qty);
 
     const timeAgo = getTimeAgo(order.created_at);
     const invNum = String(order.invoice_number || idx + 1).padStart(4, '0');
-    const orderDataStr = `'${escJs(order.customer_name)}', ${order.total}, ${jsArrayLiteral(itemNames)}, [${itemPrices.join(',')}], '${order.delivery_type}', '${escJs(order.customer_phone)}', '${invNum}'`;
+    const orderDataStr = `'${escAttr(order.customer_name)}', ${order.total}, ${jsArrayLiteral(itemNames)}, [${itemPrices.join(',')}], '${escAttr(order.delivery_type)}', '${escAttr(order.customer_phone)}', '${escAttr(invNum)}'`;
 
     html += `
       <div class="order-row" data-order-idx="${idx}" onclick="handleOrderRowClick(event, ${idx}, ${orderDataStr})">
         <input type="checkbox" class="order-checkbox" onclick="event.stopPropagation(); toggleOrderSelect(${idx})" id="check-${idx}">
         <div class="order-status-dot ${info.dot}"></div>
         <div class="order-info">
-          <div class="order-customer">${order.customer_name} <span class="order-badge ${info.badge}">${info.label}</span> ${deliveryBadge} ${rushBadge}</div>
+          <div class="order-customer">${escapeHtml(order.customer_name)} <span class="order-badge ${info.badge}">${info.label}</span> ${deliveryBadge} ${rushBadge}</div>
           <div class="order-items">${itemSummary || 'No items'}</div>
         </div>
         <div class="order-meta">
@@ -1834,7 +1855,7 @@ function renderOrders(orders) {
           <div class="order-time">${timeAgo}</div>
         </div>
         <div class="order-actions">
-          ${status !== 'cancelled' && status !== 'delivered' && status !== 'collected' ? `<button class="action-btn confirm" onclick="event.stopPropagation(); openStatusModal('${order.id}', '${order.delivery_type}', '${status}', '${escJs(order.customer_name)}', '${escJs(order.customer_phone)}')">Update status</button>` : ''}
+          ${status !== 'cancelled' && status !== 'delivered' && status !== 'collected' ? `<button class="action-btn confirm" onclick="event.stopPropagation(); openStatusModal('${order.id}', '${escAttr(order.delivery_type)}', '${escAttr(status)}', '${escAttr(order.customer_name)}', '${escAttr(order.customer_phone)}')">Update status</button>` : ''}
           <button class="action-btn" onclick="event.stopPropagation(); openInvoice('${order.id}')">🧾 Invoice</button>
         </div>
       </div>`;
