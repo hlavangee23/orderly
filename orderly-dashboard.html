@@ -300,6 +300,69 @@ body {
   box-shadow: var(--shadow-sm);
   overflow: hidden;
 }
+#ordersListContainer {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+#ordersListContainer::-webkit-scrollbar { width: 6px; }
+#ordersListContainer::-webkit-scrollbar-track { background: transparent; }
+#ordersListContainer::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+#ordersListContainer::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* ORDER FILTERS */
+.order-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  padding: 0 1.4rem 1rem;
+}
+.filter-tabs {
+  display: flex;
+  gap: 2px;
+  background: var(--off-white);
+  border-radius: 8px;
+  padding: 3px;
+}
+.order-filter-tab {
+  border: none;
+  background: transparent;
+  padding: 0.45rem 0.8rem;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.order-filter-tab:hover { color: var(--text); }
+.order-filter-tab.active { background: var(--white); color: var(--green-700); box-shadow: var(--shadow-sm); }
+.order-search-input {
+  flex: 1;
+  min-width: 150px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.82rem;
+  font-family: 'DM Sans', sans-serif;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.2s;
+}
+.order-search-input:focus { border-color: var(--green-400); }
+.order-date-select {
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem 0.6rem;
+  font-size: 0.8rem;
+  font-family: 'DM Sans', sans-serif;
+  color: var(--text-mid);
+  background: var(--white);
+  cursor: pointer;
+  outline: none;
+}
 .card-header {
   display: flex;
   align-items: center;
@@ -987,7 +1050,22 @@ textarea.form-input { resize: vertical; line-height: 1.5; }
         </div>
       </div>
 
-      <div id="ordersListContainer">
+      <div class="order-filters">
+        <div class="filter-tabs">
+          <button class="order-filter-tab active" data-tab="active" onclick="setStatusTab('active')">Active</button>
+          <button class="order-filter-tab" data-tab="completed" onclick="setStatusTab('completed')">Completed</button>
+          <button class="order-filter-tab" data-tab="cancelled" onclick="setStatusTab('cancelled')">Cancelled</button>
+          <button class="order-filter-tab" data-tab="all" onclick="setStatusTab('all')">All</button>
+        </div>
+        <input type="text" id="orderSearchInput" class="order-search-input" placeholder="Search name or phone" oninput="setSearchTerm(this.value)" />
+        <select id="orderDateFilter" class="order-date-select" onchange="setDateFilter(this.value)">
+          <option value="all">All time</option>
+          <option value="week">This week</option>
+          <option value="today">Today</option>
+        </select>
+      </div>
+
+      <div id="ordersListContainer" style="max-height:640px;overflow-y:auto;">
         <div id="ordersPlaceholder" style="padding:2.5rem 1.4rem;text-align:center;font-size:0.85rem;color:var(--text-muted);">Loading your orders...</div>
       </div>
     </div>
@@ -1719,16 +1797,19 @@ async function loadOrders(profileId) {
     .select('*')
     .eq('profile_id', profileId)
     .order('created_at', { ascending: false })
-    .limit(20);
+    .limit(200);
 
   if (error || !orders || orders.length === 0) {
     updateStats([], true);
+    allOrdersRaw = [];
+    applyOrderFilters();
     return;
   }
 
   invoiceCount = orders.length;
+  allOrdersRaw = orders;
   updateStats(orders, false);
-  renderOrders(orders);
+  applyOrderFilters();
 }
 
 // ── UPDATE STATS ───────────────────────────────────────────────────
@@ -1841,6 +1922,98 @@ function jsArrayLiteral(arr) {
 
 // ── RENDER REAL ORDERS ─────────────────────────────────────────────
 let allOrdersData = [];
+let allOrdersRaw = [];
+let currentStatusTab = 'active';
+let currentDateFilter = 'all';
+let currentSearchTerm = '';
+
+// Active = anything still in progress; Completed = fulfilled either way;
+// Cancelled is its own tab since it's neither "in progress" nor a win.
+const STATUS_GROUPS = {
+  active:    ['new', 'confirmed', 'preparing', 'packing', 'ready', 'out_for_delivery'],
+  completed: ['delivered', 'collected'],
+  cancelled: ['cancelled'],
+};
+
+function setStatusTab(tab) {
+  currentStatusTab = tab;
+  document.querySelectorAll('.order-filter-tab').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.tab === tab);
+  });
+  applyOrderFilters();
+}
+
+function setDateFilter(value) {
+  currentDateFilter = value;
+  applyOrderFilters();
+}
+
+function setSearchTerm(value) {
+  currentSearchTerm = value.trim().toLowerCase();
+  applyOrderFilters();
+}
+
+// Runs all three filters (status tab, date, search) against the full
+// loaded order set and re-renders. This is client-side over the last
+// 200 orders (see loadOrders) — plenty for how Orderly stores operate
+// today, but would need a server-side filtered query instead if a
+// store's order volume grows far beyond that.
+function applyOrderFilters() {
+  let filtered = allOrdersRaw;
+
+  if (currentStatusTab !== 'all') {
+    const allowed = STATUS_GROUPS[currentStatusTab] || [];
+    filtered = filtered.filter(o => allowed.includes(o.status || 'new'));
+  }
+
+  if (currentDateFilter !== 'all') {
+    const now = new Date();
+    filtered = filtered.filter(o => {
+      const created = new Date(o.created_at);
+      if (currentDateFilter === 'today') {
+        return created.toDateString() === now.toDateString();
+      }
+      if (currentDateFilter === 'week') {
+        const weekAgo = new Date(now);
+        weekAgo.setDate(now.getDate() - 7);
+        return created >= weekAgo;
+      }
+      return true;
+    });
+  }
+
+  if (currentSearchTerm) {
+    filtered = filtered.filter(o => {
+      const name = (o.customer_name || '').toLowerCase();
+      const phone = (o.customer_phone || '').toLowerCase();
+      return name.includes(currentSearchTerm) || phone.includes(currentSearchTerm);
+    });
+  }
+
+  if (filtered.length === 0 && allOrdersRaw.length > 0) {
+    allOrdersData = [];
+    document.getElementById('ordersListContainer').innerHTML =
+      `<div style="padding:2.5rem 1.4rem;text-align:center;font-size:0.85rem;color:var(--text-muted);">
+        No orders match these filters.
+        <div style="margin-top:8px;"><a onclick="resetOrderFilters()" style="color:var(--green-500);cursor:pointer;font-weight:500;">Clear filters</a></div>
+      </div>`;
+    return;
+  }
+
+  renderOrders(filtered);
+}
+
+function resetOrderFilters() {
+  currentStatusTab = 'active';
+  currentDateFilter = 'all';
+  currentSearchTerm = '';
+  document.getElementById('orderSearchInput').value = '';
+  document.getElementById('orderDateFilter').value = 'all';
+  document.querySelectorAll('.order-filter-tab').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.tab === 'active');
+  });
+  applyOrderFilters();
+}
 
 function renderOrders(orders) {
   allOrdersData = orders;
