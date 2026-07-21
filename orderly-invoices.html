@@ -62,7 +62,19 @@ body { font-family: 'DM Sans', sans-serif; background: var(--off-white); color: 
 .search-icon { position: absolute; left: 0.8rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.85rem; pointer-events: none; }
 
 /* CARD / TABLE */
-.card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); overflow: hidden; position: relative; }
+.card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); overflow: hidden; position: relative; max-height: 640px; overflow-y: auto; }
+.card::-webkit-scrollbar { width: 6px; }
+.card::-webkit-scrollbar-track { background: transparent; }
+.card::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+.card::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* INVOICE FILTERS */
+.invoice-filters { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 0.9rem; }
+.filter-tabs { display: flex; gap: 2px; background: var(--off-white); border-radius: 8px; padding: 3px; }
+.invoice-filter-tab { border: none; background: transparent; padding: 0.45rem 0.8rem; font-family: 'DM Sans', sans-serif; font-size: 0.78rem; font-weight: 500; color: var(--text-muted); border-radius: 6px; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+.invoice-filter-tab:hover { color: var(--text); }
+.invoice-filter-tab.active { background: var(--white); color: var(--green-700); box-shadow: var(--shadow-sm); }
+.order-date-select { border: 1.5px solid var(--border); border-radius: 8px; padding: 0.5rem 0.6rem; font-size: 0.8rem; font-family: 'DM Sans', sans-serif; color: var(--text-mid); background: var(--white); cursor: pointer; outline: none; }
 .invoice-row { display: flex; align-items: center; gap: 14px; padding: 0.9rem 1.4rem; border-bottom: 1px solid var(--border); transition: background 0.15s; cursor: pointer; }
 .invoice-row:last-child { border-bottom: none; }
 .invoice-row:hover { background: var(--off-white); }
@@ -293,11 +305,22 @@ textarea.form-input { resize: vertical; min-height: 60px; }
     </div>
   </div>
 
-  <div class="search-row">
-    <div class="search-input-wrap">
-      <span class="search-icon">🔍</span>
-      <input class="search-input" id="searchInput" placeholder="Search by customer name..." oninput="handleSearch()" />
+  <div class="invoice-filters">
+    <div class="filter-tabs">
+      <button class="invoice-filter-tab active" data-tab="all" onclick="setPaymentTab('all')">All</button>
+      <button class="invoice-filter-tab" data-tab="unpaid" onclick="setPaymentTab('unpaid')">Unpaid</button>
+      <button class="invoice-filter-tab" data-tab="partial" onclick="setPaymentTab('partial')">Partial</button>
+      <button class="invoice-filter-tab" data-tab="paid" onclick="setPaymentTab('paid')">Paid</button>
     </div>
+    <div class="search-input-wrap" style="flex:1;min-width:150px;">
+      <span class="search-icon">🔍</span>
+      <input class="search-input" id="searchInput" placeholder="Search by name or phone..." oninput="handleSearch()" />
+    </div>
+    <select id="invoiceDateFilter" class="order-date-select" onchange="setInvoiceDateFilter(this.value)">
+      <option value="all">All time</option>
+      <option value="week">This week</option>
+      <option value="today">Today</option>
+    </select>
   </div>
 
   <div id="paymentHint" style="display:none;background:var(--green-50);border:1px solid var(--green-100);border-radius:10px;padding:0.65rem 1rem;margin-bottom:0.9rem;align-items:center;justify-content:space-between;gap:1rem;font-size:0.82rem;color:var(--text-mid);">
@@ -973,12 +996,80 @@ function handlePaymentModalClick(e) {
   if (e.target === document.getElementById('paymentStatusModal')) closePaymentStatusModal();
 }
 
-// ── SEARCH ─────────────────────────────────────────────────────────
+// ── FILTERS (payment status tab + date + search) ────────────────────
+let currentPaymentTab = 'all';
+let currentInvoiceDateFilter = 'all';
+
+function setPaymentTab(tab) {
+  currentPaymentTab = tab;
+  document.querySelectorAll('.invoice-filter-tab').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.tab === tab);
+  });
+  applyInvoiceFilters();
+}
+
+function setInvoiceDateFilter(value) {
+  currentInvoiceDateFilter = value;
+  applyInvoiceFilters();
+}
+
 function handleSearch() {
+  applyInvoiceFilters();
+}
+
+function applyInvoiceFilters() {
+  let filtered = allInvoices;
+
+  if (currentPaymentTab !== 'all') {
+    filtered = filtered.filter(o => (o.payment_status || 'unpaid') === currentPaymentTab);
+  }
+
+  if (currentInvoiceDateFilter !== 'all') {
+    const now = new Date();
+    filtered = filtered.filter(o => {
+      const created = new Date(o.created_at);
+      if (currentInvoiceDateFilter === 'today') return created.toDateString() === now.toDateString();
+      if (currentInvoiceDateFilter === 'week') {
+        const weekAgo = new Date(now);
+        weekAgo.setDate(now.getDate() - 7);
+        return created >= weekAgo;
+      }
+      return true;
+    });
+  }
+
   const q = document.getElementById('searchInput').value.trim().toLowerCase();
-  if (!q) { renderInvoices(allInvoices); return; }
-  const filtered = allInvoices.filter(o => o.customer_name.toLowerCase().includes(q));
+  if (q) {
+    filtered = filtered.filter(o => {
+      const name = (o.customer_name || '').toLowerCase();
+      const phone = (o.customer_phone || '').toLowerCase();
+      return name.includes(q) || phone.includes(q);
+    });
+  }
+
+  if (filtered.length === 0 && allInvoices.length > 0) {
+    document.getElementById('invoicesCard').innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state-icon">🧾</div>
+        <div class="empty-state-title">No invoices match these filters</div>
+        <div class="empty-state-sub"><a onclick="resetInvoiceFilters()" style="color:var(--green-500);cursor:pointer;font-weight:500;">Clear filters</a></div>
+      </div>`;
+    updateUpgradeBanner();
+    return;
+  }
+
   renderInvoices(filtered);
+}
+
+function resetInvoiceFilters() {
+  currentPaymentTab = 'all';
+  currentInvoiceDateFilter = 'all';
+  document.getElementById('searchInput').value = '';
+  document.getElementById('invoiceDateFilter').value = 'all';
+  document.querySelectorAll('.invoice-filter-tab').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.tab === 'all');
+  });
+  applyInvoiceFilters();
 }
 
 // ── OPEN INVOICE MODAL ─────────────────────────────────────────────
