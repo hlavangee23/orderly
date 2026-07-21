@@ -283,6 +283,10 @@ html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(-
         <div class="spinner" id="spinner"></div>
       </button>
 
+      <p class="bottom-text" style="margin-top:0;">
+        <a onclick="showMagicLink()" style="cursor:pointer;">Or sign in with an email link →</a>
+      </p>
+
       <div class="divider">or</div>
 
       <p class="bottom-text">
@@ -344,6 +348,35 @@ html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(-
       <button class="btn-primary" onclick="sendReset()" id="resetBtn">
         <span id="resetBtnText">Send reset link</span>
         <div class="spinner" id="resetSpinner"></div>
+      </button>
+
+      <p class="bottom-text" style="margin-top:0;">
+        <a onclick="showSignIn()" style="cursor:pointer;">← Back to sign in</a>
+      </p>
+    </div>
+
+    <!-- MAGIC LINK PANEL -->
+    <div class="reset-panel" id="magicPanel">
+      <h1 class="heading">Sign in with<br><em>a link.</em></h1>
+      <p class="sub">Enter your email and we'll send you a one-time link — no password needed.</p>
+
+      <div class="success-banner" id="magicSuccess">
+        ✓ Magic link sent! Check your email inbox.
+      </div>
+
+      <div class="error-banner" id="magicError">
+        <span>⚠️</span>
+        <span id="magicErrorText">Something went wrong. Try again.</span>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="magicEmail">Email address</label>
+        <input class="form-input" type="email" id="magicEmail" placeholder="you@example.com" onkeydown="handleMagicEnter(event)" />
+      </div>
+
+      <button class="btn-primary" onclick="sendMagicLink()" id="magicBtn">
+        <span id="magicBtnText">Send magic link</span>
+        <div class="spinner" id="magicSpinner"></div>
       </button>
 
       <p class="bottom-text" style="margin-top:0;">
@@ -520,6 +553,57 @@ async function sendReset() {
   }
 }
 
+// ── MAGIC LINK SIGN IN ──────────────────────────────────────────────
+// Uses signInWithOtp with shouldCreateUser:false so this can ONLY sign
+// existing users in — it will never silently create a new auth user
+// (and therefore never create a blank/incomplete profile row) for a
+// mistyped or unregistered email. New accounts still must go through
+// orderly-signup.html, which collects store name/city/whatsapp etc.
+async function sendMagicLink() {
+  const email = document.getElementById('magicEmail').value.trim();
+  document.getElementById('magicError').classList.remove('show');
+  document.getElementById('magicSuccess').classList.remove('show');
+
+  if (!email) {
+    document.getElementById('magicErrorText').textContent = 'Please enter your email address.';
+    document.getElementById('magicError').classList.add('show');
+    return;
+  }
+
+  document.getElementById('magicBtn').disabled = true;
+  document.getElementById('magicBtnText').style.display = 'none';
+  document.getElementById('magicSpinner').style.display = 'block';
+
+  const { error } = await db.auth.signInWithOtp({
+    email,
+    options: {
+      // Reuses the same redirect target as password reset — this page
+      // already knows how to pick up a Supabase session from the URL
+      // hash on load (see checkSession() below) and send the user
+      // straight to the dashboard, no extra handling needed here.
+      emailRedirectTo: 'https://orderlyapp.co.za/orderly-signin.html',
+      shouldCreateUser: false
+    }
+  });
+
+  document.getElementById('magicBtn').disabled = false;
+  document.getElementById('magicBtnText').style.display = 'inline';
+  document.getElementById('magicSpinner').style.display = 'none';
+
+  if (error) {
+    if (error.message.includes('Signups not allowed') || error.message.includes('Unable to validate')) {
+      document.getElementById('magicErrorText').textContent = "No account found with that email — get started free instead.";
+    } else {
+      document.getElementById('magicErrorText').textContent = error.message;
+    }
+    document.getElementById('magicError').classList.add('show');
+    return;
+  }
+
+  document.getElementById('magicSuccess').classList.add('show');
+}
+function handleMagicEnter(e) { if (e.key === 'Enter') sendMagicLink(); }
+
 // ── PANEL SWITCHING ────────────────────────────────────────────────
 function showReset() {
   document.getElementById('signinPanel').classList.add('hide');
@@ -527,7 +611,12 @@ function showReset() {
 }
 function showSignIn() {
   document.getElementById('resetPanel').classList.remove('show');
+  document.getElementById('magicPanel').classList.remove('show');
   document.getElementById('signinPanel').classList.remove('hide');
+}
+function showMagicLink() {
+  document.getElementById('signinPanel').classList.add('hide');
+  document.getElementById('magicPanel').classList.add('show');
 }
 
 // ── HELPERS ────────────────────────────────────────────────────────
