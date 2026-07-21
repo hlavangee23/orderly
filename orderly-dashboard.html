@@ -768,9 +768,34 @@ textarea.form-input { resize: vertical; line-height: 1.5; }
 .logo-remove-btn:hover { color: #DC2626; }
 .logo-upload-hint { font-size: 0.72rem; color: var(--text-muted); font-weight: 300; }
 
+.mobile-menu-btn { display: none; }
+.sidebar-overlay { display: none; }
+
 @media (max-width: 900px) {
-  .sidebar { display: none; }
-  .main { margin-left: 0; max-width: 100%; padding: 1.25rem; }
+  .mobile-menu-btn {
+    display: flex; align-items: center; justify-content: center;
+    position: fixed; top: 1rem; left: 1rem; z-index: 60;
+    width: 42px; height: 42px; border-radius: 10px;
+    background: var(--green-900); color: white; border: none;
+    font-size: 1.15rem; cursor: pointer; box-shadow: var(--shadow-md);
+  }
+  .sidebar {
+    display: flex;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    z-index: 65;
+  }
+  .sidebar.open { transform: translateX(0); }
+  .sidebar-overlay {
+    display: block;
+    position: fixed; inset: 0;
+    background: rgba(15,35,24,0.45);
+    z-index: 58;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+  .sidebar-overlay.show { opacity: 1; pointer-events: auto; }
+  .main { margin-left: 0; max-width: 100%; padding: 4.5rem 1.25rem 1.25rem; }
   .stats-row { grid-template-columns: repeat(2, 1fr); }
   .grid-2 { grid-template-columns: 1fr; }
   .wizard-card { padding: 1.5rem; }
@@ -860,7 +885,10 @@ textarea.form-input { resize: vertical; line-height: 1.5; }
 </div>
 
 <!-- SIDEBAR -->
-<aside class="sidebar">
+<button class="mobile-menu-btn" id="mobileMenuBtn" onclick="toggleSidebar()" aria-label="Open menu">☰</button>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<aside class="sidebar" id="sidebar">
   <div class="sidebar-logo">Order<span>ly</span></div>
   <div class="sidebar-store">
     <div class="sidebar-store-avatar" id="sidebarAvatar">—</div>
@@ -2855,6 +2883,16 @@ async function signOut() {
   window.location.href = 'orderly-signin.html';
 }
 
+// ── MOBILE SIDEBAR (hamburger drawer) ───────────────────────────────
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('show');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('show');
+}
+
 // ── HELPERS ────────────────────────────────────────────────────────
 function getTimeAgo(dateStr) {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -3016,6 +3054,7 @@ function updateSendingView() {
 
   const btn = document.getElementById('bulkSendBtn');
   btn.style.background = 'var(--green-700)';
+  btn.style.color = '#FFFFFF';
   document.getElementById('bulkSendBtnText').textContent =
     `Send to ${next.name} on WhatsApp →`;
 }
