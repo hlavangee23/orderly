@@ -290,6 +290,7 @@ body {
   grid-template-columns: 1.6fr 1fr;
   gap: 1.25rem;
   margin-bottom: 1.25rem;
+  align-items: start;
 }
 
 /* CARD */
@@ -308,6 +309,16 @@ body {
 #ordersListContainer::-webkit-scrollbar-track { background: transparent; }
 #ordersListContainer::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 #ordersListContainer::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+#catalogList {
+  max-height: 320px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+#catalogList::-webkit-scrollbar { width: 6px; }
+#catalogList::-webkit-scrollbar-track { background: transparent; }
+#catalogList::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+#catalogList::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 
 /* ORDER FILTERS */
 .order-filters {
@@ -315,7 +326,7 @@ body {
   flex-wrap: wrap;
   gap: 10px;
   align-items: center;
-  padding: 0 1.4rem 1rem;
+  padding: 1rem 1.4rem;
 }
 .filter-tabs {
   display: flex;
@@ -337,8 +348,9 @@ body {
   transition: all 0.15s;
   white-space: nowrap;
 }
-.order-filter-tab:hover { color: var(--text); }
+.order-filter-tab:hover { color: var(--green-700); background: var(--green-100); }
 .order-filter-tab.active { background: var(--white); color: var(--green-700); box-shadow: var(--shadow-sm); }
+.order-filter-tab.active:hover { background: var(--white); color: var(--green-900); }
 .order-search-input {
   flex: 1;
   min-width: 150px;
